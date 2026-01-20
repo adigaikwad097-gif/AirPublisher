@@ -100,8 +100,8 @@ export async function POST(request: Request) {
       // This is a fallback - normally the video should exist before upload
       if (processing_status === 'completed' && video_url) {
         try {
-          const { data: newVideo, error: createError } = await supabase
-            .from('air_publisher_videos')
+          const { data: newVideo, error: createError } = await (supabase
+            .from('air_publisher_videos') as any)
             .insert({
               id: video_id,
               video_url: video_url,
@@ -180,8 +180,8 @@ export async function POST(request: Request) {
     // Update the video - use service role if needed to bypass RLS
     let updateResult
     try {
-      updateResult = await supabase
-        .from('air_publisher_videos')
+      updateResult = await (supabase
+        .from('air_publisher_videos') as any)
         .update(updates)
         .eq('id', video_id)
         .select()
@@ -196,8 +196,8 @@ export async function POST(request: Request) {
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!
         )
-        updateResult = await serviceClient
-          .from('air_publisher_videos')
+        updateResult = await (serviceClient
+          .from('air_publisher_videos') as any)
           .update(updates)
           .eq('id', video_id)
           .select()
@@ -235,8 +235,8 @@ export async function POST(request: Request) {
     if (!video) {
       console.error('[upload-complete] Video not found after update:', video_id)
       // Try to fetch it again to see what happened
-      const { data: recheckVideo } = await supabase
-        .from('air_publisher_videos')
+      const { data: recheckVideo } = await (supabase
+        .from('air_publisher_videos') as any)
         .select('id')
         .eq('id', video_id)
         .maybeSingle()
