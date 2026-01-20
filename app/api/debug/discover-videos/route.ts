@@ -43,13 +43,13 @@ export async function GET() {
       },
       directServiceClient: {
         count: directVideos?.length || 0,
-        videos: directVideos?.map(v => ({
+        videos: (directVideos || []).map((v: any) => ({
           id: v.id,
           title: v.title,
           status: v.status,
           video_url: v.video_url ? 'SET' : 'NULL',
           creator_unique_identifier: v.creator_unique_identifier,
-        })) || [],
+        })),
         error: directError?.message || null,
       },
       note: 'Compare getAllPostedVideos with direct query. Both should show the same videos with status "posted".',
