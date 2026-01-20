@@ -15,8 +15,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.dropbox.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+      },
     ],
   },
+  // Note: Vercel has a 4.5MB limit for serverless functions by default
+  // For larger uploads, we proxy through to n8n which handles the file
 }
 
 module.exports = nextConfig

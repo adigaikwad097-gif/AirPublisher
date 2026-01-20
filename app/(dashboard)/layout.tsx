@@ -10,13 +10,18 @@ export default async function DashboardLayout({
   // Skip server-side auth checks - rely on client-side auth
   // This avoids cookie/session detection issues with ngrok and development
   // Client-side will handle redirects if not authenticated
-  const isDevelopment = process.env.NODE_ENV === 'development'
-  const isNgrok = process.env.NEXT_PUBLIC_APP_URL?.includes('ngrok') || 
-                  process.env.NEXT_PUBLIC_APP_URL?.includes('ngrok-free.dev')
+  const { isDevelopment, isNgrok, isVercel, getAppUrl } = await import('@/lib/utils/app-url')
+  const appUrl = getAppUrl()
+  const isDevOrNgrok = isDevelopment() || isNgrok()
   
-  if (isDevelopment || isNgrok) {
+  if (isDevOrNgrok) {
     console.log('[DashboardLayout] ⚠️ Dev/ngrok mode: Skipping server-side auth check')
-    console.log('[DashboardLayout] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL)
+    console.log('[DashboardLayout] App URL:', appUrl)
+    console.log('[DashboardLayout] Environment:', {
+      isDevelopment: isDevelopment(),
+      isNgrok: isNgrok(),
+      isVercel: isVercel(),
+    })
   } else {
     // Production: Still check auth (but be lenient)
     try {

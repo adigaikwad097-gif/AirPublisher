@@ -138,6 +138,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
           formData.append('video_id', video.id)
           formData.append('creator_unique_identifier', creatorUniqueIdentifier)
           formData.append('file_name', `${video.id}.${file.name.split('.').pop() || 'mp4'}`)
+          // Use window.location.origin for browser-side (works with any domain including Vercel)
           formData.append('callback_url', `${window.location.origin}/api/webhooks/n8n/upload-complete`)
 
           console.log('[UploadForm] FormData created with keys:', Array.from(formData.keys()))

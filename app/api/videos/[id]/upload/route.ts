@@ -182,7 +182,10 @@ export async function POST(
       formData.append('video_id', videoId)
       formData.append('creator_unique_identifier', video.creator_unique_identifier)
       formData.append('file_name', fileName)
-      formData.append('callback_url', `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/n8n/upload-complete`)
+      // Get app URL (automatically uses Vercel URL if deployed)
+      const { getAppUrl } = await import('@/lib/utils/app-url')
+      const appUrl = getAppUrl()
+      formData.append('callback_url', `${appUrl}/api/webhooks/n8n/upload-complete`)
 
       // Note: n8n webhook can be public (no auth needed to send TO n8n)
       // API key is only needed when n8n calls BACK to your app (for security)
@@ -208,7 +211,7 @@ export async function POST(
       console.log('[upload] Metadata:', {
         video_id: videoId,
         creator_id: video.creator_unique_identifier,
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/n8n/upload-complete`,
+        callback_url: `${appUrl}/api/webhooks/n8n/upload-complete`,
       })
       console.log('[upload] Headers being sent:', Object.keys(headers))
       
