@@ -18,8 +18,8 @@ export async function POST(request: Request) {
 
     // Get all posted videos with their performance metrics
     // Aggregate views from air_publisher_videos table
-    const { data: videos, error: videosError } = await supabase
-      .from('air_publisher_videos')
+    const { data: videos, error: videosError } = await (supabase
+      .from('air_publisher_videos') as any)
       .select('creator_unique_identifier, id, views, posted_at')
       .eq('status', 'posted')
 
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     > = {}
 
     // Aggregate views from videos
-    videos?.forEach((video) => {
+    (videos as any[])?.forEach((video: any) => {
       const creatorId = video.creator_unique_identifier
       if (!creatorMetrics[creatorId]) {
         creatorMetrics[creatorId] = {
