@@ -92,10 +92,10 @@ export default async function ConnectionsPage({
   // Check which platforms are connected
   // Try new airpublisher_*_tokens tables first (by creator_unique_identifier), fallback to old tables (by user_id)
   // Use service role client as fallback if RLS blocks queries
-  let youtubeTokens = { data: null, error: null }
-  let instagramTokens = { data: null, error: null }
-  let tiktokTokens = { data: null, error: null }
-  let dropboxTokens = { data: null, error: null }
+  let youtubeTokens: { data: any; error: any } = { data: null, error: null }
+  let instagramTokens: { data: any; error: any } = { data: null, error: null }
+  let tiktokTokens: { data: any; error: any } = { data: null, error: null }
+  let dropboxTokens: { data: { is_configured?: boolean } | null; error: any } = { data: null, error: null }
 
   // Create service role client for fallback
   const serviceClient = process.env.SUPABASE_SERVICE_ROLE_KEY
