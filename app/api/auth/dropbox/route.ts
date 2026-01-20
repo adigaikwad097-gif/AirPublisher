@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getCurrentCreator } from '@/lib/db/creator'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * Initiate Dropbox OAuth flow (company-wide connection)

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { storeDropboxTokens } from '@/lib/dropbox/client'
 
 /**
  * Handle Dropbox OAuth callback
@@ -81,19 +80,10 @@ export async function GET(request: Request) {
       )
     }
 
-    // Calculate expiration
-    const expiresAt = expires_in
-      ? new Date(Date.now() + expires_in * 1000).toISOString()
-      : null
-
-    // Store tokens as company-wide account
-    await storeDropboxTokens(
-      access_token,
-      refresh_token || null,
-      expiresAt
-    )
-
-    console.log('[dropbox-callback] ✅ Tokens stored successfully')
+    // Note: Tokens are not stored in database anymore
+    // Dropbox uploads are handled by n8n, which manages its own Dropbox connection
+    // This callback route is kept for backwards compatibility but tokens are not persisted
+    console.log('[dropbox-callback] ✅ OAuth completed (tokens not stored - using n8n for uploads)')
 
     return NextResponse.redirect(
       new URL('/settings/connections?success=dropbox_connected', request.url)
