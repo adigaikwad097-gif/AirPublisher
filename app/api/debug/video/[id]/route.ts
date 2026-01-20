@@ -27,11 +27,14 @@ export async function GET(
     )
 
     // Check if video exists
-    const { data: videoData, error } = await (serviceClient
+    const queryResult = await (serviceClient
       .from('air_publisher_videos') as any)
       .select('*')
       .eq('id', videoId)
-      .maybeSingle() as Promise<{ data: any; error: any }>)
+      .maybeSingle()
+
+    // Cast the entire result to any to prevent TypeScript narrowing
+    const { data: videoData, error } = queryResult as { data: any; error: any }
 
     if (error) {
       return NextResponse.json({
@@ -49,19 +52,27 @@ export async function GET(
       })
     }
 
-    // Type assertion to fix TypeScript error
-    const video: any = videoData
+    // Type assertion to fix TypeScript error - use videoData directly with explicit any cast
+    const video = videoData as {
+      id: string
+      title: string
+      status: string
+      creator_unique_identifier: string
+      platform_target: string
+      created_at: string
+      posted_at: string | null
+    }
 
     return NextResponse.json({
       exists: true,
       video: {
-        id: (video as any).id,
-        title: (video as any).title,
-        status: (video as any).status,
-        creator_unique_identifier: (video as any).creator_unique_identifier,
-        platform_target: (video as any).platform_target,
-        created_at: (video as any).created_at,
-        posted_at: (video as any).posted_at,
+        id: video.id,
+        title: video.title,
+        status: video.status,
+        creator_unique_identifier: video.creator_unique_identifier,
+        platform_target: video.platform_target,
+        created_at: video.created_at,
+        posted_at: video.posted_at,
       },
     })
   } catch (error: any) {
