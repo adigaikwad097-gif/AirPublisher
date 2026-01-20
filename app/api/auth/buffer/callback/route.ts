@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     if (existing) {
       const { error: updateError } = await serviceClient
         .from('buffer_tokens')
-        .update(tokenRecord)
+        .update(tokenRecord as any)
         .eq('user_id', stateData.user_id)
 
       if (updateError) {
