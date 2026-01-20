@@ -70,3 +70,4 @@ Once you complete Facebook login:
 
 **Seeing Facebook login when connecting Instagram is 100% normal and expected.** This is how Meta's OAuth system works. Just complete the Facebook login, and your Instagram account will be connected!
 
+

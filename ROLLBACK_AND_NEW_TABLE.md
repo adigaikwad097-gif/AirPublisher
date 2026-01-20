@@ -58,3 +58,4 @@ After running the migration, you'll need to update the code to:
 
 **Note**: This approach separates concerns - `creator_profiles` stores profile data, `airpublisher_creator_profiles` links users to profiles.
 
+

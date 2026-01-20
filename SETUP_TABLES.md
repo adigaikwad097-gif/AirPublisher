@@ -127,3 +127,4 @@ Once the tables are created:
 2. You can upload videos through the UI
 3. Leaderboards will work once you have video data
 
+

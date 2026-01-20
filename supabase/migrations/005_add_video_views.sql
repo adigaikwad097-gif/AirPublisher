@@ -19,3 +19,4 @@ WHERE status = 'posted';
 -- Comment: The existing RLS policies allow authenticated users to view videos
 -- This is sufficient for the discover page to show all posted videos
 
+

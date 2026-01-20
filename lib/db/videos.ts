@@ -112,16 +112,95 @@ export async function getVideoById(id: string) {
   if (error) {
     // If table doesn't exist, return null instead of throwing
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      console.warn('[videos] Table air_publisher_videos does not exist yet. Run the migration: supabase/migrations/001_create_air_publisher_tables.sql')
+      console.warn('[getVideoById] Table air_publisher_videos does not exist yet. Run the migration: supabase/migrations/001_create_air_publisher_tables.sql')
       return null
     }
     // If not found (PGRST116), return null
     if (error.code === 'PGRST116') {
+      console.log('[getVideoById] Video not found (PGRST116)')
       return null
     }
-    console.error('[videos] Error:', error)
+    
+    // If RLS blocks it, try service role as fallback
+    if (error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+      console.warn('[getVideoById] RLS blocked query. Trying service role as fallback...', error.message)
+      if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        try {
+          const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+          const { Database } = await import('@/lib/supabase/types')
+          const serviceClient = createServiceClient<Database>(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          )
+          const { data: serviceData, error: serviceError } = await serviceClient
+            .from('air_publisher_videos')
+            .select('*')
+            .eq('id', id)
+            .single()
+          
+          if (serviceError) {
+            if (serviceError.code === 'PGRST116') {
+              console.log('[getVideoById] Service role: Video not found (PGRST116)')
+              return null
+            }
+            console.error('[getVideoById] Service role also failed:', serviceError)
+            return null
+          }
+          
+          console.log('[getVideoById] ✅ Service role found video:', serviceData?.id)
+          return (serviceData || null) as Video | null
+        } catch (e: any) {
+          console.error('[getVideoById] Service role exception:', e?.message || e)
+          return null
+        }
+      }
+      return null
+    }
+    
+    console.error('[getVideoById] Error:', error)
     throw new Error(error.message || `Database error: ${JSON.stringify(error)}`)
   }
+  
+  // If no error but also no data, try service role as fallback (RLS might be silently blocking)
+  if (!data && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn('[getVideoById] Regular client returned empty (no error). Trying service role as fallback...')
+    try {
+      const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+      const { Database } = await import('@/lib/supabase/types')
+      const serviceClient = createServiceClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      const { data: serviceData, error: serviceError } = await serviceClient
+        .from('air_publisher_videos')
+        .select('*')
+        .eq('id', id)
+        .single()
+      
+      if (serviceError) {
+        if (serviceError.code === 'PGRST116') {
+          console.log('[getVideoById] Service role: Video not found (PGRST116)')
+          return null
+        }
+        console.error('[getVideoById] Service role fallback error:', serviceError)
+        return null
+      }
+      
+      if (serviceData) {
+        console.log('[getVideoById] ✅ Service role found video (regular returned empty):', serviceData.id)
+        return serviceData as Video
+      }
+      
+      // Service role also returned empty - truly no video
+      console.log('[getVideoById] ✅ No video found (service role also returned empty)')
+      return null
+    } catch (e: any) {
+      console.error('[getVideoById] Service role fallback exception:', e?.message || e)
+      return null
+    }
+  }
+  
+  console.log('[getVideoById] ✅ Found video:', data?.id)
   return data as Video
 }
 

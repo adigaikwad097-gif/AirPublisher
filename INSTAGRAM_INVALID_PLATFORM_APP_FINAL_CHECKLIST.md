@@ -178,3 +178,4 @@ If still not working, please share:
    - What URIs are in "Valid OAuth Redirect URIs"?
 4. **Your Instagram account type**: Business/Creator/Personal
 
+

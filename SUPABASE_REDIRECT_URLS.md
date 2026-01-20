@@ -74,3 +74,4 @@ After saving, check:
 
 **This is REQUIRED for PKCE to work!** Without correct redirect URLs, Supabase won't accept the OAuth callback.
 
+

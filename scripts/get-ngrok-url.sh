@@ -25,3 +25,4 @@ echo "📝 Update your .env.local:"
 echo "   NEXT_PUBLIC_APP_URL=$NGROK_URL"
 echo ""
 
+

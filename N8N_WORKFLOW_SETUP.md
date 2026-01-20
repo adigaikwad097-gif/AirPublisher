@@ -1,279 +1,409 @@
-# n8n Workflow Setup Guide - Step by Step
+# n8n Workflow Setup Guide - Post to Social Platforms
 
-This guide will walk you through creating all the n8n workflows needed for AIR Publisher.
+This guide will walk you through creating an n8n workflow to automatically post scheduled videos to YouTube, Instagram, and TikTok.
 
 ## Prerequisites
 
-1. **n8n instance running** (cloud or self-hosted)
-2. **Your Next.js app URL** (e.g., `http://localhost:3000` or your production URL)
-3. **n8n Webhook Secret** (set in `.env.local` as `N8N_WEBHOOK_SECRET`)
+- n8n instance set up and running
+- `N8N_API_KEY` configured in your `.env.local`
+- Platform OAuth connections completed (YouTube, Instagram, TikTok)
+- Videos scheduled in AIR Publisher
+
+## Workflow Overview
+
+The workflow will:
+1. **Check for scheduled videos** (runs every 15 minutes)
+2. **Get video details and tokens** for each video
+3. **Post to the appropriate platform** (YouTube/Instagram/TikTok)
+4. **Update video status** in Supabase
 
 ---
 
-## Workflow 1: Scheduled Post Execution
+## Step 1: Create the Workflow
 
-This workflow runs every 15 minutes and posts scheduled videos to YouTube, Instagram, or TikTok.
+1. Open your n8n instance
+2. Click **"Add Workflow"** or **"New Workflow"**
+3. Name it: **"Scheduled Post Executor"**
 
-### Step 1: Create New Workflow
+---
 
-1. In n8n, click **"Add Workflow"** or **"New Workflow"**
-2. Name it: `AIR Publisher - Scheduled Post Execution`
+## Step 2: Add Cron Trigger
 
-### Step 2: Add Cron Trigger
+1. Add a **"Cron"** node
+2. Configure it to run **every 15 minutes**:
+   - **Mode:** Every X
+   - **Unit:** Minutes
+   - **Value:** 15
 
-1. Click **"Add Node"** or drag from the node panel
-2. Search for **"Cron"** and add it
+This will check for scheduled videos every 15 minutes.
+
+---
+
+## Step 3: Fetch Scheduled Videos
+
+You have two options:
+
+### Option A: Use `/api/n8n/scheduled-posts` (existing)
+- Returns scheduled videos due to be posted
+- Best for scheduled posts with future dates
+
+### Option B: Use `/api/n8n/pending-posts` (new - recommended)
+- Returns both scheduled videos AND immediate posts
+- Includes `is_immediate` flag to prioritize immediate posts
+- Best for handling both scheduled and "publish now" flows
+
+**Recommended: Use `/api/n8n/pending-posts`**
+
+1. Add an **"HTTP Request"** node
+2. Connect it to the Cron node
 3. Configure:
-   - **Trigger Times**: `Every 15 minutes`
-   - Or use Cron expression: `*/15 * * * *` (every 15 minutes)
+   - **Method:** GET
+   - **URL:** `https://your-app-url.com/api/n8n/pending-posts?before={{ $now.toISO() }}`
+   - **Authentication:** Generic Credential Type
+   - **Authentication Method:** Header Auth
+   - **Name:** `x-n8n-api-key`
+   - **Value:** `{{ $env.N8N_API_KEY }}` or your API key
 
-### Step 3: Add HTTP Request Node (Get Scheduled Posts)
+**Response Format:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "posts": [
+    {
+      "video_id": "uuid",
+      "creator_unique_identifier": "creator-id",
+      "platform": "youtube",
+      "video_url": "https://...",
+      "title": "Video Title",
+      "description": "Video description",
+      "thumbnail_url": "https://...",
+      "scheduled_at": "2024-01-01T12:00:00Z"
+    }
+  ]
+}
+```
 
-1. Add **"HTTP Request"** node
-2. Connect it after the Cron node
-3. Configure:
-   - **Method**: `GET`
-   - **URL**: `{{ $env.NEXTJS_URL }}/api/n8n/scheduled-posts?before={{ $now.toISO() }}`
-     - Replace `{{ $env.NEXTJS_URL }}` with your actual URL (e.g., `http://localhost:3000`)
-   - **Authentication**: `Generic Credential Type`
-   - **Credential Type**: `Header Auth`
-   - **Name**: `X-N8N-Webhook-Secret`
-   - **Value**: `{{ $env.N8N_WEBHOOK_SECRET }}`
-     - Or hardcode your secret from `.env.local`
+---
 
-**Alternative (if environment variables don't work):**
-- **URL**: `http://localhost:3000/api/n8n/scheduled-posts?before={{ $now.toISO() }}`
-- Add **Header**:
-  - **Name**: `X-N8N-Webhook-Secret`
-  - **Value**: `your-secret-key-here` (from `.env.local`)
+## Step 4: Loop Through Videos
 
-### Step 4: Add Split In Batches Node
-
-1. Add **"Split In Batches"** node
-2. Connect it after HTTP Request
-3. Configure:
-   - **Field to Split Out**: `posts` (from the response)
-   - **Batch Size**: `10` (process 10 videos at a time)
-
-### Step 5: Add Loop Over Items Node
-
-1. Add **"Loop Over Items"** node (or use "For Each" node)
-2. Connect it after Split In Batches
+1. Add a **"Split In Batches"** node or **"Loop Over Items"**
+2. Set **Batch Size:** 1 (process one video at a time)
 3. This will iterate through each scheduled video
 
-### Step 6: Add HTTP Request Node (Get Video Details)
+---
 
-1. Add another **"HTTP Request"** node inside the loop
+## Step 5: Get Video Details and Tokens
+
+For each video, fetch complete details including access tokens:
+
+1. Add another **"HTTP Request"** node
 2. Configure:
-   - **Method**: `GET`
-   - **URL**: `{{ $env.NEXTJS_URL }}/api/n8n/video-details?video_id={{ $json.video_id }}`
-   - **Authentication**: Same as Step 3 (Header Auth with `X-N8N-Webhook-Secret`)
+   - **Method:** GET
+   - **URL:** `https://your-app-url.com/api/n8n/video-details?video_id={{ $json.video_id }}`
+   - **Authentication:** Same as Step 3 (Header Auth with API key)
 
-### Step 7: Add Switch Node (Route by Platform)
+**Response Format:**
+```json
+{
+  "success": true,
+  "video": {
+    "id": "uuid",
+    "title": "Video Title",
+    "description": "Description",
+    "video_url": "https://...",
+    "thumbnail_url": "https://...",
+    "platform_target": "youtube",
+    "creator_unique_identifier": "creator-id"
+  },
+  "platform_tokens": {
+    "access_token": "...",
+    "refresh_token": "...",
+    "channel_id": "..." // YouTube specific
+  },
+  "has_tokens": true
+}
+```
 
-1. Add **"Switch"** node
-2. Connect it after Get Video Details
-3. Configure:
-   - **Mode**: `Rules`
-   - **Value**: `{{ $json.body.platform }}` or `{{ $json.body.video.platform_target }}`
-   - **Rules**:
-     - **Rule 1**: `youtube` → Connect to YouTube node
-     - **Rule 2**: `instagram` → Connect to Instagram node
-     - **Rule 3**: `tiktok` → Connect to TikTok node
-     - **Rule 4**: `internal` → Skip (no posting needed)
+---
 
-### Step 8: Add YouTube Upload Node
+## Step 6: Switch by Platform
 
-1. Add **"YouTube"** node (or "HTTP Request" if no YouTube node)
-2. Configure for YouTube Data API v3:
-   - **Operation**: `Upload a Video`
-   - **Title**: `{{ $json.body.video.title }}`
-   - **Description**: `{{ $json.body.video.description }}`
-   - **Video File**: `{{ $json.body.video.video_url }}` (or download first)
-   - **Thumbnail**: `{{ $json.body.video.thumbnail_url }}`
-   - **Access Token**: `{{ $json.body.platform_tokens.access_token }}`
+Add an **"IF"** node or **"Switch"** node to route based on platform:
+- **YouTube** → YouTube Upload
+- **Instagram** → Instagram Upload
+- **TikTok** → TikTok Upload
 
-**Note**: You may need to:
-- Download the video file first using HTTP Request
-- Upload it to YouTube using their API
-- Handle OAuth token refresh if needed
+**Condition:** `{{ $json.video.platform_target }}`
 
-### Step 9: Add Instagram Upload Node
+---
 
-1. Add **"Instagram"** node or HTTP Request
-2. Configure for Instagram Graph API:
-   - **Operation**: `Create Media Container` then `Publish Media`
-   - **Media Type**: `VIDEO`
-   - **Video URL**: `{{ $json.body.video.video_url }}`
-   - **Caption**: `{{ $json.body.video.title }}\n\n{{ $json.body.video.description }}`
-   - **Access Token**: `{{ $json.body.platform_tokens.access_token }}`
+## Step 7: Post to YouTube
 
-### Step 10: Add TikTok Upload Node
+### Option A: Using YouTube API Node (if available)
 
-1. Add **"TikTok"** node or HTTP Request
-2. Configure for TikTok API:
-   - **Operation**: `Upload Video`
-   - **Video File**: Download from `{{ $json.body.video.video_url }}`
-   - **Title**: `{{ $json.body.video.title }}`
-   - **Access Token**: `{{ $json.body.platform_tokens.access_token }}`
-
-### Step 11: Add HTTP Request Node (Report Status)
-
-1. Add **"HTTP Request"** node after each platform node
+1. Add **"YouTube"** node
 2. Configure:
-   - **Method**: `POST`
-   - **URL**: `{{ $env.NEXTJS_URL }}/api/webhooks/n8n/post-status`
-   - **Authentication**: Same Header Auth
-   - **Body** (JSON):
-   ```json
-   {
-     "video_id": "{{ $json.video_id }}",
-     "status": "posted",
-     "platform_post_id": "{{ $json.id }}",
-     "posted_at": "{{ $now.toISO() }}",
-     "platform": "{{ $json.platform }}"
-   }
-   ```
+   - **Operation:** Upload Video
+   - **Title:** `{{ $json.video.title }}`
+   - **Description:** `{{ $json.video.description }}`
+   - **Video File URL:** `{{ $json.video.video_url }}`
+   - **Access Token:** `{{ $json.platform_tokens.access_token }}`
 
-### Step 12: Add Error Handling
+### Option B: Using HTTP Request (Manual API Call)
 
-1. Add **"On Error"** node or use Try-Catch
-2. Configure to send error status:
-   - **HTTP Request** to `/api/webhooks/n8n/post-status`
-   - **Body**: 
-   ```json
-   {
-     "video_id": "{{ $json.video_id }}",
-     "status": "failed",
-     "error_message": "{{ $json.error.message }}"
-   }
-   ```
+1. Add **"HTTP Request"** node
+2. Configure:
+   - **Method:** POST
+   - **URL:** `https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status`
+   - **Headers:**
+     - `Authorization: Bearer {{ $json.platform_tokens.access_token }}`
+     - `Content-Type: application/json`
+   - **Body (JSON):**
+     ```json
+     {
+       "snippet": {
+         "title": "{{ $json.video.title }}",
+         "description": "{{ $json.video.description }}",
+         "categoryId": "22"
+       },
+       "status": {
+         "privacyStatus": "public"
+       }
+     }
+     ```
 
-### Step 13: Activate Workflow
-
-1. Click **"Active"** toggle in the top right
-2. Save the workflow
-3. Test by manually executing it
+**Note:** YouTube upload requires a resumable upload flow (2-step process). See YouTube API docs for details.
 
 ---
 
-## Workflow 2: Metrics Collection
+## Step 8: Post to Instagram
 
-This workflow collects performance metrics from platforms and updates leaderboards.
+1. Add **"HTTP Request"** node
+2. Configure:
+   - **Method:** POST
+   - **URL:** `https://graph.facebook.com/v18.0/{{ $json.platform_tokens.instagram_business_account_id }}/media`
+   - **Headers:**
+     - `Authorization: Bearer {{ $json.platform_tokens.access_token }}`
+     - `Content-Type: application/json`
+   - **Body (JSON):**
+     ```json
+     {
+       "media_type": "VIDEO",
+       "video_url": "{{ $json.video.video_url }}",
+       "caption": "{{ $json.video.description }}",
+       "thumb_offset": 0
+     }
+     ```
+   - This returns a `container_id`, then you need to publish it (see Step 8b)
 
-### Step 1: Create New Workflow
+### Step 8b: Publish Instagram Video
 
-1. Name: `AIR Publisher - Metrics Collection`
-
-### Step 2: Add Cron Trigger
-
-1. **Trigger**: `Every hour` or `Daily at 2 AM`
-2. Cron: `0 2 * * *` (daily at 2 AM)
-
-### Step 3: Query Supabase for Posted Videos
-
-1. Add **"Supabase"** node or **"HTTP Request"**
-2. Query all videos with `status = 'posted'`
-3. Or use HTTP Request to your Supabase REST API
-
-### Step 4: Loop Through Videos
-
-1. Add **"Loop Over Items"** node
-2. For each video, fetch metrics from platform API
-
-### Step 5: Fetch Metrics by Platform
-
-1. Add **Switch** node to route by platform
-2. For each platform:
-   - **YouTube**: Get video stats via YouTube Data API
-   - **Instagram**: Get post insights via Instagram Graph API
-   - **TikTok**: Get video stats via TikTok API
-
-### Step 6: Send Metrics to Next.js
-
-1. Add **HTTP Request** node
-2. **POST** to `/api/webhooks/n8n/metrics`
-3. **Body**:
-   ```json
-   {
-     "video_id": "{{ $json.video_id }}",
-     "platform": "youtube",
-     "views": 1000,
-     "likes": 50,
-     "comments": 10,
-     "estimated_revenue": 5.00
-   }
-   ```
-
-### Step 7: Recalculate Leaderboard
-
-1. After all metrics sent, add **HTTP Request** node
-2. **POST** to `/api/n8n/leaderboard-calculate`
-3. This recalculates all ranks
+Add another **"HTTP Request"** node:
+- **Method:** POST
+- **URL:** `https://graph.facebook.com/v18.0/{{ $json.platform_tokens.instagram_business_account_id }}/media_publish`
+- **Body:**
+  ```json
+  {
+    "creation_id": "{{ $('Create Container').item.json.id }}"
+  }
+  ```
 
 ---
 
-## Workflow 3: AI Content Ingestion
+## Step 9: Post to TikTok
 
-This receives content from AIR Ideas and creates draft videos.
+1. Add **"HTTP Request"** node
+2. Configure:
+   - **Method:** POST
+   - **URL:** `https://open.tiktokapis.com/v2/post/publish/video/init/`
+   - **Headers:**
+     - `Authorization: Bearer {{ $json.platform_tokens.access_token }}`
+     - `Content-Type: application/json`
+   - **Body (JSON):**
+     ```json
+     {
+       "post_info": {
+         "title": "{{ $json.video.title }}",
+         "privacy_level": "PUBLIC_TO_EVERYONE",
+         "disable_duet": false,
+         "disable_comment": false,
+         "disable_stitch": false,
+         "video_cover_timestamp_ms": 1000
+       },
+       "source_info": {
+         "source": "FILE_UPLOAD",
+         "video_url": "{{ $json.video.video_url }}"
+       }
+     }
+     ```
 
-### Step 1: Create New Workflow
-
-1. Name: `AIR Publisher - AI Content Ingestion`
-
-### Step 2: Add Webhook Trigger
-
-1. Add **"Webhook"** node
-2. **HTTP Method**: `POST`
-3. **Path**: `ai-content` (or any path you prefer)
-4. Copy the webhook URL
-
-### Step 3: Send to Next.js
-
-1. Add **HTTP Request** node
-2. **POST** to `/api/webhooks/n8n/ai-content`
-3. **Body**: Pass through the webhook payload
-
----
-
-## Testing Your Workflows
-
-### Test Workflow 1 (Scheduled Posts):
-
-1. Create a test video in your database with `status = 'scheduled'`
-2. Set `scheduled_at` to a time in the past
-3. Manually execute the workflow
-4. Check if it:
-   - Fetches the scheduled video
-   - Gets video details
-   - Attempts to post (or shows what it would post)
-   - Updates status
-
-### Test Workflow 2 (Metrics):
-
-1. Ensure you have posted videos in the database
-2. Manually execute the workflow
-3. Check if metrics are collected and sent
+**Note:** TikTok upload is a 2-step process (initialize, then upload). See TikTok API docs for complete flow.
 
 ---
 
-## Environment Variables in n8n
+## Step 10: Update Video Status
 
-Set these in n8n (Settings → Environment Variables):
+After successful posting, update the video status in Supabase:
 
-- `NEXTJS_URL`: Your Next.js app URL (e.g., `http://localhost:3000`)
-- `N8N_WEBHOOK_SECRET`: Your webhook secret (from `.env.local`)
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY`: For direct database access (optional)
+1. Add **"HTTP Request"** node
+2. Configure:
+   - **Method:** POST
+   - **URL:** `https://your-app-url.com/api/webhooks/n8n/post-status`
+   - **Authentication:** Header Auth (same API key)
+   - **Body (JSON):**
+     ```json
+     {
+       "video_id": "{{ $('Get Video Details').item.json.video.id }}",
+       "status": "posted",
+       "platform_post_id": "{{ $json.id }}",
+       "platform_url": "{{ $json.url || $json.permalink }}"
+     }
+     ```
+
+If posting failed:
+```json
+{
+  "video_id": "{{ $('Get Video Details').item.json.video.id }}",
+  "status": "failed",
+  "error_message": "{{ $json.error.message }}"
+}
+```
+
+---
+
+## Complete Workflow Structure
+
+```
+[Cron Trigger]
+    ↓
+[Get Scheduled Posts] → HTTP Request to /api/n8n/scheduled-posts
+    ↓
+[Split In Batches] → Process one video at a time
+    ↓
+[Get Video Details] → HTTP Request to /api/n8n/video-details
+    ↓
+[Switch by Platform]
+    ├── YouTube → [Post to YouTube] → [Update Status]
+    ├── Instagram → [Create Container] → [Publish] → [Update Status]
+    └── TikTok → [Initialize Upload] → [Upload] → [Update Status]
+```
+
+---
+
+## Testing the Workflow
+
+### 1. Test with a Single Video
+
+1. Create a test video in AIR Publisher
+2. Schedule it for a few minutes in the future
+3. Run the workflow manually in n8n
+4. Check if it posts successfully
+
+### 2. Check Logs
+
+- n8n execution logs show each step
+- Check AIR Publisher logs for API calls
+- Verify video status updates in Supabase
+
+### 3. Verify Posting
+
+- Check YouTube/Instagram/TikTok for the posted video
+- Verify video status is "posted" in Supabase
+- Check `posted_at` timestamp is set
+
+---
+
+## Troubleshooting
+
+### No Videos Found
+
+- Verify video has `status: 'scheduled'`
+- Check `scheduled_at` is in the past
+- Ensure video has `platform_target` set
+
+### Token Errors
+
+- Check tokens exist in `airpublisher_*_tokens` tables
+- Verify tokens are not expired (auto-refresh should handle this)
+- Check `creator_unique_identifier` matches
+
+### Platform API Errors
+
+- **YouTube:** Check video format (MP4), file size limits, API quotas
+- **Instagram:** Verify Business Account, check video dimensions, caption length
+- **TikTok:** Verify app permissions, check video format requirements
+
+### Status Not Updating
+
+- Verify `post-status` webhook is being called
+- Check webhook response is successful
+- Verify `video_id` in webhook payload matches database
+
+---
+
+## Environment Variables for n8n
+
+In your n8n environment, set:
+
+```
+N8N_API_KEY=your_api_key_here
+AIR_PUBLISHER_URL=https://your-app-url.com
+```
+
+Use these in workflow nodes:
+- `{{ $env.N8N_API_KEY }}` for API key
+- `{{ $env.AIR_PUBLISHER_URL }}` for base URL
 
 ---
 
 ## Next Steps
 
-1. Start with **Workflow 1** (Scheduled Posts) - most critical
-2. Test it thoroughly before moving to others
-3. Set up platform API credentials in n8n
-4. Configure OAuth tokens for each platform
+1. Create the workflow in n8n following steps above
+2. Test with a single scheduled video
+3. Verify it posts correctly to each platform
+4. Set up error handling (try/catch nodes)
+5. Add notifications for failures (email/Slack)
+6. Monitor workflow executions
 
-Let me know when you're ready to start, and I'll guide you through each step in detail!
+---
 
+## API Endpoint Reference
+
+### GET /api/n8n/pending-posts (Recommended)
+Returns videos that need to be posted (scheduled + immediate posts). This endpoint handles both scheduled videos and videos that should be posted immediately when user clicks "Publish Now".
+
+**Query Params:**
+- `limit` (optional): Number of posts (default: 50)
+- `before` (optional): ISO timestamp (default: now)
+
+**Response includes `is_immediate` flag** to help n8n prioritize immediate posts.
+
+### GET /api/n8n/scheduled-posts (Alternative)
+Returns scheduled videos that need to be posted.
+
+**Query Params:**
+- `limit` (optional): Number of posts (default: 50)
+- `before` (optional): ISO timestamp (default: now)
+
+### GET /api/n8n/video-details?video_id={id}
+Returns video details and refreshed platform tokens.
+
+### POST /api/webhooks/n8n/post-status
+Updates video status after posting.
+
+**Body:**
+```json
+{
+  "video_id": "uuid",
+  "status": "posted" | "failed",
+  "platform_post_id": "id",
+  "platform_url": "https://...",
+  "error_message": "..." // if failed
+}
+```
+
+---
+
+Ready to build? Start with Step 1 and work through each step methodically!

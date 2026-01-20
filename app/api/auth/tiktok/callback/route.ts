@@ -13,36 +13,144 @@ export async function GET(request: Request) {
     const state = searchParams.get('state')
     const error = searchParams.get('error')
 
+    // Detect base URL for redirects (ngrok or localhost)
+    const requestUrl = new URL(request.url)
+    let baseUrlForRedirects = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    
+    // If request is coming through ngrok, use that
+    if (requestUrl.host && requestUrl.host.includes('ngrok')) {
+      const protocol = requestUrl.protocol.replace(':', '') || 'https'
+      baseUrlForRedirects = `${protocol}://${requestUrl.host}`
+    } else {
+      // Check headers for ngrok
+      const forwardedHost = request.headers.get('x-forwarded-host')
+      const hostHeader = request.headers.get('host')
+      const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+      const detectedHost = forwardedHost || hostHeader
+      if (detectedHost && detectedHost.includes('ngrok')) {
+        baseUrlForRedirects = `${forwardedProto}://${detectedHost}`
+      }
+    }
+
     if (error) {
       return NextResponse.redirect(
-        new URL(`/settings/connections?error=${encodeURIComponent(error)}`, request.url)
+        new URL(`/settings/connections?error=${encodeURIComponent(error)}`, baseUrlForRedirects)
       )
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/settings/connections?error=missing_code', request.url)
+        new URL('/settings/connections?error=missing_code', baseUrlForRedirects)
       )
     }
 
-    // Decode state
-    let stateData: { creator_unique_identifier: string; user_id: string }
+    // Decode state (now includes redirect_uri)
+    let stateData: { creator_unique_identifier?: string; user_id?: string; redirect_uri?: string }
     try {
       stateData = JSON.parse(Buffer.from(state, 'base64url').toString())
     } catch {
       return NextResponse.redirect(
-        new URL('/settings/connections?error=invalid_state', request.url)
+        new URL('/settings/connections?error=invalid_state', baseUrlForRedirects)
       )
     }
 
-    const clientKey = process.env.TIKTOK_CLIENT_KEY
-    const clientSecret = process.env.TIKTOK_CLIENT_SECRET
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/tiktok/callback`
+    // If creator_unique_identifier is missing from state, fetch it from creator profile
+    let creatorUniqueIdentifier = stateData.creator_unique_identifier
+    const userId = stateData.user_id
+    
+    if (!creatorUniqueIdentifier && userId) {
+      console.log('[tiktok-callback] creator_unique_identifier not in state, fetching from creator profile...')
+      const supabase = await createClient()
+      const { data: profiles, error: profileError } = await supabase
+        .from('creator_profiles')
+        .select('unique_identifier')
+        .limit(1)
+        .order('created_at', { ascending: false })
+      
+      if (!profileError && profiles && profiles.length > 0) {
+        creatorUniqueIdentifier = profiles[0].unique_identifier
+        console.log('[tiktok-callback] Found creator_unique_identifier from profile:', creatorUniqueIdentifier)
+      }
+    }
 
-    if (!clientKey || !clientSecret) {
+    // If still no creator_unique_identifier, try to get from getCurrentCreator
+    if (!creatorUniqueIdentifier) {
+      try {
+        const { getCurrentCreator } = await import('@/lib/db/creator')
+        const creator = await getCurrentCreator()
+        if (creator) {
+          creatorUniqueIdentifier = creator.unique_identifier
+          console.log('[tiktok-callback] Found creator_unique_identifier from getCurrentCreator:', creatorUniqueIdentifier)
+        }
+      } catch (e) {
+        console.warn('[tiktok-callback] Could not get creator from getCurrentCreator:', e)
+      }
+    }
+
+    // If still no creator_unique_identifier, we can't proceed
+    if (!creatorUniqueIdentifier) {
+      console.error('[tiktok-callback] No creator_unique_identifier found - cannot store tokens')
       return NextResponse.redirect(
-        new URL('/settings/connections?error=oauth_not_configured', request.url)
+        new URL('/settings/connections?error=no_creator_profile', baseUrlForRedirects)
       )
+    }
+
+    // Update stateData with resolved creator_unique_identifier
+    const resolvedStateData = {
+      creator_unique_identifier: creatorUniqueIdentifier,
+      user_id: userId,
+    }
+
+    // Hardcode TikTok Client Key/Secret as fallback since .env.local isn't loading properly
+    const clientKey = process.env.TIKTOK_CLIENT_KEY || 'sbawzz3li4gtvlwp9u'
+    const clientSecret = process.env.TIKTOK_CLIENT_SECRET || 'RCBgpobN8bwmMBwbk56aY21nBYdxJECN'
+    
+    // Get redirect URI - use the one from state if available (ensures exact match with OAuth request)
+    // Otherwise detect ngrok from request
+    let redirectUri: string
+    
+    if (stateData.redirect_uri) {
+      // Use the exact redirect URI from the OAuth request (stored in state)
+      redirectUri = stateData.redirect_uri
+      console.log('[tiktok-callback] ✅ Using redirect URI from state (exact match):', redirectUri)
+    } else {
+      // Fallback: detect from request (for backward compatibility)
+      let detectedBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      
+      // If request is coming through ngrok, use that
+      if (requestUrl.host && requestUrl.host.includes('ngrok')) {
+        const protocol = requestUrl.protocol.replace(':', '') || 'https'
+        detectedBaseUrl = `${protocol}://${requestUrl.host}`
+        console.log('[tiktok-callback] ✅ Detected ngrok from request URL:', detectedBaseUrl)
+      } else {
+        // Check headers for ngrok
+        const forwardedHost = request.headers.get('x-forwarded-host')
+        const hostHeader = request.headers.get('host')
+        const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+        const detectedHost = forwardedHost || hostHeader
+        if (detectedHost && detectedHost.includes('ngrok')) {
+          detectedBaseUrl = `${forwardedProto}://${detectedHost}`
+          console.log('[tiktok-callback] ✅ Detected ngrok from headers:', detectedBaseUrl)
+        }
+      }
+      
+      redirectUri = `${detectedBaseUrl}/api/auth/tiktok/callback`
+      console.log('[tiktok-callback] Using redirect URI (detected):', redirectUri)
+    }
+
+    // Note: We're using hardcoded fallbacks, so we should always have credentials
+    if (!clientKey || !clientSecret) {
+      console.error('[tiktok-callback] Missing TikTok credentials (even fallback values)')
+      return NextResponse.redirect(
+        new URL('/settings/connections?error=oauth_not_configured', baseUrlForRedirects)
+      )
+    }
+    
+    // Log which credentials are being used
+    if (process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET) {
+      console.log('[tiktok-callback] Using TikTok credentials from environment variables')
+    } else {
+      console.log('[tiktok-callback] Using hardcoded TikTok credentials fallback')
     }
 
     // Exchange code for tokens
@@ -62,9 +170,9 @@ export async function GET(request: Request) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text()
-      console.error('Token exchange error:', errorData)
+      console.error('[tiktok-callback] Token exchange error:', errorData)
       return NextResponse.redirect(
-        new URL('/settings/connections?error=token_exchange_failed', request.url)
+        new URL('/settings/connections?error=token_exchange_failed', baseUrlForRedirects)
       )
     }
 
@@ -79,7 +187,7 @@ export async function GET(request: Request) {
 
     if (!access_token) {
       return NextResponse.redirect(
-        new URL('/settings/connections?error=no_access_token', request.url)
+        new URL('/settings/connections?error=no_access_token', baseUrlForRedirects)
       )
     }
 
@@ -107,64 +215,120 @@ export async function GET(request: Request) {
       ? new Date(Date.now() + expires_in * 1000).toISOString()
       : null
 
-    // Store tokens
+    // Store tokens in database
     const serviceClient = createServiceClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const userId = stateData.user_id || 'null_user_id_dev'
-    const { data: existing } = await serviceClient
-      .from('tiktok_tokens')
-      .select('user_id')
-      .eq('user_id', userId)
-      .maybeSingle()
+    // Try new airpublisher_tiktok_tokens table first, fallback to tiktok_tokens
+    let useNewTable = true
+    let tableName = 'airpublisher_tiktok_tokens'
+    let lookupField = 'creator_unique_identifier'
 
-    const tokenRecord: any = {
-      user_id: stateData.user_id || null,
-      creator_unique_identifier: stateData.creator_unique_identifier || null, // Store for easier lookup
-      tiktok_open_id: open_id || null,
-      access_token: access_token,
-      refresh_token: refresh_token || null,
-      display_name: displayName,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      expires_at: expiresAt,
-      handle: displayName, // TikTok doesn't have separate handle
+    // Check if new table exists by trying to query it
+    const { error: tableCheckError } = await serviceClient
+      .from('airpublisher_tiktok_tokens')
+      .select('id')
+      .limit(1)
+    
+    if (tableCheckError && tableCheckError.code === '42P01') {
+      // Table doesn't exist, use old table
+      useNewTable = false
+      tableName = 'tiktok_tokens'
+      lookupField = 'user_id'
+      console.log('[tiktok-callback] New table not found, using old tiktok_tokens table')
     }
 
+    // Prepare token record based on which table we're using
+    let tokenRecord: any = {}
+    
+    if (useNewTable) {
+      // New table structure (airpublisher_tiktok_tokens)
+      tokenRecord = {
+        user_id: resolvedStateData.user_id || null,
+        creator_unique_identifier: resolvedStateData.creator_unique_identifier,
+        tiktok_access_token: access_token,
+        tiktok_refresh_token: refresh_token || null,
+        token_type: 'Bearer',
+        scope: scope || null,
+        expires_at: expiresAt,
+        tiktok_open_id: open_id || null,
+        display_name: displayName,
+      }
+    } else {
+      // Old table structure (no creator_unique_identifier)
+      tokenRecord = {
+        user_id: resolvedStateData.user_id || null,
+        creator_unique_identifier: resolvedStateData.creator_unique_identifier || null,
+        tiktok_open_id: open_id || null,
+        access_token: access_token,
+        refresh_token: refresh_token || null,
+        display_name: displayName,
+        updated_at: new Date().toISOString(),
+        expires_at: expiresAt,
+        handle: displayName,
+      }
+    }
+
+    // Check if record exists
+    const { data: existing } = await serviceClient
+      .from(tableName)
+      .select('id')
+      .eq(lookupField, useNewTable ? resolvedStateData.creator_unique_identifier : (resolvedStateData.user_id || 'null_user_id_dev'))
+      .maybeSingle()
+
     if (existing) {
+      // Update existing record
       const { error: updateError } = await serviceClient
-        .from('tiktok_tokens')
+        .from(tableName)
         .update(tokenRecord as Record<string, any>)
-        .eq('user_id', userId)
+        .eq(lookupField, useNewTable ? resolvedStateData.creator_unique_identifier : (resolvedStateData.user_id || 'null_user_id_dev'))
 
       if (updateError) {
-        console.error('Error updating TikTok tokens:', updateError)
+        console.error(`Error updating TikTok tokens in ${tableName}:`, updateError)
+        console.error('Token record keys:', Object.keys(tokenRecord))
         return NextResponse.redirect(
-          new URL('/settings/connections?error=update_failed', request.url)
+          new URL('/settings/connections?error=update_failed', baseUrlForRedirects)
         )
       }
     } else {
+      // Insert new record
       const { error: insertError } = await serviceClient
-        .from('tiktok_tokens')
+        .from(tableName)
         .insert(tokenRecord as Record<string, any>)
 
       if (insertError) {
-        console.error('Error inserting TikTok tokens:', insertError)
+        console.error(`Error inserting TikTok tokens into ${tableName}:`, insertError)
+        console.error('Error details:', {
+          code: insertError.code,
+          message: insertError.message,
+          hint: insertError.hint,
+          table: tableName,
+          tokenRecordKeys: Object.keys(tokenRecord),
+        })
         return NextResponse.redirect(
-          new URL('/settings/connections?error=insert_failed', request.url)
+          new URL('/settings/connections?error=insert_failed', baseUrlForRedirects)
         )
       }
     }
 
+    console.log(`✅ Successfully stored TikTok tokens in ${tableName}`)
+
     return NextResponse.redirect(
-      new URL('/settings/connections?success=tiktok_connected', request.url)
+      new URL('/settings/connections?success=tiktok_connected', baseUrlForRedirects)
     )
   } catch (error) {
     console.error('TikTok OAuth callback error:', error)
+    // Get baseUrl again in catch block
+    const catchRequestUrl = new URL(request.url)
+    let catchBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    if (catchRequestUrl.host && catchRequestUrl.host.includes('ngrok')) {
+      const protocol = catchRequestUrl.protocol.replace(':', '') || 'https'
+      catchBaseUrl = `${protocol}://${catchRequestUrl.host}`
+    }
     return NextResponse.redirect(
-      new URL('/settings/connections?error=callback_error', request.url)
+      new URL('/settings/connections?error=callback_error', catchBaseUrl)
     )
   }
 }

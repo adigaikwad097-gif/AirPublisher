@@ -64,3 +64,4 @@ If you restart ngrok and get a new URL:
 - **Now**: "Invalid redirect_uri" (App ID works, but redirect URI not whitelisted)
 - **After adding redirect URI**: Should work! 🎉
 
+

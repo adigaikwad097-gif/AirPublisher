@@ -43,20 +43,55 @@ export async function GET(request: Request) {
       }
     }
 
-    const clientKey = process.env.TIKTOK_CLIENT_KEY
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/tiktok/callback`
+    // Hardcode TikTok Client Key as fallback since .env.local isn't loading properly
+    const clientKey = process.env.TIKTOK_CLIENT_KEY || 'sbawzz3li4gtvlwp9u'
     
-    if (!clientKey) {
-      return NextResponse.json(
-        { error: 'TikTok OAuth not configured. Please set TIKTOK_CLIENT_KEY in environment variables.' },
-        { status: 500 }
-      )
+    // Get redirect URI - detect ngrok from request, fallback to NEXT_PUBLIC_APP_URL or localhost
+    const requestUrl = new URL(request.url)
+    const headers = request.headers
+    const forwardedHost = headers.get('x-forwarded-host')
+    const hostHeader = headers.get('host')
+    const forwardedProto = headers.get('x-forwarded-proto') || 'https'
+    
+    // Detect base URL - prioritize ngrok detection, then NEXT_PUBLIC_APP_URL, then localhost
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    
+    // Check if request is coming through ngrok (highest priority)
+    const detectedHost = forwardedHost || hostHeader || requestUrl.host
+    if (detectedHost && detectedHost.includes('ngrok')) {
+      const protocol = forwardedProto || requestUrl.protocol.replace(':', '') || 'https'
+      baseUrl = `${protocol}://${detectedHost}`
+      console.log('[TikTok OAuth] ✅ Detected ngrok from request:', baseUrl)
+    } else if (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.includes('ngrok')) {
+      // Fallback: use NEXT_PUBLIC_APP_URL if it contains ngrok
+      baseUrl = process.env.NEXT_PUBLIC_APP_URL
+      console.log('[TikTok OAuth] ✅ Using ngrok URL from NEXT_PUBLIC_APP_URL:', baseUrl)
+    } else {
+      // Default to localhost for local development
+      baseUrl = 'http://localhost:3000'
+      console.log('[TikTok OAuth] Using localhost for redirect URI')
+    }
+    
+    const redirectUri = `${baseUrl}/api/auth/tiktok/callback`
+    
+    // Debug: Log the redirect URI being used
+    console.log('[TikTok OAuth] Request URL:', requestUrl.toString())
+    console.log('[TikTok OAuth] Base URL:', baseUrl)
+    console.log('[TikTok OAuth] Full redirect URI:', redirectUri)
+    
+    // Note: We're using hardcoded fallback, so we don't need to check here
+    // But we can log which one is being used
+    if (process.env.TIKTOK_CLIENT_KEY) {
+      console.log('[TikTok OAuth] Using client key from environment variable')
+    } else {
+      console.log('[TikTok OAuth] Using hardcoded client key fallback')
     }
 
-    // Generate state
+    // Generate state (include redirect_uri for exact match in callback)
     const state = Buffer.from(JSON.stringify({
       creator_unique_identifier: creator?.unique_identifier || null,
       user_id: user?.id || null,
+      redirect_uri: redirectUri, // Store redirect URI for callback
     })).toString('base64url')
 
     // TikTok OAuth scopes for video upload

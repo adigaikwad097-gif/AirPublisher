@@ -44,3 +44,4 @@ npm run dev
 - **URL changes**: Free ngrok URLs change when you restart ngrok. You'll need to update `.env.local` and Meta App redirect URI each time
 - **Wait 1-2 minutes**: After updating Meta App settings, wait a minute for changes to propagate
 
+

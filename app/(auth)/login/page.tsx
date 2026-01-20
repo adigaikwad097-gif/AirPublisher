@@ -99,44 +99,46 @@ export default function LoginPage() {
         }
 
         // Wait a moment for cookies to be set
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, 500))
         
         // Verify session is available before redirecting
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.warn('Session check error (non-critical):', sessionError.message)
+        }
+        
         if (session) {
-          console.log('Session confirmed, fetching profile...')
+          console.log('✅ Session confirmed, redirecting to dashboard...')
+          console.log('Session user ID:', session.user.id)
           
-          // Fetch profile to ensure cookie is set
-          try {
-            const profileResponse = await fetch('/api/profile/me', {
-              method: 'GET',
-              credentials: 'include',
-            })
-            
-            if (profileResponse.ok) {
-              const profileData = await profileResponse.json()
-              console.log('Profile fetched:', profileData.profile?.unique_identifier || 'No profile yet')
-            } else {
-              console.log('No profile found yet - user will be prompted to create one')
-            }
-          } catch (e) {
-            console.warn('Could not fetch profile after login:', e)
+          // For ngrok/development, use a hard redirect to ensure cookies are sent
+          // Use setTimeout to ensure all async operations complete
+          setTimeout(() => {
+            window.location.href = '/dashboard'
+          }, 100)
+        } else {
+          console.warn('⚠️ Session not available yet, waiting longer...')
+          // Try one more time after a longer delay
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          const { data: { session: retrySession }, error: retryError } = await supabase.auth.getSession()
+          
+          if (retryError) {
+            console.warn('Retry session check error:', retryError.message)
           }
           
-          console.log('Redirecting to dashboard...')
-          window.location.href = '/dashboard'
-        } else {
-          console.warn('Session not available yet, waiting...')
-          // Try one more time after a longer delay
-          await new Promise(resolve => setTimeout(resolve, 500))
-          const { data: { session: retrySession } } = await supabase.auth.getSession()
           if (retrySession) {
-            console.log('Session confirmed on retry, redirecting...')
-            window.location.href = '/dashboard'
+            console.log('✅ Session confirmed on retry, redirecting...')
+            setTimeout(() => {
+              window.location.href = '/dashboard'
+            }, 100)
           } else {
-            console.error('Session still not available')
-            setError('Sign in successful but session not available. Please try again.')
-            setLoading(false)
+            console.error('❌ Session still not available after retry')
+            console.log('This might be a cookie issue with ngrok. Trying redirect anyway...')
+            // Even if session check fails, try redirecting - client-side will handle it
+            setTimeout(() => {
+              window.location.href = '/dashboard'
+            }, 500)
           }
         }
       } else {

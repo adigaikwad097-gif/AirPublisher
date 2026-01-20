@@ -99,3 +99,4 @@ https://untasting-overhugely-kortney.ngrok-free.dev/api/auth/instagram/callback
 **Redirect URI**: `http://localhost:3000/api/auth/instagram/callback`  
 **App Settings**: https://developers.facebook.com/apps/771396602627794/settings/basic/
 
+

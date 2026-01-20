@@ -50,3 +50,4 @@ Or check terminal logs for the full error object.
 
 Once you share the error details or table schema, I can fix the column names in the insert query.
 
+

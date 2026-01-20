@@ -46,3 +46,4 @@ CREATE POLICY "Users can update own profile"
 -- Step 5: Add comment
 COMMENT ON COLUMN creator_profiles.user_id IS 'Foreign key to auth.users. Links creator profile to authenticated user.';
 
+

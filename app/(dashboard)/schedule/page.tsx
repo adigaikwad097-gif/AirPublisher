@@ -6,6 +6,7 @@ import { getCurrentCreator } from '@/lib/db/creator'
 import { getScheduledVideos } from '@/lib/db/videos'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import { PlatformSelectButton } from '@/components/videos/platform-select-button'
 
 export default async function SchedulePage() {
   const creator = await getCurrentCreator()
@@ -99,10 +100,10 @@ export default async function SchedulePage() {
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
                             </Button>
-                            <Button variant="primary" size="sm">
-                              <Play className="h-4 w-4 mr-2" />
-                              Post Now
-                            </Button>
+                            <PlatformSelectButton 
+                              videoId={video.id} 
+                              creatorUniqueIdentifier={creator.unique_identifier}
+                            />
                           </div>
                         </div>
                       </CardContent>

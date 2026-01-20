@@ -16,8 +16,8 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: #0a0e1a;
-  color: #ffffff;
+  background-color: #0a0a0f;
+  color: #EDEDED;
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -26,7 +26,7 @@ body {
 }
 
 body {
-  background: #0a0e1a; /* Very dark background matching banking dashboard */
+  background: #0a0a0f; /* Near-black charcoal base matching banking dashboard */
   min-height: 100vh;
 }
 
@@ -48,15 +48,15 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1419;
+  background: #0a0a0f;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2d3441;
+  background: #1a1a1f;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3d4451;
+  background: #242429;
 }
 

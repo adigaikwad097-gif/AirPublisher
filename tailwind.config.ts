@@ -10,25 +10,25 @@ const config: Config = {
     extend: {
       colors: {
         // Banking dashboard theme - professional dark theme (matching Bye.bank)
-        background: '#0a0e1a', // Very dark background (almost black)
-        foreground: '#ffffff',
+        background: '#0a0a0f', // Near-black charcoal base
+        foreground: '#EDEDED', // Muted off-white text
         primary: {
-          DEFAULT: '#60a5fa', // Light blue accent (muted, professional)
-          dark: '#3b82f6',
-          light: '#93c5fd',
-          glow: '#60a5fa',
+          DEFAULT: '#7c3aed', // Restrained elegant purple accent
+          dark: '#6d28d9',
+          light: '#8b5cf6',
+          glow: '#7c3aed',
         },
         accent: {
-          DEFAULT: '#60a5fa',
-          dark: '#3b82f6',
+          DEFAULT: '#7c3aed',
+          dark: '#6d28d9',
         },
         card: {
-          DEFAULT: '#151821', // Darker card background (more subtle)
-          hover: '#1a1f2e', // Subtle hover
-          elevated: '#0f1217', // Even darker for elevated cards
+          DEFAULT: '#0f0f14', // Soft matte dark surface, blends with background
+          hover: '#141419', // Very subtle hover state
+          elevated: '#0a0a0f', // Even darker for elevated cards
         },
-        border: '#1f2937', // Very subtle borders (almost invisible)
-        muted: '#9ca3af', // More muted text (lighter grey)
+        border: '#1a1a1f', // Very subtle borders (almost invisible)
+        muted: '#9ca3af', // Cool gray for secondary text
         success: '#10b981', // Green for success
         warning: '#f59e0b', // Amber for warnings
         error: '#ef4444', // Red for errors

@@ -96,3 +96,4 @@ publishVideoAction('your-video-id-here')
 3. **Debug endpoint output**: `/api/debug/video-status/{video-id}` after publishing
 4. **Network tab** (F12 → Network) - look for server action POST request
 
+

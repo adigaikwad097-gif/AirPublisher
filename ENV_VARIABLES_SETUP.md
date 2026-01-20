@@ -28,6 +28,10 @@ META_APP_SECRET=67b086a74833746df6a0a7ed0b50f867
 
 # App URL (use ngrok URL for Instagram OAuth)
 NEXT_PUBLIC_APP_URL=https://untasting-overhugely-kortney.ngrok-free.dev
+
+# n8n Integration
+N8N_API_KEY=your_n8n_api_key
+N8N_WEBHOOK_URL_DROPBOX_UPLOAD=https://your-n8n-instance.com/webhook/dropbox-upload
 ```
 
 ---

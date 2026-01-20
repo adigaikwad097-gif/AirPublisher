@@ -270,6 +270,25 @@ export async function publishVideoAction(id: string) {
       scheduled_at: (result as any).scheduled_at,
       posted_at: (result as any).posted_at,
     })
+
+    // If not internal platform, trigger n8n webhook for immediate posting
+    if (!isInternal) {
+      try {
+        const triggerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trigger/post-video`
+        await fetch(triggerUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ video_id: id }),
+        })
+        console.log('[publishVideoAction] ✅ Triggered immediate post webhook')
+      } catch (webhookError) {
+        // Don't fail the publish action if webhook fails - n8n cron will pick it up
+        console.warn('[publishVideoAction] Webhook trigger failed (cron will handle it):', webhookError)
+      }
+    }
+
     return result
   } catch (error: any) {
     console.error('[publishVideoAction] ❌ Failed to publish video:', error)

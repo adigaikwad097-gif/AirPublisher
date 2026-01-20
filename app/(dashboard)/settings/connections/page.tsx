@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, XCircle, Youtube, Instagram, Music, LogOut } from 'lucide-react'
+import { CheckCircle2, XCircle, Youtube, Instagram, Music, LogOut, Cloud } from 'lucide-react'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
@@ -95,6 +95,7 @@ export default async function ConnectionsPage({
   let youtubeTokens = { data: null, error: null }
   let instagramTokens = { data: null, error: null }
   let tiktokTokens = { data: null, error: null }
+  let dropboxTokens = { data: null, error: null }
 
   // Create service role client for fallback
   const serviceClient = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -104,8 +105,16 @@ export default async function ConnectionsPage({
       )
     : null
 
+  // Check Dropbox configuration (uses App Key/Secret from env vars, no database needed)
+  // Just check if env vars are set (we can't check this server-side, so we'll show as configured if we can query)
+  const dropboxConfigured = !!(process.env.DROPBOX_APP_KEY || process.env.DROPBOX_CLIENT_ID) && 
+                            !!(process.env.DROPBOX_APP_SECRET || process.env.DROPBOX_CLIENT_SECRET)
+  
+  // Set Dropbox as "connected" if env vars are configured
+  dropboxTokens = dropboxConfigured ? { data: { is_configured: true }, error: null } : { data: null, error: null }
+
   if (creator?.unique_identifier) {
-    // Try new tables with creator_unique_identifier
+    // Try new tables with creator_unique_identifier (for YouTube, Instagram, TikTok)
     const [youtubeNew, instagramNew, tiktokNew] = await Promise.all([
       supabase
         .from('airpublisher_youtube_tokens')
@@ -226,6 +235,7 @@ export default async function ConnectionsPage({
   const isYouTubeConnected = !!youtubeTokens.data
   const isInstagramConnected = !!instagramTokens.data
   const isTikTokConnected = !!tiktokTokens.data
+  const isDropboxConnected = !!dropboxTokens.data
 
   // Check if tokens are expired
   const youtubeExpiresAt = (youtubeTokens.data as any)?.expires_at
@@ -274,6 +284,7 @@ export default async function ConnectionsPage({
               {params.success === 'youtube_connected' && 'YouTube connected successfully!'}
               {params.success === 'instagram_connected' && 'Instagram connected successfully!'}
               {params.success === 'tiktok_connected' && 'TikTok connected successfully!'}
+              {params.success === 'dropbox_connected' && 'Dropbox connected successfully!'}
             </p>
           </CardContent>
         </Card>
@@ -474,6 +485,51 @@ export default async function ConnectionsPage({
                   Connect TikTok
                 </Button>
               </Link>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Dropbox - Company Account (App Key/Secret) */}
+        <Card className={isDropboxConnected ? 'border-green-500/30' : ''}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <Cloud className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle>Dropbox Storage</CardTitle>
+                  <CardDescription>Company-wide storage (App Key/Secret)</CardDescription>
+                </div>
+              </div>
+              {isDropboxConnected && (
+                <Badge variant="success">Configured</Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isDropboxConnected ? (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-foreground/70">Status:</p>
+                  <p className="font-semibold">Dropbox configured</p>
+                  <p className="text-xs text-foreground/50">
+                    All creators upload to /airpublisher/creator_{'{id}'}/ automatically
+                  </p>
+                  <p className="text-xs text-foreground/40 mt-2">
+                    Configured via DROPBOX_APP_KEY and DROPBOX_APP_SECRET environment variables
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-foreground/70">
+                  Dropbox is not configured. Add DROPBOX_APP_KEY and DROPBOX_APP_SECRET to your environment variables.
+                </p>
+                <p className="text-xs text-foreground/50">
+                  No OAuth needed - uses App Key/Secret authentication directly.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

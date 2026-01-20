@@ -43,3 +43,4 @@ console.log('Session:', data.session)
 ## Solution
 The issue is that `createBrowserClient` stores the session in `localStorage` by default, but server-side needs it in cookies. We need to ensure the session is synced to cookies after login.
 
+

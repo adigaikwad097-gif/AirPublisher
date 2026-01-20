@@ -25,13 +25,14 @@ export async function GET(request: Request) {
     const supabase = await createClient()
 
     // Get scheduled videos that are due
-    const { data: videos, error } = await supabase
+    // Try new airpublisher_creator_profiles table first, fallback to creator_profiles
+    let { data: videos, error } = await supabase
       .from('air_publisher_videos')
       .select(`
         *,
-        creator_profiles!inner (
+        airpublisher_creator_profiles!inner (
           unique_identifier,
-          display_name
+          user_id
         )
       `)
       .eq('status', 'scheduled')
@@ -39,6 +40,29 @@ export async function GET(request: Request) {
       .lte('scheduled_at', before)
       .order('scheduled_at', { ascending: true })
       .limit(limit)
+
+    // If new table query fails, try old table
+    if (error || !videos || videos.length === 0) {
+      const { data: fallbackVideos, error: fallbackError } = await supabase
+        .from('air_publisher_videos')
+        .select(`
+          *,
+          creator_profiles!inner (
+            unique_identifier,
+            display_name
+          )
+        `)
+        .eq('status', 'scheduled')
+        .not('scheduled_at', 'is', null)
+        .lte('scheduled_at', before)
+        .order('scheduled_at', { ascending: true })
+        .limit(limit)
+      
+      if (fallbackVideos) {
+        videos = fallbackVideos
+        error = null
+      }
+    }
 
     if (error) {
       console.error('Error fetching scheduled posts:', error)

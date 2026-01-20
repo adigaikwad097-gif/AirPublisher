@@ -39,3 +39,4 @@ Look at the terminal where `npm run dev` is running. You should see:
 
 The app should now load even if there are configuration issues. Check the browser console and terminal for any warnings.
 
+

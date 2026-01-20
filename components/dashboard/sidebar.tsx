@@ -51,8 +51,8 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r border-border/30 bg-card">
-      <div className="flex h-20 items-center border-b border-border/30 px-6">
+    <div className="flex h-screen w-64 flex-col border-r border-border/20 bg-background">
+      <div className="flex h-20 items-center border-b border-border/20 px-6">
         <h1 className="text-lg font-semibold text-foreground tracking-tight">AIR Publisher</h1>
       </div>
       <nav className="flex-1 space-y-0.5 px-3 py-4">
@@ -65,8 +65,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
                 isActive
-                  ? 'bg-primary/10 text-primary border-l-2 border-primary'
-                  : 'text-muted hover:bg-card-hover hover:text-foreground'
+                  ? 'bg-card text-primary border-l-2 border-primary'
+                  : 'text-muted hover:bg-card hover:text-foreground'
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function Sidebar() {
           )
         })}
       </nav>
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border/20 p-4">
         <Button
           variant="ghost"
           className="w-full justify-start"

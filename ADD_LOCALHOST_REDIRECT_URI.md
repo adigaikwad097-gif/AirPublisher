@@ -62,3 +62,4 @@ Instagram OAuth requires that the `redirect_uri` parameter in the OAuth request 
 
 Your embed URL shows `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/instagram-auth`, but our code is using `http://localhost:3000/api/auth/instagram/callback`, so we need both URIs in the list.
 
+

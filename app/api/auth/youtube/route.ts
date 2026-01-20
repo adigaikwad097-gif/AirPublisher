@@ -45,7 +45,31 @@ export async function GET(request: Request) {
     }
 
     const clientId = process.env.YOUTUBE_CLIENT_ID
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/youtube/callback`
+    
+    // Detect base URL (support ngrok for local development)
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    
+    // Check if request is coming through ngrok or has custom host
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host')
+    const protocol = request.headers.get('x-forwarded-proto') || (request.url.startsWith('https') ? 'https' : 'http')
+    
+    if (host && (host.includes('ngrok') || host.includes('.ngrok-free.dev'))) {
+      baseUrl = `${protocol}://${host}`
+      console.log('[YouTube OAuth] Detected ngrok URL:', baseUrl)
+    } else if (host && host !== 'localhost:3000') {
+      // Custom host (production or other environment)
+      baseUrl = `${protocol}://${host}`
+      console.log('[YouTube OAuth] Using custom host:', baseUrl)
+    }
+    
+    const redirectUri = `${baseUrl}/api/auth/youtube/callback`
+    
+    console.log('[YouTube OAuth] OAuth configuration:', {
+      hasClientId: !!clientId,
+      clientIdLength: clientId?.length || 0,
+      redirectUri,
+      baseUrl,
+    })
     
     if (!clientId) {
       return NextResponse.json(

@@ -44,3 +44,4 @@ When user connects a platform:
 2. For new users: require platform connection before accessing dashboard
 3. Show "Connect Platform" page instead of "Create Profile" page
 
+

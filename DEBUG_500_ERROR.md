@@ -40,3 +40,4 @@ Try accessing these URLs to see which works:
 
 The middleware now skips the root path, so the home page should work. If it still doesn't, the error is likely in the Providers component or layout.
 
+

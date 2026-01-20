@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { getVideosByCreator } from '@/lib/db/videos'
 import { redirect } from 'next/navigation'
-import { PublishVideoButton } from '@/components/videos/publish-video-button'
+import { PlatformSelectButton } from '@/components/videos/platform-select-button'
 import { SetVideoUrlButton } from '@/components/videos/set-video-url-button'
+import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
 
 export default async function VideosPage() {
   const creator = await getCurrentCreator()
@@ -43,12 +44,14 @@ export default async function VideosPage() {
                     {video.video_url ? (
                       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
                         <video
-                          src={video.video_url}
+                          src={getVideoStreamUrl(video.id)}
                           controls
                           className="w-full h-full object-contain"
                           preload="metadata"
-                          className="w-full h-full"
-                        />
+                        >
+                          <source src={getVideoStreamUrl(video.id)} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
                       </div>
                     ) : (
                       <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
@@ -92,9 +95,11 @@ export default async function VideosPage() {
                       {!video.video_url && (
                         <SetVideoUrlButton videoId={video.id} />
                       )}
-                      {video.status === 'draft' && (
-                        <PublishVideoButton videoId={video.id} />
-                      )}
+                      {/* Allow posting to multiple platforms even after initial post */}
+                      <PlatformSelectButton 
+                        videoId={video.id} 
+                        creatorUniqueIdentifier={creator.unique_identifier}
+                      />
                     </div>
                     {video.created_at && (
                       <p className="text-xs text-foreground/50 mt-3">

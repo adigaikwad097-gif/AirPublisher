@@ -44,3 +44,4 @@ If auth still doesn't work:
 3. Try logging in again
 4. Check `/api/debug/auth-check` again
 
+

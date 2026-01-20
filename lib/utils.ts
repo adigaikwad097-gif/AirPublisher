@@ -38,3 +38,4 @@ export function getRankBadgeIcon(rank: number): string {
   return '#'
 }
 
+

@@ -102,3 +102,4 @@ The real issue is cookies aren't being read. Possible fixes:
 3. **Check middleware logs** - See if cookies are being detected in middleware
 4. **If still not working** - Consider Option 3 (service role) for development only
 
+

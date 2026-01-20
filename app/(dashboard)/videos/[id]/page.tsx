@@ -9,6 +9,7 @@ import { Eye, Calendar, User, ArrowLeft, Play } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
+import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
 
 interface Video {
   id: string
@@ -39,14 +40,26 @@ export default function VideoWatchPage() {
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [viewTracked, setViewTracked] = useState(false)
+  const [videoError, setVideoError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!videoId) return
 
+    console.log('[VideoWatchPage] Fetching video:', videoId)
+
     // Fetch video details
     fetch(`/api/videos/${videoId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          console.error('[VideoWatchPage] API error:', res.status, res.statusText)
+          return res.json().then(data => {
+            throw new Error(data.error || `Failed to fetch video: ${res.statusText}`)
+          })
+        }
+        return res.json()
+      })
       .then((data) => {
+        console.log('[VideoWatchPage] Video data received:', data)
         if (data.video) {
           setVideo(data.video)
           // Fetch creator profile
@@ -57,11 +70,18 @@ export default function VideoWatchPage() {
                 setCreator(creatorData.creator)
               }
             })
-            .catch(console.error)
+            .catch((err) => {
+              console.error('[VideoWatchPage] Error fetching creator:', err)
+            })
+        } else {
+          console.warn('[VideoWatchPage] No video in response:', data)
         }
         setLoading(false)
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error('[VideoWatchPage] Error fetching video:', error)
+        setLoading(false)
+      })
 
     // Track view (only once per page load)
     if (!viewTracked) {
@@ -129,14 +149,71 @@ export default function VideoWatchPage() {
             <CardContent className="p-0">
               {video.video_url ? (
                 <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden">
-                  <video
-                    src={video.video_url}
-                    controls
-                    className="w-full h-full"
-                    poster={video.thumbnail_url || undefined}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                  {videoError ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-foreground/70">
+                      <p className="text-lg mb-2">Failed to load video</p>
+                      <p className="text-sm">{videoError}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => {
+                          setVideoError(null)
+                          // Force video reload
+                          const videoElement = document.querySelector('video') as HTMLVideoElement
+                          if (videoElement) {
+                            videoElement.load()
+                          }
+                        }}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  ) : (
+                    <video
+                      src={getVideoStreamUrl(video.id)}
+                      controls
+                      className="w-full h-full"
+                      poster={video.thumbnail_url || undefined}
+                      preload="metadata"
+                      onError={(e) => {
+                        console.error('[VideoPlayer] Video load error:', e)
+                        const videoElement = e.currentTarget
+                        const error = videoElement.error
+                        let errorMessage = 'Failed to load video'
+                        if (error) {
+                          switch (error.code) {
+                            case error.MEDIA_ERR_ABORTED:
+                              errorMessage = 'Video loading was aborted'
+                              break
+                            case error.MEDIA_ERR_NETWORK:
+                              errorMessage = 'Network error while loading video'
+                              break
+                            case error.MEDIA_ERR_DECODE:
+                              errorMessage = 'Video decoding error'
+                              break
+                            case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                              errorMessage = 'Video format not supported'
+                              break
+                            default:
+                              errorMessage = `Video error: ${error.message || 'Unknown error'}`
+                          }
+                        }
+                        setVideoError(errorMessage)
+                      }}
+                      onLoadStart={() => {
+                        console.log('[VideoPlayer] Video loading started')
+                        setVideoError(null)
+                      }}
+                      onCanPlay={() => {
+                        console.log('[VideoPlayer] Video can play')
+                        setVideoError(null)
+                      }}
+                    >
+                      <source src={getVideoStreamUrl(video.id)} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
                 </div>
               ) : video.thumbnail_url ? (
                 <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden">

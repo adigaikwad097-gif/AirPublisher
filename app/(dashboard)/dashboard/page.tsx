@@ -47,7 +47,7 @@ export default async function DashboardPage({
             Welcome! Please complete your creator profile to get started.
           </p>
         </div>
-        <Card className="border-primary/30 bg-card-elevated">
+        <Card className="border-border/20 bg-card-elevated">
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <p className="text-lg font-semibold mb-4 text-foreground/90">
@@ -102,7 +102,7 @@ export default async function DashboardPage({
 
       {/* Rank Badge */}
       {(allTimeRank || weeklyRank) && (
-        <Card className="bg-gradient-to-r from-card to-card-elevated border-primary/30 shadow-glow-sm">
+        <Card className="bg-card border-border/20 shadow-sm">
           <CardContent className="pt-8 pb-8">
             <div className="flex items-center justify-between">
               <div>

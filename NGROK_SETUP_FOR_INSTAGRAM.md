@@ -73,3 +73,4 @@ The 404 errors you're seeing are because I cleared the `.next` cache. Wait for t
 
 The hardcoded Instagram App ID (`836687999185692`) should work now - it will use that instead of reading from `.env.local`.
 
+

@@ -8,9 +8,11 @@ import Link from 'next/link'
 import { Eye, Calendar, Clock, TrendingUp, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
+import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
+import { VideoActions } from './video-actions'
 
 // Video component with auto-play on scroll
-function AutoPlayVideo({ src, title }: { src: string; title: string }) {
+function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; videoId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
@@ -46,10 +48,13 @@ function AutoPlayVideo({ src, title }: { src: string; title: string }) {
     }
   }, [])
 
+  // Use streaming proxy for Dropbox videos to bypass CORS
+  const streamUrl = getVideoStreamUrl(videoId)
+
   return (
     <video
       ref={videoRef}
-      src={src}
+      src={streamUrl}
       className="w-full h-full object-contain"
       preload="metadata"
       muted
@@ -65,7 +70,10 @@ function AutoPlayVideo({ src, title }: { src: string; title: string }) {
           videoRef.current.pause()
         }
       }}
-    />
+    >
+      <source src={streamUrl} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   )
 }
 
@@ -265,7 +273,7 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                 <Link href={`/videos/${video.id}`}>
                   <div className="relative w-full rounded-lg overflow-hidden bg-black aspect-video group">
                     {video.video_url ? (
-                      <AutoPlayVideo src={video.video_url} title={video.title} />
+                      <AutoPlayVideo src={video.video_url} title={video.title} videoId={video.id} />
                     ) : video.thumbnail_url ? (
                       <Image
                         src={video.thumbnail_url}
@@ -282,17 +290,22 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                   </div>
                 </Link>
 
-                {/* Stats - Bottom */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                  <div className="flex items-center gap-4 text-sm text-foreground/60">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
-                      <span>{formatNumber(video.views || 0)}</span>
+                {/* Stats and Actions - Bottom */}
+                <div className="mt-3 pt-3 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-foreground/60">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{formatNumber(video.views || 0)}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {video.platform_target}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {video.platform_target}
-                    </Badge>
                   </div>
+                  
+                  {/* Like and Comment Actions */}
+                  <VideoActions videoId={video.id} />
                 </div>
               </CardContent>
             </Card>

@@ -15,3 +15,4 @@ We need to:
 2. **Ensure middleware handles cookies** - Already done, but verify
 3. **Use cookie-based auth check** - If cookies exist, use them; otherwise fall back
 
+

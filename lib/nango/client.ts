@@ -42,3 +42,4 @@ export function getProviderName(platform: Platform): string {
   return NANGO_PROVIDERS[platform]
 }
 
+

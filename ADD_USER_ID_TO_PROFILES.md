@@ -80,3 +80,4 @@ AND unique_identifier LIKE 'creator_%';
 
 **Note**: The code maintains backward compatibility - old profiles without `user_id` will still work via pattern matching, but new profiles will use the direct `user_id` lookup.
 
+

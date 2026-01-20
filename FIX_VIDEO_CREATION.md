@@ -62,3 +62,4 @@ When you upload, check terminal for:
 
 **If `views` column doesn't exist, that's why videos aren't being created!** 🎯
 
+

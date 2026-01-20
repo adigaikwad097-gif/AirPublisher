@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { verifyN8nWebhook } from '@/lib/webhooks/n8n'
 import { getValidYouTubeAccessToken } from '@/lib/youtube/tokens'
+import { getValidInstagramAccessToken } from '@/lib/instagram/tokens'
 
 /**
  * Query endpoint for n8n to fetch video details and platform tokens
@@ -41,26 +43,37 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 })
     }
 
-    // Get platform tokens
-    // Try by creator_unique_identifier first (if column exists), fallback to user_id lookup
-    const tokenTable = `${video.platform_target}_tokens`
+    // Get platform tokens - try new airpublisher_*_tokens tables first
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const newTokenTable = `airpublisher_${video.platform_target}_tokens`
+    const oldTokenTable = `${video.platform_target}_tokens`
     
-    // Try to get tokens by creator_unique_identifier (if column exists)
-    let { data: tokens, error: tokenError } = await supabase
-      .from(tokenTable)
+    // Try new table first
+    let { data: tokens, error: tokenError } = await serviceClient
+      .from(newTokenTable)
       .select('*')
       .eq('creator_unique_identifier', video.creator_unique_identifier)
       .maybeSingle()
     
-    // If that fails, try to find by user_id (if we can get user_id from creator)
-    // This is a fallback for older token records that might not have creator_unique_identifier
+    // Fallback to old table if new table doesn't have tokens
     if (tokenError || !tokens) {
-      // For now, we'll return null - tokens should have creator_unique_identifier
-      // If you need to support old tokens, you'd need to add a join or lookup
-      tokens = null
+      const { data: oldTokens } = await serviceClient
+        .from(oldTokenTable)
+        .select('*')
+        .eq('creator_unique_identifier', video.creator_unique_identifier)
+        .maybeSingle()
+      
+      if (oldTokens) {
+        tokens = oldTokens
+        tokenError = null
+      }
     }
 
-    // For YouTube, automatically refresh access token if expired
+    // Automatically refresh access token if expired
     if (video.platform_target === 'youtube' && tokens) {
       const validAccessToken = await getValidYouTubeAccessToken(
         tokens,
@@ -73,6 +86,67 @@ export async function GET(request: Request) {
           ...tokens,
           google_access_token: validAccessToken,
         }
+      } else {
+        // Token refresh failed - return error message
+        return NextResponse.json(
+          { 
+            error: 'YouTube token expired and could not be refreshed. Please reconnect your YouTube account.',
+            requires_reconnection: true 
+          },
+          { status: 401 }
+        )
+      }
+    } else if (video.platform_target === 'instagram' && tokens) {
+      const validAccessToken = await getValidInstagramAccessToken(
+        tokens,
+        video.creator_unique_identifier
+      )
+      
+      if (validAccessToken) {
+        // Update tokens object with refreshed access token
+        tokens = {
+          ...tokens,
+          facebook_access_token: validAccessToken,
+          instagram_access_token: validAccessToken,
+          access_token: validAccessToken,
+        }
+      } else {
+        // Token refresh failed - return error message
+        return NextResponse.json(
+          { 
+            error: 'Instagram token expired and could not be refreshed. Please reconnect your Instagram account.',
+            requires_reconnection: true 
+          },
+          { status: 401 }
+        )
+      }
+    }
+
+    // Format tokens based on platform for n8n
+    let formattedTokens: any = null
+    if (tokens) {
+      if (video.platform_target === 'youtube') {
+        formattedTokens = {
+          access_token: tokens.google_access_token || tokens.access_token,
+          refresh_token: tokens.google_refresh_token || tokens.refresh_token,
+          channel_id: tokens.channel_id,
+          channel_title: tokens.channel_title || tokens.handle,
+        }
+      } else if (video.platform_target === 'instagram') {
+        formattedTokens = {
+          access_token: tokens.instagram_access_token || tokens.facebook_access_token || tokens.access_token,
+          instagram_id: tokens.instagram_id || tokens.instagram_business_account_id,
+          username: tokens.username,
+        }
+      } else if (video.platform_target === 'tiktok') {
+        formattedTokens = {
+          access_token: tokens.tiktok_access_token || tokens.access_token,
+          refresh_token: tokens.tiktok_refresh_token || tokens.refresh_token,
+          open_id: tokens.tiktok_open_id || tokens.open_id,
+        }
+      } else {
+        // Fallback: return all token fields
+        formattedTokens = tokens
       }
     }
 
@@ -87,8 +161,8 @@ export async function GET(request: Request) {
         platform_target: video.platform_target,
         creator_unique_identifier: video.creator_unique_identifier,
       },
-      platform_tokens: tokens || null,
-      has_tokens: !tokenError && !!tokens,
+      platform_tokens: formattedTokens,
+      has_tokens: !!formattedTokens,
     })
   } catch (error) {
     console.error('n8n video-details query error:', error)

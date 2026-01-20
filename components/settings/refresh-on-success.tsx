@@ -13,14 +13,17 @@ export function RefreshOnSuccess({ success }: { success?: string | null }) {
 
   useEffect(() => {
     if (success) {
-      // Wait a moment for any server-side updates, then refresh
+      // Wait a moment for any server-side updates, then do a hard refresh
+      // Hard refresh ensures we get fresh data from the server
       const timer = setTimeout(() => {
-        router.refresh()
-        // Also remove the success parameter from URL after refresh
+        // Remove the success parameter from URL first
         const url = new URL(window.location.href)
         url.searchParams.delete('success')
         window.history.replaceState({}, '', url.toString())
-      }, 1500)
+        
+        // Do a hard refresh to ensure fresh data
+        window.location.reload()
+      }, 1000)
 
       return () => clearTimeout(timer)
     }

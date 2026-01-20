@@ -41,6 +41,14 @@ export async function verifyN8nWebhook(request: Request): Promise<boolean> {
     return true
   }
 
+  // If no API key is configured, allow requests (optional security)
+  // WARNING: This makes your webhook endpoint public - anyone can call it
+  // Recommended: Set N8N_API_KEY for production security
+  if (!process.env.N8N_API_KEY) {
+    console.warn('⚠️  N8N_API_KEY not set - webhook verification disabled (not recommended for production)')
+    return true
+  }
+
   return false
 }
 
@@ -56,4 +64,5 @@ export async function getWebhookPayload<T = any>(
     throw new Error('Invalid JSON payload')
   }
 }
+
 
