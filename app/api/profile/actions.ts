@@ -94,8 +94,8 @@ export async function createProfileAction(profile: {
 
   console.log('[createProfileAction] Inserting profile data into airpublisher_creator_profiles:', { ...profileData, user_id: userId })
 
-  const { data, error } = await supabase
-    .from('airpublisher_creator_profiles')
+  const { data, error } = await (supabase
+    .from('airpublisher_creator_profiles') as any)
     .insert(profileData)
     .select()
     .single()
@@ -112,8 +112,8 @@ export async function createProfileAction(profile: {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       )
       
-      const { data: serviceResult, error: serviceError } = await serviceClient
-        .from('airpublisher_creator_profiles')
+      const { data: serviceResult, error: serviceError } = await (serviceClient
+        .from('airpublisher_creator_profiles') as any)
         .insert(profileData)
         .select()
         .single()

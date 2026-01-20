@@ -53,16 +53,16 @@ export async function GET(request: Request) {
     const oldTokenTable = `${video.platform_target}_tokens`
     
     // Try new table first
-    let { data: tokens, error: tokenError } = await serviceClient
-      .from(newTokenTable)
+    let { data: tokens, error: tokenError } = await (serviceClient
+      .from(newTokenTable) as any)
       .select('*')
       .eq('creator_unique_identifier', video.creator_unique_identifier)
       .maybeSingle()
     
     // Fallback to old table if new table doesn't have tokens
     if (tokenError || !tokens) {
-      const { data: oldTokens } = await serviceClient
-        .from(oldTokenTable)
+      const { data: oldTokens } = await (serviceClient
+        .from(oldTokenTable) as any)
         .select('*')
         .eq('creator_unique_identifier', video.creator_unique_identifier)
         .maybeSingle()

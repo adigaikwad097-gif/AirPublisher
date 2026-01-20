@@ -26,8 +26,8 @@ export async function GET(request: Request) {
 
     // Get scheduled videos that are due
     // Try new airpublisher_creator_profiles table first, fallback to creator_profiles
-    let { data: videos, error } = await supabase
-      .from('air_publisher_videos')
+    let { data: videos, error } = await (supabase
+      .from('air_publisher_videos') as any)
       .select(`
         *,
         airpublisher_creator_profiles!inner (

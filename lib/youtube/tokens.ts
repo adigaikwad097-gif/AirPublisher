@@ -129,8 +129,8 @@ export async function getValidYouTubeAccessToken(
   let updateField = 'creator_unique_identifier'
 
   // Check if new table exists
-  const { error: tableCheckError } = await serviceClient
-    .from('airpublisher_youtube_tokens')
+  const { error: tableCheckError } = await (serviceClient
+    .from('airpublisher_youtube_tokens') as any)
     .select('id')
     .limit(1)
 
@@ -152,8 +152,8 @@ export async function getValidYouTubeAccessToken(
     updated_at: new Date().toISOString(),
   }
 
-  const { error: updateError } = await serviceClient
-    .from(tableName)
+  const { error: updateError } = await (serviceClient
+    .from(tableName) as any)
     .update(updateData)
     .eq('id', tokens.id)
 
@@ -182,16 +182,16 @@ export async function getYouTubeAccessTokenForCreator(
   )
 
   // Try new table first
-  let { data: tokens, error: tokenError } = await serviceClient
-    .from('airpublisher_youtube_tokens')
+  let { data: tokens, error: tokenError } = await (serviceClient
+    .from('airpublisher_youtube_tokens') as any)
     .select('*')
     .eq('creator_unique_identifier', creatorUniqueIdentifier)
     .maybeSingle()
 
   // Fallback to old table
   if (tokenError || !tokens) {
-    const { data: oldTokens } = await serviceClient
-      .from('youtube_tokens')
+    const { data: oldTokens } = await (serviceClient
+      .from('youtube_tokens') as any)
       .select('*')
       .eq('creator_unique_identifier', creatorUniqueIdentifier)
       .maybeSingle()

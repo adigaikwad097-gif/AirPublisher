@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
 
     // Use service role directly (bypasses RLS and session detection)
     console.log('[API Profile Create] Using service role to create profile')
-    const result = await serviceClient
-      .from('airpublisher_creator_profiles')
+    const result = await (serviceClient
+      .from('airpublisher_creator_profiles') as any)
       .insert(profileData)
       .select()
       .single()

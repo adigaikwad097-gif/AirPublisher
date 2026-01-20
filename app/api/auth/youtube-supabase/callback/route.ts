@@ -112,20 +112,20 @@ export async function GET(request: Request) {
     const lookupField = user?.id ? 'user_id' : 'creator_unique_identifier'
     const lookupValue = user?.id || creatorUniqueIdentifier
     
-    const { data: existing } = await serviceClient
-      .from('youtube_tokens')
+    const { data: existing } = await (serviceClient
+      .from('youtube_tokens') as any)
       .select('user_id, creator_unique_identifier')
       .eq(lookupField, lookupValue)
       .maybeSingle()
 
     if (existing) {
-      await serviceClient
-        .from('youtube_tokens')
+      await (serviceClient
+        .from('youtube_tokens') as any)
         .update(tokenData)
         .eq(lookupField, lookupValue)
     } else {
-      await serviceClient
-        .from('youtube_tokens')
+      await (serviceClient
+        .from('youtube_tokens') as any)
         .insert(tokenData)
     }
 

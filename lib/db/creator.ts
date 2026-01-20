@@ -7,8 +7,8 @@ export async function getCreatorProfile(uniqueIdentifier: string) {
   const supabase = await createClient()
   
   // Try airpublisher_creator_profiles first (main table)
-  let { data, error } = await supabase
-    .from('airpublisher_creator_profiles')
+  let { data, error } = await (supabase
+    .from('airpublisher_creator_profiles') as any)
     .select('*')
     .eq('creator_unique_identifier', uniqueIdentifier)
     .maybeSingle()
@@ -59,8 +59,8 @@ export async function getCreatorByUserId(userId: string) {
       )
       
       console.log('[getCreatorByUserId] Querying with service role client...')
-      const { data: serviceProfile, error: serviceError } = await serviceClient
-        .from('airpublisher_creator_profiles')
+      const { data: serviceProfile, error: serviceError } = await (serviceClient
+        .from('airpublisher_creator_profiles') as any)
         .select('*')
         .eq('user_id', userId)
         .maybeSingle()
@@ -103,8 +103,8 @@ export async function getCreatorByUserId(userId: string) {
   const supabase = await createClient()
   console.log('[getCreatorByUserId] Trying regular client as fallback...')
   
-  const { data: profileData, error: profileError } = await supabase
-    .from('airpublisher_creator_profiles')
+  const { data: profileData, error: profileError } = await (supabase
+    .from('airpublisher_creator_profiles') as any)
     .select('*')
     .eq('user_id', userId)
     .maybeSingle()
@@ -149,8 +149,8 @@ export async function getCurrentCreator(uniqueIdentifier?: string) {
     if (uniqueIdentifier) {
       try {
         console.log('[getCurrentCreator] Looking up by provided unique_identifier:', uniqueIdentifier)
-        const { data, error } = await supabase
-          .from('airpublisher_creator_profiles')
+        const { data, error } = await (supabase
+          .from('airpublisher_creator_profiles') as any)
           .select('*')
           .eq('creator_unique_identifier', uniqueIdentifier)
           .maybeSingle()
@@ -234,8 +234,8 @@ export async function getCurrentCreator(uniqueIdentifier?: string) {
           console.log('[getCurrentCreator] Found profile ID in cookie, validating it belongs to user...')
           
           // Validate cookie profile belongs to current user
-          const { data, error } = await supabase
-            .from('airpublisher_creator_profiles')
+          const { data, error } = await (supabase
+            .from('airpublisher_creator_profiles') as any)
             .select('*')
             .eq('user_id', user.id)
             .eq('creator_unique_identifier', cookieProfileId)

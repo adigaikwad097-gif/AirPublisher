@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
           )
-          const { data: profile } = await serviceClient
-            .from('airpublisher_creator_profiles')
+          const { data: profile } = await (serviceClient
+            .from('airpublisher_creator_profiles') as any)
             .select('*')
             .eq('creator_unique_identifier', cookieProfileId)
             .maybeSingle()
@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
     }
 
     // User is authenticated - fetch their profile
-    const { data: profile, error: profileError } = await supabase
-      .from('airpublisher_creator_profiles')
+    const { data: profile, error: profileError } = await (supabase
+      .from('airpublisher_creator_profiles') as any)
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle()

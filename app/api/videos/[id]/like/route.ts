@@ -103,16 +103,16 @@ export async function GET(
     const supabase = await createClient()
 
     // Check if user liked the video
-    const { data: like } = await supabase
-      .from('airpublisher_video_likes')
+    const { data: like } = await (supabase
+      .from('airpublisher_video_likes') as any)
       .select('id')
       .eq('video_id', videoId)
       .eq('creator_unique_identifier', creator.unique_identifier)
       .maybeSingle()
 
     // Get total like count
-    const { count } = await supabase
-      .from('airpublisher_video_likes')
+    const { count } = await (supabase
+      .from('airpublisher_video_likes') as any)
       .select('*', { count: 'exact', head: true })
       .eq('video_id', videoId)
 

@@ -200,8 +200,8 @@ export async function GET(request: Request) {
     let useNewTable = true
     
     // Check if new table exists by trying a simple query
-    const { error: tableCheckError } = await serviceClient
-      .from('airpublisher_youtube_tokens')
+    const { error: tableCheckError } = await (serviceClient
+      .from('airpublisher_youtube_tokens') as any)
       .select('id')
       .limit(1)
     
@@ -216,8 +216,8 @@ export async function GET(request: Request) {
     const lookupField = useNewTable && creatorId ? 'creator_unique_identifier' : 'user_id'
     const lookupValue = useNewTable && creatorId ? creatorId : (resolvedStateData.user_id || 'null_user_id_dev')
     
-    const { data: existing, error: lookupError } = await serviceClient
-      .from(tableName)
+    const { data: existing, error: lookupError } = await (serviceClient
+      .from(tableName) as any)
       .select('id, user_id, creator_unique_identifier')
       .eq(lookupField, lookupValue)
       .maybeSingle()
@@ -254,9 +254,9 @@ export async function GET(request: Request) {
     if (existing) {
       // Update existing tokens
       console.log('[youtube-callback] Updating existing tokens:', { id: existing.id, tableName })
-      const { error: updateError } = await serviceClient
-        .from(tableName)
-        .update(tokenData as Record<string, any>)
+      const { error: updateError } = await (serviceClient
+        .from(tableName) as any)
+        .update(tokenData)
         .eq('id', existing.id)
 
       if (updateError) {
@@ -283,9 +283,9 @@ export async function GET(request: Request) {
         hasChannelId: !!tokenData.channel_id,
       })
       
-      const { data: insertData, error: insertError } = await serviceClient
-        .from(tableName)
-        .insert(tokenData as Record<string, any>)
+      const { data: insertData, error: insertError } = await (serviceClient
+        .from(tableName) as any)
+        .insert(tokenData)
         .select()
         .single()
 

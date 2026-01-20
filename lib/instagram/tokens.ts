@@ -128,8 +128,8 @@ export async function getValidInstagramAccessToken(
   let tableName = 'airpublisher_instagram_tokens'
   
   // Check if new table exists
-  const { error: tableCheckError } = await serviceClient
-    .from('airpublisher_instagram_tokens')
+  const { error: tableCheckError } = await (serviceClient
+    .from('airpublisher_instagram_tokens') as any)
     .select('id')
     .limit(1)
   
@@ -152,8 +152,8 @@ export async function getValidInstagramAccessToken(
     updateData.updated_at = new Date().toISOString()
   }
 
-  const { error: updateError } = await serviceClient
-    .from(tableName)
+  const { error: updateError } = await (serviceClient
+    .from(tableName) as any)
     .update(updateData)
     .eq('id', tokens.id)
 
@@ -182,16 +182,16 @@ export async function getInstagramAccessTokenForCreator(
   )
 
   // Try new table first
-  let { data: tokens, error: tokenError } = await serviceClient
-    .from('airpublisher_instagram_tokens')
+  let { data: tokens, error: tokenError } = await (serviceClient
+    .from('airpublisher_instagram_tokens') as any)
     .select('*')
     .eq('creator_unique_identifier', creatorUniqueIdentifier)
     .maybeSingle()
 
   // Fallback to old table
   if (tokenError || !tokens) {
-    const { data: oldTokens } = await serviceClient
-      .from('instagram_tokens')
+    const { data: oldTokens } = await (serviceClient
+      .from('instagram_tokens') as any)
       .select('*')
       .eq('creator_unique_identifier', creatorUniqueIdentifier)
       .maybeSingle()

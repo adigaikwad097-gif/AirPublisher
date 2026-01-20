@@ -301,8 +301,8 @@ export async function GET(request: Request) {
     let lookupField = 'creator_unique_identifier'
 
     // Check if new table exists by trying to query it
-    const { error: tableCheckError } = await serviceClient
-      .from('airpublisher_instagram_tokens')
+    const { error: tableCheckError } = await (serviceClient
+      .from('airpublisher_instagram_tokens') as any)
       .select('id')
       .limit(1)
     
