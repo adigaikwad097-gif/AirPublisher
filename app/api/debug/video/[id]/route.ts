@@ -26,14 +26,17 @@ export async function GET(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Check if video exists - use explicit any casting to bypass TypeScript type checking
-    const result: any = await (serviceClient
+    // Check if video exists - completely bypass TypeScript type checking
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (serviceClient
       .from('air_publisher_videos') as any)
       .select('*')
       .eq('id', videoId)
-      .maybeSingle()
+      .maybeSingle() as Promise<{ data: any; error: any }>)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const videoData: any = result?.data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const error: any = result?.error
 
     if (error) {
@@ -52,25 +55,20 @@ export async function GET(
       })
     }
 
-    // Use videoData directly with explicit any casting for each property
-    // @ts-ignore - TypeScript incorrectly infers type as 'never' for Supabase queries
+    // Extract properties with explicit any casting to avoid TypeScript errors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const video: any = videoData
+
     return NextResponse.json({
       exists: true,
       video: {
-        // @ts-ignore
-        id: (videoData as any)?.id || '',
-        // @ts-ignore
-        title: (videoData as any)?.title || '',
-        // @ts-ignore
-        status: (videoData as any)?.status || '',
-        // @ts-ignore
-        creator_unique_identifier: (videoData as any)?.creator_unique_identifier || '',
-        // @ts-ignore
-        platform_target: (videoData as any)?.platform_target || '',
-        // @ts-ignore
-        created_at: (videoData as any)?.created_at || '',
-        // @ts-ignore
-        posted_at: (videoData as any)?.posted_at || null,
+        id: String(video?.id ?? ''),
+        title: String(video?.title ?? ''),
+        status: String(video?.status ?? ''),
+        creator_unique_identifier: String(video?.creator_unique_identifier ?? ''),
+        platform_target: String(video?.platform_target ?? ''),
+        created_at: String(video?.created_at ?? ''),
+        posted_at: video?.posted_at ? String(video.posted_at) : null,
       },
     })
   } catch (error: any) {
