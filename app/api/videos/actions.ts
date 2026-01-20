@@ -70,8 +70,8 @@ export async function createVideoAction(video: VideoInsert) {
       }
 
       console.log('[createVideoAction] Attempting to create video with service role client...')
-      const { data, error: serviceError } = await serviceClient
-        .from('air_publisher_videos')
+      const { data, error: serviceError } = await (serviceClient
+        .from('air_publisher_videos') as any)
         .insert(videoData)
         .select()
         .single()
@@ -109,8 +109,8 @@ export async function updateVideoAction(id: string, updates: VideoUpdate) {
   let videoError = null
   
   try {
-    const { data, error } = await supabase
-      .from('air_publisher_videos')
+    const { data, error } = await (supabase
+      .from('air_publisher_videos') as any)
       .select('creator_unique_identifier')
       .eq('id', id)
       .single()
@@ -137,8 +137,8 @@ export async function updateVideoAction(id: string, updates: VideoUpdate) {
           process.env.SUPABASE_SERVICE_ROLE_KEY!
         )
         
-        const { data: serviceVideo, error: serviceError } = await serviceClient
-          .from('air_publisher_videos')
+        const { data: serviceVideo, error: serviceError } = await (serviceClient
+          .from('air_publisher_videos') as any)
           .select('creator_unique_identifier')
           .eq('id', id)
           .single()
@@ -224,8 +224,8 @@ export async function publishVideoAction(id: string) {
 
   // Get video to check platform_target
   const supabase = await createClient()
-  const { data: video, error: videoError } = await supabase
-    .from('air_publisher_videos')
+  const { data: video, error: videoError } = await (supabase
+    .from('air_publisher_videos') as any)
     .select('platform_target, creator_unique_identifier')
     .eq('id', id)
     .single()

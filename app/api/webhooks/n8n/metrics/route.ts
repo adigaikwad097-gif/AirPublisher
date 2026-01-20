@@ -42,8 +42,8 @@ export async function POST(request: Request) {
     const supabase = await createClient()
 
     // Get video to find creator
-    const { data: video, error: videoError } = await supabase
-      .from('air_publisher_videos')
+    const { data: video, error: videoError } = await (supabase
+      .from('air_publisher_videos') as any)
       .select('creator_unique_identifier')
       .eq('id', video_id)
       .single()

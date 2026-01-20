@@ -67,8 +67,8 @@ export async function POST(request: Request) {
       console.error(`Post failed for video ${video_id}:`, error_message)
     }
 
-    const { data: video, error: updateError } = await supabase
-      .from('air_publisher_videos')
+    const { data: video, error: updateError } = await (supabase
+      .from('air_publisher_videos') as any)
       .update(updates)
       .eq('id', video_id)
       .select()

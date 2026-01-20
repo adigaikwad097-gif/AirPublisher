@@ -39,8 +39,8 @@ export async function POST(request: Request) {
     }
 
     // Get video and verify ownership
-    const { data: video, error: videoError } = await supabase
-      .from('air_publisher_videos')
+    const { data: video, error: videoError } = await (supabase
+      .from('air_publisher_videos') as any)
       .select('*')
       .eq('id', video_id)
       .single()
