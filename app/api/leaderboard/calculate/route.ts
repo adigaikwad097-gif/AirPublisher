@@ -8,6 +8,13 @@ import { calculateScore } from '@/lib/db/leaderboard'
  */
 export async function POST(request: Request) {
   try {
+    // TODO: Leaderboard calculation temporarily disabled
+    // Return early to skip leaderboard functionality for now
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Leaderboard calculation is temporarily disabled' 
+    })
+
     // Verify service role key (for cron jobs)
     const authHeader = request.headers.get('authorization')
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
