@@ -49,8 +49,8 @@ export async function GET(
       })
     }
 
-    // Type assertion to fix TypeScript error
-    const video = videoData as any
+    // Type assertion to fix TypeScript error - cast to any to bypass type checking
+    const video: any = videoData
 
     return NextResponse.json({
       exists: true,
