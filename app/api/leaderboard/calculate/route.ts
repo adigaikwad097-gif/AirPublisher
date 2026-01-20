@@ -31,14 +31,12 @@ export async function POST(request: Request) {
     const weeklyStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
 
     // Aggregate metrics by creator and period
-    const creatorMetrics: Record<
-      string,
-      {
-        allTime: { views: number; likes: number; comments: number; revenue: number }
-        weekly: { views: number; likes: number; comments: number; revenue: number }
-        daily: { views: number; likes: number; comments: number; revenue: number }
-      }
-    > = {}
+    type CreatorMetrics = {
+      allTime: { views: number; likes: number; comments: number; revenue: number }
+      weekly: { views: number; likes: number; comments: number; revenue: number }
+      daily: { views: number; likes: number; comments: number; revenue: number }
+    }
+    const creatorMetrics: Record<string, CreatorMetrics> = {}
 
     // Aggregate views from videos
     (videos as any[])?.forEach((video: any) => {
