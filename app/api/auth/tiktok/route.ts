@@ -49,10 +49,19 @@ export async function GET(request: Request) {
     
     // Use getAppUrl() utility which properly detects Vercel, ngrok, or localhost
     const baseUrl = getAppUrl()
-    const redirectUri = `${baseUrl}/api/auth/tiktok/callback`
+    // Ensure no trailing slash in baseUrl before appending path
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+    const redirectUri = `${cleanBaseUrl}/api/auth/tiktok/callback`
     
+    console.log('[TikTok OAuth] Environment check:', {
+      VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
+      NODE_ENV: process.env.NODE_ENV,
+    })
     console.log('[TikTok OAuth] Base URL:', baseUrl)
+    console.log('[TikTok OAuth] Clean Base URL:', cleanBaseUrl)
     console.log('[TikTok OAuth] Redirect URI:', redirectUri)
+    console.log('[TikTok OAuth] Redirect URI length:', redirectUri.length)
 
     // TikTok requires PKCE (Proof Key for Code Exchange)
     // Generate code_verifier (random string)

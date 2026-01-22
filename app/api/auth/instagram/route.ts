@@ -61,10 +61,19 @@ export async function GET(request: Request) {
     
     // Use getAppUrl() utility which properly detects Vercel, ngrok, or localhost
     const baseUrl = getAppUrl()
-    const redirectUri = `${baseUrl}/api/auth/instagram/callback`
+    // Ensure no trailing slash in baseUrl before appending path
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+    const redirectUri = `${cleanBaseUrl}/api/auth/instagram/callback`
     
+    console.log('[Instagram OAuth] Environment check:', {
+      VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
+      NODE_ENV: process.env.NODE_ENV,
+    })
     console.log('[Instagram OAuth] Base URL:', baseUrl)
+    console.log('[Instagram OAuth] Clean Base URL:', cleanBaseUrl)
     console.log('[Instagram OAuth] Redirect URI:', redirectUri)
+    console.log('[Instagram OAuth] Redirect URI length:', redirectUri.length)
     
     // Debug logging - Check all Instagram-related env vars
     console.log('[Instagram OAuth] Environment variables check:', {

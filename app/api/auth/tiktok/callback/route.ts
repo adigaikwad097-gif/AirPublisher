@@ -93,8 +93,17 @@ export async function GET(request: Request) {
     
     // Get redirect URI - use the one from state if available (ensures exact match with OAuth request)
     // Otherwise use getAppUrl() utility
-    const redirectUri = stateData.redirect_uri || `${getAppUrl()}/api/auth/tiktok/callback`
-    console.log('[tiktok-callback] Using redirect URI:', redirectUri)
+    const baseUrlForTokenExchange = getAppUrl().replace(/\/$/, '')
+    const redirectUri = stateData.redirect_uri || `${baseUrlForTokenExchange}/api/auth/tiktok/callback`
+    
+    console.log('[tiktok-callback] Environment check:', {
+      VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
+    })
+    console.log('[tiktok-callback] Redirect URI from state:', stateData.redirect_uri || 'NOT IN STATE')
+    console.log('[tiktok-callback] Base URL for token exchange:', baseUrlForTokenExchange)
+    console.log('[tiktok-callback] Final redirect URI being used:', redirectUri)
+    console.log('[tiktok-callback] Redirect URI length:', redirectUri.length)
 
     // Note: We're using hardcoded fallbacks, so we should always have credentials
     if (!clientKey || !clientSecret) {
