@@ -165,7 +165,7 @@ export async function uploadToDropbox(
       contents: fileContents as any, // Dropbox SDK accepts both
       mode: { '.tag': 'overwrite' },
     })
-    console.log('[uploadToDropbox] ✅ File uploaded successfully:', result.path_display)
+    console.log('[uploadToDropbox] ✅ File uploaded successfully:', (result as any).path_display)
   } catch (error: any) {
     console.error('[uploadToDropbox] File upload failed:', error)
     const errorMsg = error?.error?.error_summary || error?.message || 'Unknown error'
@@ -183,7 +183,7 @@ export async function uploadToDropbox(
   let sharedLink: any = null
   try {
     const linkResult = await dbx.sharingCreateSharedLinkWithSettings({
-      path: result.path_display || result.path_lower || filePath,
+      path: (result as any).path_display || (result as any).path_lower || filePath,
       settings: {
         requested_visibility: { '.tag': 'public' },
       },
@@ -201,12 +201,12 @@ export async function uploadToDropbox(
     // If shared link already exists, try to get it
     try {
       const listSharedLinksResult = await dbx.sharingListSharedLinks({ 
-        path: result.path_display || result.path_lower || filePath 
+        path: (result as any).path_display || (result as any).path_lower || filePath 
       })
       console.log('[uploadToDropbox] List shared links response:', JSON.stringify(listSharedLinksResult, null, 2))
       
-      if (listSharedLinksResult.links && listSharedLinksResult.links.length > 0) {
-        sharedLink = listSharedLinksResult.links[0]
+      if ((listSharedLinksResult as any).links && (listSharedLinksResult as any).links.length > 0) {
+        sharedLink = (listSharedLinksResult as any).links[0]
         console.log('[uploadToDropbox] ✅ Found existing shared link')
       } else {
         console.warn('[uploadToDropbox] No existing shared links found')
@@ -237,11 +237,11 @@ export async function uploadToDropbox(
   if (!sharedLinkUrl) {
     console.error('[uploadToDropbox] ❌ Shared link response missing URL')
     console.error('[uploadToDropbox] Full sharedLink object:', JSON.stringify(sharedLink, null, 2))
-    console.error('[uploadToDropbox] File was uploaded to:', result.path_display || result.path_lower || filePath)
+    console.error('[uploadToDropbox] File was uploaded to:', (result as any).path_display || (result as any).path_lower || filePath)
     
     // As a workaround, we can construct a Dropbox URL manually, but it won't be a direct download link
     // The user will need to create a shared link manually or we need to fix the API call
-    const fallbackUrl = `https://www.dropbox.com/home${result.path_display || result.path_lower || filePath}`
+    const fallbackUrl = `https://www.dropbox.com/home${(result as any).path_display || (result as any).path_lower || filePath}`
     console.warn('[uploadToDropbox] ⚠️ Using fallback URL (may not work for direct access):', fallbackUrl)
     
     throw new Error('Failed to get shared link URL from Dropbox. The file was uploaded successfully, but a public URL could not be generated. Please check Dropbox API permissions or create a shared link manually.')
@@ -263,10 +263,10 @@ export async function uploadToDropbox(
   // For better video playback, we can also try the raw content URL format
   // But the ?dl=1 format should work for most cases
 
-  console.log('[uploadToDropbox] ✅ Upload complete:', { path: result.path_display, url: directUrl })
+  console.log('[uploadToDropbox] ✅ Upload complete:', { path: (result as any).path_display, url: directUrl })
 
   return {
-    path: result.path_display || result.path_lower || filePath,
+    path: (result as any).path_display || (result as any).path_lower || filePath,
     url: directUrl,
   }
 }

@@ -54,6 +54,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
     }
 
     setUploading(true)
+    let uploadResponse: Response | undefined
     try {
       // Create video entry as 'draft' - user will select platform when publishing
       console.log('[UploadForm] Creating video record...')
@@ -63,10 +64,14 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
         source_type: 'ugc',
         title,
         description: description || null,
-        platform_target: null, // No platform selected yet - user will choose when publishing
+        platform_target: 'internal' as any, // No platform selected yet - user will choose when publishing
         status: 'draft', // Always draft - user publishes later
         posted_at: null,
-      })
+        views: 0,
+        scheduled_at: null,
+        video_url: null,
+        thumbnail_url: null,
+      } as any)
 
       console.log('[UploadForm] ✅ Video record created:', {
         id: video.id,
@@ -107,7 +112,6 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
             controller.abort()
           }, 300000)
           
-          let uploadResponse
           try {
             uploadResponse = await fetch(`/api/videos/${video.id}/upload`, {
               method: 'POST',
@@ -150,7 +154,6 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
             controller.abort()
           }, 600000) // 10 minutes for direct n8n upload
           
-          let uploadResponse
           const fetchStartTime = Date.now()
           
           // Add a shorter timeout for initial connection (20 seconds)

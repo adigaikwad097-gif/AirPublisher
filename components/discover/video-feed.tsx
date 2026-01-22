@@ -184,7 +184,7 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
       {/* Filter Buttons */}
       <div className="flex items-center gap-3 overflow-x-auto pb-2">
         <Button
-          variant={filter === 'latest' ? 'default' : 'outline'}
+          variant={filter === 'latest' ? 'primary' : 'outline'}
           onClick={() => handleFilterChange('latest')}
           className="whitespace-nowrap"
         >
@@ -192,7 +192,7 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
           Latest
         </Button>
         <Button
-          variant={filter === 'top' ? 'default' : 'outline'}
+          variant={filter === 'top' ? 'primary' : 'outline'}
           onClick={() => handleFilterChange('top')}
           className="whitespace-nowrap"
         >
@@ -200,7 +200,7 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
           Top
         </Button>
         <Button
-          variant={filter === 'trending' ? 'default' : 'outline'}
+          variant={filter === 'trending' ? 'primary' : 'outline'}
           onClick={() => handleFilterChange('trending')}
           className="whitespace-nowrap"
         >

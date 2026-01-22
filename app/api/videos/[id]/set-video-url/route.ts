@@ -48,14 +48,14 @@ export async function POST(
     console.log('[set-video-url] Looking up video:', videoId)
     
     try {
-      const { data: regularVideo, error: regularError } = await supabase
-        .from('air_publisher_videos')
+      const { data: regularVideo, error: regularError } = await (supabase
+        .from('air_publisher_videos') as any)
         .select('creator_unique_identifier, id, title')
         .eq('id', videoId)
         .single()
       
       if (regularVideo) {
-        video = regularVideo
+        video = regularVideo as any
         console.log('[set-video-url] ✅ Found video via regular client')
       } else if (regularError) {
         videoError = regularError
@@ -70,8 +70,8 @@ export async function POST(
     if (!video && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       console.log('[set-video-url] Trying service role client...')
       try {
-        const { data: serviceVideo, error: serviceError } = await serviceClient
-          .from('air_publisher_videos')
+        const { data: serviceVideo, error: serviceError } = await (serviceClient
+          .from('air_publisher_videos') as any)
           .select('creator_unique_identifier, id, title')
           .eq('id', videoId)
           .single()
@@ -80,7 +80,7 @@ export async function POST(
           console.error('[set-video-url] Service client error:', serviceError)
           videoError = serviceError
         } else if (serviceVideo) {
-          video = serviceVideo
+          video = serviceVideo as any
           console.log('[set-video-url] ✅ Found video via service role')
         }
       } catch (e: any) {
@@ -105,19 +105,20 @@ export async function POST(
       )
     }
 
-    // Verify ownership
+    // Verify ownership - cast video to any to avoid TypeScript errors
+    const videoData = video as any
     console.log('[set-video-url] Checking ownership:', {
-      videoCreatorId: video.creator_unique_identifier,
+      videoCreatorId: videoData.creator_unique_identifier,
       currentCreatorId: creator.unique_identifier,
-      match: video.creator_unique_identifier === creator.unique_identifier,
+      match: videoData.creator_unique_identifier === creator.unique_identifier,
     })
     
-    if (video.creator_unique_identifier !== creator.unique_identifier) {
+    if (videoData.creator_unique_identifier !== creator.unique_identifier) {
       console.error('[set-video-url] Ownership mismatch')
       return NextResponse.json(
         { 
           error: 'Unauthorized: You do not own this video',
-          videoCreatorId: video.creator_unique_identifier,
+          videoCreatorId: videoData.creator_unique_identifier,
           currentCreatorId: creator.unique_identifier,
         },
         { status: 403 }
@@ -127,7 +128,7 @@ export async function POST(
     // List files in the creator's folder to find the video
     const { data: files, error: listError } = await serviceClient.storage
       .from(BUCKET_NAME)
-      .list(video.creator_unique_identifier, {
+      .list(videoData.creator_unique_identifier, {
         limit: 100,
         sortBy: { column: 'created_at', order: 'desc' },
       })
@@ -147,7 +148,7 @@ export async function POST(
       return NextResponse.json(
         { 
           error: 'Video file not found in storage',
-          hint: `Looking for files in folder: ${video.creator_unique_identifier}`,
+          hint: `Looking for files in folder: ${videoData.creator_unique_identifier}`,
           availableFiles: files?.map(f => f.name) || [],
         },
         { status: 404 }
@@ -155,7 +156,7 @@ export async function POST(
     }
 
     // Generate public URL
-    const storagePath = `${video.creator_unique_identifier}/${videoFile.name}`
+    const storagePath = `${videoData.creator_unique_identifier}/${videoFile.name}`
     const { data: { publicUrl } } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(storagePath)
@@ -176,8 +177,8 @@ export async function POST(
       if (!updatedVideo) {
         console.warn('[set-video-url] updateVideo returned null, trying direct service role update...')
         // If updateVideo returned null, try direct service role update
-        const { data: directUpdate, error: directError } = await serviceClient
-          .from('air_publisher_videos')
+        const { data: directUpdate, error: directError } = await (serviceClient
+          .from('air_publisher_videos') as any)
           .update({ video_url: publicUrl })
           .eq('id', videoId)
           .select()
@@ -202,8 +203,8 @@ export async function POST(
     } catch (updateError: any) {
       console.error('[set-video-url] Update failed, trying direct service role update...', updateError)
       // Fallback: direct service role update
-      const { data: directUpdate, error: directError } = await serviceClient
-        .from('air_publisher_videos')
+      const { data: directUpdate, error: directError } = await (serviceClient
+        .from('air_publisher_videos') as any)
         .update({ video_url: publicUrl })
         .eq('id', videoId)
         .select()
@@ -222,8 +223,8 @@ export async function POST(
     }
 
     // Verify the update
-    const { data: verifyVideo, error: verifyError } = await serviceClient
-      .from('air_publisher_videos')
+    const { data: verifyVideo, error: verifyError } = await (serviceClient
+      .from('air_publisher_videos') as any)
       .select('id, video_url')
       .eq('id', videoId)
       .single()
@@ -233,10 +234,11 @@ export async function POST(
       throw new Error('Update succeeded but verification failed')
     }
 
+    const verifyVideoData = verifyVideo as any
     console.log('[set-video-url] ✅ Verification successful:', {
-      id: verifyVideo.id,
-      video_url: verifyVideo.video_url,
-      matches: verifyVideo.video_url === publicUrl,
+      id: verifyVideoData.id,
+      video_url: verifyVideoData.video_url,
+      matches: verifyVideoData.video_url === publicUrl,
     })
 
     return NextResponse.json({

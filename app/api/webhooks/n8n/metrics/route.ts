@@ -57,17 +57,18 @@ export async function POST(request: Request) {
     // For now, we'll aggregate into leaderboards
 
     // Get current leaderboard entry
-    const { data: leaderboard } = await supabase
-      .from('air_leaderboards')
+    const { data: leaderboard } = await (supabase
+      .from('air_leaderboards') as any)
       .select('*')
       .eq('creator_unique_identifier', video.creator_unique_identifier)
       .eq('period', 'all_time')
       .single()
 
-    const currentViews = leaderboard?.total_views || 0
-    const currentLikes = leaderboard?.total_likes || 0
-    const currentComments = leaderboard?.total_comments || 0
-    const currentRevenue = Number(leaderboard?.estimated_revenue || 0)
+    const leaderboardData = leaderboard as any
+    const currentViews = leaderboardData?.total_views || 0
+    const currentLikes = leaderboardData?.total_likes || 0
+    const currentComments = leaderboardData?.total_comments || 0
+    const currentRevenue = Number(leaderboardData?.estimated_revenue || 0)
 
     // Aggregate metrics (in production, you'd want to track per-video metrics)
     const newViews = currentViews + (metrics.views || 0)
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     const score = calculateScore(newViews, newLikes, newComments, newRevenue)
 
     // Update all-time leaderboard
-    await supabase.from('air_leaderboards').upsert(
+    await (supabase.from('air_leaderboards') as any).upsert(
       {
         creator_unique_identifier: video.creator_unique_identifier,
         period: 'all_time',

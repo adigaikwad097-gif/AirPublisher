@@ -84,11 +84,12 @@ export async function POST(request: Request) {
 
     // If posted successfully, also create entry in creator_posts table
     if (status === 'posted' && platform_post_id) {
-      await supabase.from('creator_posts').insert({
-        creator_unique_identifier: video.creator_unique_identifier,
-        platform: video.platform_target,
+      const videoData = video as any
+      await (supabase.from('creator_posts') as any).insert({
+        creator_unique_identifier: videoData.creator_unique_identifier,
+        platform: videoData.platform_target,
         post_id: platform_post_id,
-        content_url: platform_url || video.video_url,
+        content_url: platform_url || videoData.video_url,
       })
     }
 

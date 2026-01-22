@@ -52,7 +52,6 @@ export async function getCreatorByUserId(userId: string) {
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-      const { Database } = await import('@/lib/supabase/types')
       const serviceClient = createServiceClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!

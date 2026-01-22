@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     }
 
     // Format response for n8n
-    const posts = videos?.map((video) => ({
+    const posts = (videos as any[])?.map((video: any) => ({
       video_id: video.id,
       creator_unique_identifier: video.creator_unique_identifier,
       platform: video.platform_target,

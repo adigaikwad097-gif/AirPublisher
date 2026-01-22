@@ -74,7 +74,10 @@ export async function POST(request: Request) {
       thumbnail_url: thumbnail_url || null,
       platform_target: platformTarget as any,
       status: 'draft',
-    })
+      views: 0,
+      scheduled_at: null,
+      posted_at: null,
+    } as any)
 
     return NextResponse.json({
       success: true,

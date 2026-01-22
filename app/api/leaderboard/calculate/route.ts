@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       message: 'Leaderboard calculation is temporarily disabled' 
     })
 
+    /* COMMENTED OUT - Leaderboard functionality disabled
     // Verify service role key (for cron jobs)
     const authHeader = request.headers.get('authorization')
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true })
+    */
   } catch (error) {
     console.error('Leaderboard calculation error:', error)
     return NextResponse.json(

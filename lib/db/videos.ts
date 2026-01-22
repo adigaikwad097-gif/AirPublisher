@@ -30,7 +30,6 @@ export async function getVideosByCreator(creatorUniqueIdentifier: string) {
       if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
         try {
           const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-          const { Database } = await import('@/lib/supabase/types')
           const serviceClient = createServiceClient<Database>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -66,7 +65,6 @@ export async function getVideosByCreator(creatorUniqueIdentifier: string) {
     console.warn('[getVideosByCreator] Regular client returned empty (no error). Trying service role as fallback...')
     try {
       const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-      const { Database } = await import('@/lib/supabase/types')
       const serviceClient = createServiceClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -127,7 +125,6 @@ export async function getVideoById(id: string) {
       if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
         try {
           const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-          const { Database } = await import('@/lib/supabase/types')
           const serviceClient = createServiceClient<Database>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -147,8 +144,8 @@ export async function getVideoById(id: string) {
             return null
           }
           
-          console.log('[getVideoById] ✅ Service role found video:', serviceData?.id)
-          return (serviceData || null) as Video | null
+          console.log('[getVideoById] ✅ Service role found video:', (serviceData as any)?.id)
+          return ((serviceData as any) || null) as Video | null
         } catch (e: any) {
           console.error('[getVideoById] Service role exception:', e?.message || e)
           return null
@@ -166,7 +163,6 @@ export async function getVideoById(id: string) {
     console.warn('[getVideoById] Regular client returned empty (no error). Trying service role as fallback...')
     try {
       const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-      const { Database } = await import('@/lib/supabase/types')
       const serviceClient = createServiceClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -187,8 +183,8 @@ export async function getVideoById(id: string) {
       }
       
       if (serviceData) {
-        console.log('[getVideoById] ✅ Service role found video (regular returned empty):', serviceData.id)
-        return serviceData as Video
+        console.log('[getVideoById] ✅ Service role found video (regular returned empty):', (serviceData as any).id)
+        return (serviceData as any) as Video
       }
       
       // Service role also returned empty - truly no video
@@ -200,14 +196,14 @@ export async function getVideoById(id: string) {
     }
   }
   
-  console.log('[getVideoById] ✅ Found video:', data?.id)
-  return data as Video
+  console.log('[getVideoById] ✅ Found video:', (data as any)?.id)
+  return (data as any) as Video
 }
 
 export async function createVideo(video: VideoInsert) {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('air_publisher_videos')
+  const { data, error } = await (supabase
+    .from('air_publisher_videos') as any)
     .insert(video)
     .select()
     .single()
@@ -228,8 +224,8 @@ export async function createVideo(video: VideoInsert) {
 export async function updateVideo(id: string, updates: VideoUpdate) {
   console.log('[updateVideo] Updating video:', { id, updates })
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('air_publisher_videos')
+  const { data, error } = await (supabase
+    .from('air_publisher_videos') as any)
     .update(updates)
     .eq('id', id)
     .select()
@@ -261,7 +257,6 @@ export async function updateVideo(id: string, updates: VideoUpdate) {
       if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
         try {
           const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-          const { Database } = await import('@/lib/supabase/types')
           const serviceClient = createServiceClient<Database>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -269,8 +264,8 @@ export async function updateVideo(id: string, updates: VideoUpdate) {
           
           console.log('[updateVideo] Attempting update with service role...', { id, updates })
           
-          const { data: serviceData, error: serviceError } = await serviceClient
-            .from('air_publisher_videos')
+          const { data: serviceData, error: serviceError } = await (serviceClient
+            .from('air_publisher_videos') as any)
             .update(updates)
             .eq('id', id)
             .select()
@@ -301,10 +296,10 @@ export async function updateVideo(id: string, updates: VideoUpdate) {
             
             if (fetchedData) {
               console.log('[updateVideo] ✅ Fetched video after update:', {
-                id: fetchedData.id,
-                status: fetchedData.status,
+                id: (fetchedData as any).id,
+                status: (fetchedData as any).status,
               })
-              return fetchedData as Video
+              return (fetchedData as any) as Video
             }
             
             return null
@@ -404,7 +399,6 @@ export async function getAllPostedVideos(limit: number = 50, offset: number = 0)
       if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
         try {
           const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-          const { Database } = await import('@/lib/supabase/types')
           const serviceClient = createServiceClient<Database>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -441,7 +435,6 @@ export async function getAllPostedVideos(limit: number = 50, offset: number = 0)
     console.warn('[getAllPostedVideos] Regular client returned empty (no error). Trying service role as fallback...')
     try {
       const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-      const { Database } = await import('@/lib/supabase/types')
       const serviceClient = createServiceClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -495,10 +488,10 @@ export async function incrementVideoViews(id: string) {
     return null
   }
 
-  const newViews = (video.views || 0) + 1
+  const newViews = ((video as any).views || 0) + 1
 
-  const { data, error } = await supabase
-    .from('air_publisher_videos')
+  const { data, error } = await (supabase
+    .from('air_publisher_videos') as any)
     .update({ views: newViews })
     .eq('id', id)
     .select()

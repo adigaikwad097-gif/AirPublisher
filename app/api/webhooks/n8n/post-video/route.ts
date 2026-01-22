@@ -55,8 +55,8 @@ export async function POST(request: Request) {
 
     // Get platform tokens for the creator
     const tokenTable = `${platform}_tokens`
-    let { data: tokens, error: tokenError } = await supabase
-      .from(tokenTable)
+    let { data: tokens, error: tokenError } = await (supabase
+      .from(tokenTable) as any)
       .select('*')
       .eq('creator_unique_identifier', creatorUniqueIdentifier)
       .single()
@@ -68,17 +68,20 @@ export async function POST(request: Request) {
       )
     }
 
+    // Cast tokens to any to avoid TypeScript errors
+    let tokensData: any = tokens
+
     // Automatically refresh access token if expired
-    if (platform === 'youtube' && tokens) {
+    if (platform === 'youtube' && tokensData) {
       const validAccessToken = await getValidYouTubeAccessToken(
-        tokens,
+        tokensData,
         creatorUniqueIdentifier
       )
       
       if (validAccessToken) {
         // Update tokens object with refreshed access token
-        tokens = {
-          ...tokens,
+        tokensData = {
+          ...tokensData,
           google_access_token: validAccessToken,
         }
       } else {
@@ -90,16 +93,16 @@ export async function POST(request: Request) {
           { status: 401 }
         )
       }
-    } else if (platform === 'instagram' && tokens) {
+    } else if (platform === 'instagram' && tokensData) {
       const validAccessToken = await getValidInstagramAccessToken(
-        tokens,
+        tokensData,
         creatorUniqueIdentifier
       )
       
       if (validAccessToken) {
         // Update tokens object with refreshed access token
-        tokens = {
-          ...tokens,
+        tokensData = {
+          ...tokensData,
           facebook_access_token: validAccessToken,
           instagram_access_token: validAccessToken,
           access_token: validAccessToken,
@@ -129,8 +132,8 @@ export async function POST(request: Request) {
       },
       platform_tokens: {
         // Return token data (n8n will use this to authenticate with platform)
-        access_token: platform === 'youtube' ? tokens.google_access_token : tokens.access_token,
-        refresh_token: platform === 'youtube' ? tokens.google_refresh_token : tokens.refresh_token,
+        access_token: platform === 'youtube' ? tokensData.google_access_token : tokensData.access_token,
+        refresh_token: platform === 'youtube' ? tokensData.google_refresh_token : tokensData.refresh_token,
         // Add other platform-specific fields as needed
       },
       platform,

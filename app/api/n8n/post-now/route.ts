@@ -97,12 +97,12 @@ export async function POST(request: Request) {
     const newTokenTable = `airpublisher_${platform}_tokens`
     const oldTokenTable = `${platform}_tokens`
 
-    let tokens = null
+    let tokens: any = null
     let tokenError = null
 
     // Try new table first
-    const { data: newTokens, error: newError } = await serviceClient
-      .from(newTokenTable)
+    const { data: newTokens, error: newError } = await (serviceClient
+      .from(newTokenTable) as any)
       .select('*')
       .eq('creator_unique_identifier', video.creator_unique_identifier)
       .maybeSingle()
@@ -111,8 +111,8 @@ export async function POST(request: Request) {
       tokens = newTokens
     } else {
       // Fallback to old table
-      const { data: oldTokens, error: oldError } = await serviceClient
-        .from(oldTokenTable)
+      const { data: oldTokens, error: oldError } = await (serviceClient
+        .from(oldTokenTable) as any)
         .select('*')
         .eq('creator_unique_identifier', video.creator_unique_identifier)
         .maybeSingle()

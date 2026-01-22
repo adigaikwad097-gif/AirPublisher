@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     ]
 
     for (const period of periods) {
-      const { data: entries, error: entriesError } = await supabase
-        .from('air_leaderboards')
+      const { data: entries, error: entriesError } = await (supabase
+        .from('air_leaderboards') as any)
         .select('*')
         .eq('period', period)
         .order('score', { ascending: false })
@@ -39,14 +39,14 @@ export async function POST(request: Request) {
       }
 
       // Recalculate ranks
-      entries?.forEach((entry, index) => {
+      (entries as any[])?.forEach((entry: any, index: number) => {
         entry.rank = index + 1
       })
 
       // Update ranks
-      for (const entry of entries || []) {
-        await supabase
-          .from('air_leaderboards')
+      for (const entry of (entries || []) as any[]) {
+        await (supabase
+          .from('air_leaderboards') as any)
           .update({ rank: entry.rank })
           .eq('id', entry.id)
       }

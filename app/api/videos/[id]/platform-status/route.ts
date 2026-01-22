@@ -62,12 +62,12 @@ export async function GET(
         const newTable = `airpublisher_${platform}_tokens`
         const oldTable = `${platform}_tokens`
 
-        let tokens = null
+        let tokens: any = null
         let tokenError = null
 
         // Try new table
-        const { data: newTokens, error: newError } = await serviceClient
-          .from(newTable)
+        const { data: newTokens, error: newError } = await (serviceClient
+          .from(newTable) as any)
           .select('*')
           .eq('creator_unique_identifier', creatorId)
           .maybeSingle()
@@ -76,8 +76,8 @@ export async function GET(
           tokens = newTokens
         } else {
           // Try old table
-          const { data: oldTokens, error: oldError } = await serviceClient
-            .from(oldTable)
+          const { data: oldTokens, error: oldError } = await (serviceClient
+            .from(oldTable) as any)
             .select('*')
             .eq('creator_unique_identifier', creatorId)
             .maybeSingle()
@@ -112,7 +112,8 @@ export async function GET(
             tokenExpired = !validToken
           } else if (platform === 'tiktok') {
             // Check TikTok token expiration
-            const expiresAt = tokens.expires_at
+            const tokenData = tokens as any
+            const expiresAt = tokenData.expires_at
             if (expiresAt) {
               const expirationDate = new Date(expiresAt)
               // Add 5 minute buffer for expiration check

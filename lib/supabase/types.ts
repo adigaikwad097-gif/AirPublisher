@@ -23,8 +23,8 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<creator_profiles['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<creator_profiles['Insert']>
+        Insert: Omit<Database['public']['Tables']['creator_profiles']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['creator_profiles']['Insert']>
       }
       creator_posts: {
         Row: {
@@ -35,8 +35,8 @@ export interface Database {
           content_url: string | null
           created_at: string
         }
-        Insert: Omit<creator_posts['Row'], 'id' | 'created_at'>
-        Update: Partial<creator_posts['Insert']>
+        Insert: Omit<Database['public']['Tables']['creator_posts']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['creator_posts']['Insert']>
       }
       // New AIR Publisher tables
       air_publisher_videos: {
@@ -56,8 +56,8 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<air_publisher_videos['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<air_publisher_videos['Insert']>
+        Insert: Omit<Database['public']['Tables']['air_publisher_videos']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['air_publisher_videos']['Insert']>
       }
       air_leaderboards: {
         Row: {
@@ -73,8 +73,8 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<air_leaderboards['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<air_leaderboards['Insert']>
+        Insert: Omit<Database['public']['Tables']['air_leaderboards']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['air_leaderboards']['Insert']>
       }
     }
     Views: {

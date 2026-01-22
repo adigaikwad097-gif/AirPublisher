@@ -26,7 +26,7 @@ export async function getLeaderboard(
   }
 
   // Fetch creator profiles separately
-  const creatorIds = data.map((entry) => entry.creator_unique_identifier)
+  const creatorIds = (data as any[]).map((entry: any) => entry.creator_unique_identifier)
   const { data: profiles, error: profileError } = await supabase
     .from('creator_profiles')
     .select('unique_identifier, handles, profile_pic_url, Niche')
@@ -37,10 +37,10 @@ export async function getLeaderboard(
   }
 
   const profileMap = new Map(
-    profiles?.map((p) => [p.unique_identifier, p]) || []
+    (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
   )
 
-  return data.map((entry) => {
+  return (data as any[]).map((entry: any) => {
     const profile = profileMap.get(entry.creator_unique_identifier) as any
     return {
       ...entry,
@@ -95,7 +95,7 @@ export async function getLeaderboardByNiche(
     return []
   }
 
-  const creatorIds = creators.map((c) => c.unique_identifier)
+  const creatorIds = (creators as any[]).map((c: any) => c.unique_identifier)
 
   // Then get leaderboard entries for these creators
   const { data, error } = await supabase
@@ -126,10 +126,10 @@ export async function getLeaderboardByNiche(
   }
 
   const profileMap = new Map(
-    profiles?.map((p) => [p.unique_identifier, p]) || []
+    (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
   )
 
-  return data.map((entry) => {
+  return (data as any[]).map((entry: any) => {
     const profile = profileMap.get(entry.creator_unique_identifier) as any
     return {
       ...entry,

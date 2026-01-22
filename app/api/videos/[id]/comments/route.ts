@@ -31,7 +31,7 @@ export async function GET(
 
     // Fetch creator profiles for each comment
     const commentsWithCreators = await Promise.all(
-      (comments || []).map(async (comment) => {
+      (comments || []).map(async (comment: any) => {
         try {
           const creator = await getCreatorProfile(comment.creator_unique_identifier)
           return {
