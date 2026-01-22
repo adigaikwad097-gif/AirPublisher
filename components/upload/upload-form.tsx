@@ -15,6 +15,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
       const [description, setDescription] = useState('')
       const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
+  const [uploadProgressText, setUploadProgressText] = useState('Ready to upload')
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('[UploadForm] File input changed', e.target.files)
@@ -54,10 +55,12 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
     }
 
     setUploading(true)
+    setUploadProgressText('Preparing upload...')
     let uploadResponse: Response | undefined
     try {
       // Create video entry as 'draft' - user will select platform when publishing
       console.log('[UploadForm] Creating video record...')
+      setUploadProgressText('Creating video record...')
       
       const video = await createVideoAction({
         creator_unique_identifier: creatorUniqueIdentifier,
@@ -78,6 +81,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
         title: video.title,
         status: video.status,
       })
+      setUploadProgressText('Uploading file to Dropbox...')
 
       if (!video.id) {
         throw new Error('Video was created but no ID was returned')
@@ -102,6 +106,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
         if (!n8nWebhookUrl) {
           // Fallback: Upload through Next.js (may timeout with ngrok)
           console.warn('[UploadForm] n8n webhook URL not available, using Next.js upload (may timeout)')
+          setUploadProgressText('Uploading via Next.js proxy...')
           
           const formData = new FormData()
           formData.append('file', file)
@@ -355,6 +360,7 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           // n8n will process and call back to /api/webhooks/n8n/upload-complete
           // The browser doesn't need to wait - n8n will process in background
           console.log('[UploadForm] ✅ Upload initiated - n8n will process and call back when done')
+          setUploadProgressText('Upload en route – processing in n8n...')
         }
         
         // Handle response (for both Next.js and direct n8n uploads)
@@ -367,6 +373,7 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
             errorData = { error: `Upload failed with status ${uploadResponse.status}: ${uploadResponse.statusText}` }
           }
           console.error('[UploadForm] Upload error:', errorData)
+          setUploadProgressText('Upload failed. Check console for details.')
           
           let errorMessage = errorData.error || `Failed to upload file: ${uploadResponse.statusText}`
           if (errorData.troubleshooting) {
@@ -396,6 +403,7 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           }
           
           console.log('[UploadForm] ✅ File uploaded successfully:', uploadResult.video_url)
+          setUploadProgressText('Upload completed successfully!')
         }
 
         if (!uploadResponse.ok) {
@@ -468,7 +476,8 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
       {/* File Upload */}
       <div>
         <label className="block text-sm font-medium mb-2">Video File</label>
@@ -554,7 +563,52 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
       >
         {uploading ? 'Uploading...' : !file ? 'Select a video file' : !title ? 'Enter a title' : 'Upload Video'}
       </Button>
-    </form>
+
+      {uploading && (
+        <div className="upload-progress">
+          <span className="spinner" aria-hidden />
+          <div>
+            <p className="font-semibold text-foreground">{uploadProgressText}</p>
+            <p className="text-xs text-foreground/70">
+              Uploads can take a few minutes for large videos. Keep this tab open while we transfer the file.
+            </p>
+          </div>
+        </div>
+      )}
+      {uploadResponse && !uploadResponse.ok && (
+        <div className="text-sm text-red-500">{uploadResponse.statusText}</div>
+      )}
+      </form>
+
+      <style jsx>{`
+      .upload-progress {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        background: rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border-radius: 9999px;
+        border: 4px solid rgba(148, 163, 184, 0.6);
+        border-top-color: transparent;
+        animation: spin 0.9s linear infinite;
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      `}</style>
+    </>
   )
 }
 

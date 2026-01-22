@@ -5,6 +5,12 @@ import { Database } from '@/lib/supabase/types'
 
 // Increase timeout for large file uploads (5 minutes)
 export const maxDuration = 300
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: '500mb',
+  },
+}
 
 /**
  * Upload video file via n8n to Dropbox
@@ -329,13 +335,13 @@ Current webhook URL: ${n8nWebhookUrl || 'NOT SET'}
       )
     }
   } catch (error: any) {
-    console.error('[upload] Upload error:', error)
-    console.error('[upload] Error stack:', error?.stack)
-    console.error('[upload] Error details:', {
-      message: error?.message,
-      name: error?.name,
-      cause: error?.cause,
-    })
+      console.error('[upload] Upload error:', error)
+      console.error('[upload] Error stack:', error?.stack)
+      console.error('[upload] Error details:', {
+        message: error?.message,
+        name: error?.name,
+        cause: error?.cause,
+      })
     
     // Return detailed error in development
     const errorResponse = {
