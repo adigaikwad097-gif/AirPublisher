@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentCreator } from '@/lib/db/creator'
+import { getAppUrl } from '@/lib/utils/app-url'
 
 // Force dynamic rendering - this route uses cookies and request.url
 export const dynamic = 'force-dynamic'
@@ -49,23 +50,16 @@ export async function GET(request: Request) {
 
     const clientId = process.env.YOUTUBE_CLIENT_ID
     
-    // Detect base URL (support ngrok for local development)
-    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    
-    // Check if request is coming through ngrok or has custom host
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host')
-    const protocol = request.headers.get('x-forwarded-proto') || (request.url.startsWith('https') ? 'https' : 'http')
-    
-    if (host && (host.includes('ngrok') || host.includes('.ngrok-free.dev'))) {
-      baseUrl = `${protocol}://${host}`
-      console.log('[YouTube OAuth] Detected ngrok URL:', baseUrl)
-    } else if (host && host !== 'localhost:3000') {
-      // Custom host (production or other environment)
-      baseUrl = `${protocol}://${host}`
-      console.log('[YouTube OAuth] Using custom host:', baseUrl)
-    }
-    
+    // Use getAppUrl() utility which properly detects Vercel, ngrok, or localhost
+    const baseUrl = getAppUrl().replace(/\/$/, '')
     const redirectUri = `${baseUrl}/api/auth/youtube/callback`
+    
+    console.log('[YouTube OAuth] Environment check:', {
+      VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
+    })
+    console.log('[YouTube OAuth] Base URL:', baseUrl)
+    console.log('[YouTube OAuth] Redirect URI:', redirectUri)
     
     console.log('[YouTube OAuth] OAuth configuration:', {
       hasClientId: !!clientId,
@@ -101,8 +95,7 @@ export async function GET(request: Request) {
     authUrl.searchParams.set('response_type', 'code')
     authUrl.searchParams.set('scope', scopes)
     authUrl.searchParams.set('access_type', 'offline') // Get refresh token
-    authUrl.searchParams.set('prompt', 'consent') // Force consent to get refresh token
-    authUrl.searchParams.set('approval_prompt', 'force') // Additional parameter to force refresh token
+    authUrl.searchParams.set('prompt', 'consent') // Force consent to get refresh token (replaces deprecated approval_prompt)
     authUrl.searchParams.set('state', state)
 
     // Redirect to YouTube OAuth
