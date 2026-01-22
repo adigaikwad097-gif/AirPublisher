@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { getAllPostedVideos } from '@/lib/db/videos'
 import { getCreatorProfile } from '@/lib/db/creator'
 
+// Force dynamic rendering - this route uses request.url
+export const dynamic = 'force-dynamic'
+
 type FilterType = 'latest' | 'top' | 'trending'
 
 export async function GET(request: Request) {

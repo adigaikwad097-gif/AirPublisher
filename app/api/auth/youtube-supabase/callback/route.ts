@@ -4,6 +4,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 import { getCurrentCreator } from '@/lib/db/creator'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * YouTube OAuth callback via Supabase Auth
  * Extracts tokens from Supabase session and stores in youtube_tokens table

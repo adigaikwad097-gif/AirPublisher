@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { verifyN8nWebhook } from '@/lib/webhooks/n8n'
 
+// Force dynamic rendering - this route uses headers for webhook verification
+export const dynamic = 'force-dynamic'
+
 /**
  * Query endpoint for n8n to fetch videos that need to be posted immediately
  * This includes:

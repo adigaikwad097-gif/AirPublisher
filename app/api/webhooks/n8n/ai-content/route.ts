@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { verifyN8nWebhook } from '@/lib/webhooks/n8n'
 import { createVideo } from '@/lib/db/videos'
 
+// Force dynamic rendering - this route uses headers for webhook verification
+export const dynamic = 'force-dynamic'
+
 /**
  * Webhook endpoint for n8n to receive AI-generated content from AIR Ideas
  * Called by n8n when AIR Ideas generates new content

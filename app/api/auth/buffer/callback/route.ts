@@ -4,6 +4,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 import { getBufferProfiles } from '@/lib/buffer/api'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Buffer OAuth callback
  * Much simpler than individual platform callbacks!

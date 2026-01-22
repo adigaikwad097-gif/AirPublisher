@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { verifyN8nWebhook } from '@/lib/webhooks/n8n'
 import { calculateScore } from '@/lib/db/leaderboard'
 
+// Force dynamic rendering - this route uses headers for webhook verification
+export const dynamic = 'force-dynamic'
+
 /**
  * Endpoint for n8n to trigger leaderboard calculation
  * n8n can call this after collecting metrics from all platforms

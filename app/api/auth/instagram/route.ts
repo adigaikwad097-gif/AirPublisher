@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { getAppUrl } from '@/lib/utils/app-url'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Initiate Instagram OAuth flow
  * Note: Instagram uses Facebook OAuth (Instagram Graph API)

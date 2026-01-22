@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Initiate Dropbox OAuth flow (company-wide connection)
  * Only needs to be done once by an admin

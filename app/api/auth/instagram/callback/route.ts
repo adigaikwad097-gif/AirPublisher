@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Instagram OAuth callback
  * Instagram uses Facebook OAuth, so we need to:

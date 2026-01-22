@@ -4,6 +4,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 import { getCurrentCreator } from '@/lib/db/creator'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Instagram OAuth callback via Supabase Auth
  * Extracts tokens, exchanges for long-lived token, gets Instagram Business Account ID

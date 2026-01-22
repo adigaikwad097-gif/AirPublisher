@@ -3,6 +3,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 import { cookies } from 'next/headers'
 
+// Force dynamic rendering - this route uses cookies
+export const dynamic = 'force-dynamic'
+
 async function setProfileCookie(uniqueIdentifier: string) {
   try {
     const cookieStore = await cookies()

@@ -5,6 +5,9 @@ import { verifyN8nWebhook } from '@/lib/webhooks/n8n'
 import { getValidYouTubeAccessToken } from '@/lib/youtube/tokens'
 import { getValidInstagramAccessToken } from '@/lib/instagram/tokens'
 
+// Force dynamic rendering - this route uses headers for webhook verification
+export const dynamic = 'force-dynamic'
+
 /**
  * Query endpoint for n8n to fetch video details and platform tokens
  * Used when n8n needs to post a video

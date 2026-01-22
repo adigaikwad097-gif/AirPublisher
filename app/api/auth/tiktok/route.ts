@@ -4,6 +4,9 @@ import { getCurrentCreator } from '@/lib/db/creator'
 import { getAppUrl } from '@/lib/utils/app-url'
 import crypto from 'crypto'
 
+// Force dynamic rendering - this route uses cookies and request.url
+export const dynamic = 'force-dynamic'
+
 /**
  * Initiate TikTok OAuth flow
  */
