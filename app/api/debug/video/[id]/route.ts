@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase/types'
 
+// Force dynamic rendering - this route uses dynamic params
+export const dynamic = 'force-dynamic'
+
 // Helper function to safely extract video data
 // Moved outside the handler to avoid ES5 strict mode issues
 function getVideoData(result: unknown): {
