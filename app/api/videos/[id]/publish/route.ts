@@ -73,24 +73,61 @@ export async function POST(
     if (postType === 'schedule') {
       await scheduleVideoAction(videoId, scheduledAt, platform)
     } else {
-      // Post now - update platform and trigger immediate post
+      // Post now - update platform and trigger immediate post via n8n
       await updateVideoAction(videoId, {
         platform_target: platform,
-        status: 'scheduled',
-        scheduled_at: new Date().toISOString(),
+        // Don't set status to 'scheduled' - n8n will update it to 'posted' when done
+        // Keep status as 'draft' until n8n confirms posting
       })
 
       // Trigger immediate post webhook if not internal
       if (platform !== 'internal') {
+        const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL_POST_VIDEO || 
+                              'https://support-team.app.n8n.cloud/webhook/15ec8f2d-a77c-4407-8ab8-cd505284bb42'
+        
         try {
-          const triggerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trigger/post-video`
-          await fetch(triggerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ video_id: videoId }),
+          const webhookPayload = {
+            video_id: videoId,
+            creator_unique_identifier: video.creator_unique_identifier,
+            platform: platform,
+            trigger_type: 'immediate',
+          }
+
+          const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+          }
+
+          // Add API key if configured
+          const n8nApiKey = process.env.N8N_API_KEY
+          if (n8nApiKey) {
+            headers['x-n8n-api-key'] = n8nApiKey
+          }
+
+          console.log('[publish] Triggering n8n immediate post webhook:', {
+            url: n8nWebhookUrl,
+            video_id: videoId,
+            platform: platform,
           })
-        } catch (webhookError) {
-          console.warn('[publish] Webhook trigger failed (cron will handle it):', webhookError)
+
+          const webhookResponse = await fetch(n8nWebhookUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(webhookPayload),
+          })
+
+          if (!webhookResponse.ok) {
+            const errorText = await webhookResponse.text()
+            console.error('[publish] n8n webhook error:', errorText)
+            throw new Error(`Failed to trigger n8n webhook: ${errorText}`)
+          }
+
+          const webhookResult = await webhookResponse.json().catch(() => ({ success: true }))
+          console.log('[publish] ✅ Successfully triggered n8n webhook:', webhookResult)
+        } catch (webhookError: any) {
+          console.error('[publish] Webhook trigger failed:', webhookError)
+          // Don't fail the request - n8n cron might still pick it up
+          // But log the error so user knows
+          throw new Error(`Failed to trigger immediate post: ${webhookError.message || 'Unknown error'}`)
         }
       } else {
         // Internal platform - mark as posted immediately
