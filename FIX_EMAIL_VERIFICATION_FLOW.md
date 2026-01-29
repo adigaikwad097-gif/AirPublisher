@@ -69,3 +69,4 @@ Make sure email verification is enabled in Supabase:
 **Note**: The linking record creation now safely handles cases where user might not exist (dev mode), preventing the null reference error.
 
 
+

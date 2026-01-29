@@ -35,3 +35,4 @@ CREATE POLICY "Users can view dropbox config" ON airpublisher_dropbox_config
   USING (auth.uid() IS NOT NULL);
 
 
+

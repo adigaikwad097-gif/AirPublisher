@@ -113,3 +113,4 @@ Copy these from your `.env.local`:
 - ✅ Never commit `.env.local` to git (it's already in `.gitignore`)
 - ✅ Use different values for production vs development if needed
 
+

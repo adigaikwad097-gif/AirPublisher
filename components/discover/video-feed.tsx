@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Eye, Calendar, Clock, TrendingUp, Sparkles } from 'lucide-react'
+import { Clock, TrendingUp, Sparkles, Heart, MessageCircle, MoreHorizontal, Eye } from 'lucide-react'
 import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
 import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
@@ -24,20 +21,16 @@ function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; vi
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Video is in viewport - play it
-            video.play().catch(() => {
-              // Autoplay might be blocked, that's okay
-            })
+            video.play().catch(() => {})
             setIsPlaying(true)
           } else {
-            // Video is out of viewport - pause it
             video.pause()
             setIsPlaying(false)
           }
         })
       },
       {
-        threshold: 0.5, // Play when 50% of video is visible
+        threshold: 0.5,
       }
     )
 
@@ -48,14 +41,13 @@ function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; vi
     }
   }, [])
 
-  // Use streaming proxy for Dropbox videos to bypass CORS
   const streamUrl = getVideoStreamUrl(videoId)
 
   return (
     <video
       ref={videoRef}
       src={streamUrl}
-      className="w-full h-full object-contain"
+      className="w-full h-auto rounded-lg"
       preload="metadata"
       muted
       playsInline
@@ -183,40 +175,52 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
     <div className="space-y-6">
       {/* Filter Buttons */}
       <div className="flex items-center gap-3 overflow-x-auto pb-2">
-        <Button
-          variant={filter === 'latest' ? 'primary' : 'outline'}
+        <button
           onClick={() => handleFilterChange('latest')}
-          className="whitespace-nowrap"
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            filter === 'latest'
+              ? 'bg-[#89CFF0] text-black'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
         >
-          <Clock className="h-4 w-4 mr-2" />
+          <Clock className="h-4 w-4 inline mr-2" />
           Latest
-        </Button>
-        <Button
-          variant={filter === 'top' ? 'primary' : 'outline'}
+        </button>
+        <button
           onClick={() => handleFilterChange('top')}
-          className="whitespace-nowrap"
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            filter === 'top'
+              ? 'bg-[#89CFF0] text-black'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
         >
-          <TrendingUp className="h-4 w-4 mr-2" />
+          <TrendingUp className="h-4 w-4 inline mr-2" />
           Top
-        </Button>
-        <Button
-          variant={filter === 'trending' ? 'primary' : 'outline'}
+        </button>
+        <button
           onClick={() => handleFilterChange('trending')}
-          className="whitespace-nowrap"
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            filter === 'trending'
+              ? 'bg-[#89CFF0] text-black'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
         >
-          <Sparkles className="h-4 w-4 mr-2" />
+          <Sparkles className="h-4 w-4 inline mr-2" />
           Trending
-        </Button>
+        </button>
       </div>
 
-      {/* Video Feed - LinkedIn Style */}
+      {/* LinkedIn-style Feed - Centered */}
       <div className="space-y-4">
         {videos.map((video) => {
           return (
-            <Card key={video.id} className="hover:bg-card-hover transition-all">
-              <CardContent className="p-4">
-                {/* Creator Info - Top Left */}
-                <div className="flex items-center gap-3 mb-3">
+            <div
+              key={video.id}
+              className="bg-black border border-white/10 rounded-lg overflow-hidden"
+            >
+              {/* Creator Header */}
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
                   <Link href={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
                     {video.creator.avatar_url ? (
                       <Image
@@ -227,8 +231,8 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                         className="rounded-full"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-lg text-primary font-semibold">
+                      <div className="w-12 h-12 rounded-full bg-[#89CFF0]/20 flex items-center justify-center">
+                        <span className="text-lg text-[#89CFF0] font-semibold">
                           {video.creator.display_name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -236,45 +240,29 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                   </Link>
                   <div className="flex-1 min-w-0">
                     <Link href={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
-                      <p className="font-semibold text-foreground hover:text-primary transition-colors">
+                      <p className="font-semibold text-white hover:text-[#89CFF0] transition-colors">
                         {video.creator.display_name}
                       </p>
                     </Link>
-                    <div className="flex items-center gap-2 mt-1">
-                      {video.creator.niche && (
-                        <Badge variant="outline" className="text-xs">
-                          {video.creator.niche}
-                        </Badge>
-                      )}
-                      {video.posted_at && (
-                        <span className="text-xs text-foreground/60">
-                          {new Date(video.posted_at).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Title and Description */}
-                <Link href={`/videos/${video.id}`}>
-                  <div className="mb-3">
-                    <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">
-                      {video.title}
-                    </h3>
-                    {video.description && (
-                      <p className="text-sm text-foreground/70 line-clamp-3">
-                        {video.description}
+                    {video.posted_at && (
+                      <p className="text-sm text-white/50">
+                        {new Date(video.posted_at).toLocaleDateString()}
                       </p>
                     )}
                   </div>
-                </Link>
+                </div>
+                <button className="text-white/70 hover:text-white">
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              </div>
 
-                {/* Video - Auto-play on scroll */}
-                <Link href={`/videos/${video.id}`}>
-                  <div className="relative w-full rounded-lg overflow-hidden bg-black aspect-video group">
-                    {video.video_url ? (
-                      <AutoPlayVideo src={video.video_url} title={video.title} videoId={video.id} />
-                    ) : video.thumbnail_url ? (
+              {/* Video Content */}
+              <Link href={`/videos/${video.id}`}>
+                <div className="relative w-full bg-black">
+                  {video.video_url ? (
+                    <AutoPlayVideo src={video.video_url} title={video.title} videoId={video.id} />
+                  ) : video.thumbnail_url ? (
+                    <div className="relative w-full aspect-video">
                       <Image
                         src={video.thumbnail_url}
                         alt={video.title}
@@ -282,41 +270,52 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 800px"
                       />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-muted">
-                        <span className="text-foreground/50 text-sm">No video available</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-video flex flex-col items-center justify-center bg-white/5">
+                      <span className="text-white/50 text-sm">No video available</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Title and Description */}
+              <div className="p-4">
+                <Link href={`/videos/${video.id}`}>
+                  <h3 className="font-semibold text-lg mb-2 text-white hover:text-[#89CFF0] transition-colors">
+                    {video.title}
+                  </h3>
+                  {video.description && (
+                    <p className="text-sm text-white/70 line-clamp-3 mb-3">
+                      {video.description}
+                    </p>
+                  )}
                 </Link>
 
-                {/* Stats and Actions - Bottom */}
-                <div className="mt-3 pt-3 border-t border-border space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-foreground/60">
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        <span>{formatNumber(video.views || 0)}</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {video.platform_target}
-                      </Badge>
-                    </div>
+                {/* Engagement Stats */}
+                <div className="flex items-center gap-4 text-sm text-white/60 mb-3">
+                  <div className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    <span>{formatNumber(video.views || 0)}</span>
                   </div>
-                  
-                  {/* Like and Comment Actions */}
-                  <VideoActions videoId={video.id} />
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                  <div className="flex items-center gap-6">
+                    <VideoActions videoId={video.id} />
+                  </div>
+                </div>
+              </div>
+            </div>
           )
         })}
       </div>
 
       {/* Loading Indicator */}
       {loading && (
-        <div className="text-center py-8 text-foreground/70">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center py-8 text-white/70">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#89CFF0]"></div>
           <p className="mt-2">Loading more videos...</p>
         </div>
       )}
@@ -326,21 +325,17 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
 
       {/* End of Feed */}
       {!hasMore && videos.length > 0 && (
-        <div className="text-center py-8 text-foreground/70">
+        <div className="text-center py-8 text-white/70">
           <p>You&apos;ve reached the end of the feed</p>
         </div>
       )}
 
       {/* Empty State */}
       {videos.length === 0 && !loading && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12 text-foreground/70">
-              <p className="text-lg mb-2">No videos found</p>
-              <p className="text-sm">Try a different filter or check back later!</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12 text-white/70">
+          <p className="text-lg mb-2">No videos found</p>
+          <p className="text-sm">Try a different filter or check back later!</p>
+        </div>
       )}
     </div>
   )

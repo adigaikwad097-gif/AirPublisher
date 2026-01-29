@@ -74,3 +74,4 @@ Added API route `/api/auth/clear-profile-cookie` to clear the `httpOnly` cookie 
 4. Verify your profile exists in Supabase: `creator_profiles` table
 
 
+

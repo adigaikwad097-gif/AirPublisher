@@ -8,27 +8,24 @@ import { calculateScore } from '@/lib/db/leaderboard'
  */
 export async function POST(request: Request) {
   try {
-    // TODO: Leaderboard calculation temporarily disabled
-    // Return early to skip leaderboard functionality for now
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Leaderboard calculation is temporarily disabled' 
-    })
-
-    /* COMMENTED OUT - Leaderboard functionality disabled
-    // Verify service role key (for cron jobs)
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    // Verify n8n API key (for n8n automation calls)
+    const apiKey = request.headers.get('x-n8n-api-key') || request.headers.get('authorization')?.replace('Bearer ', '')
+    if (apiKey && apiKey !== process.env.N8N_API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    // Allow in development without auth for testing
+    if (process.env.NODE_ENV === 'production' && !apiKey && process.env.N8N_API_KEY) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const supabase = await createClient()
 
     // Get all posted videos with their performance metrics
-    // Aggregate views from air_publisher_videos table
+    // Aggregate views, likes, comments, and revenue from air_publisher_videos table
     const { data: videos, error: videosError } = await (supabase
       .from('air_publisher_videos') as any)
-      .select('creator_unique_identifier, id, views, posted_at')
+      .select('creator_unique_identifier, id, views, likes, comments, estimated_revenue, posted_at')
       .eq('status', 'posted')
 
     if (videosError) throw videosError
@@ -44,9 +41,9 @@ export async function POST(request: Request) {
       weekly: { views: number; likes: number; comments: number; revenue: number }
       daily: { views: number; likes: number; comments: number; revenue: number }
     }
-    const creatorMetrics: Record<string, CreatorMetrics> = {}
+    const creatorMetrics: Record<string, CreatorMetrics> = {} as Record<string, CreatorMetrics>
 
-    // Aggregate views from videos
+    // Aggregate metrics from videos
     (videos as any[])?.forEach((video: any) => {
       const creatorId = video.creator_unique_identifier
       if (!creatorMetrics[creatorId]) {
@@ -58,23 +55,32 @@ export async function POST(request: Request) {
       }
 
       const videoViews = video.views || 0
+      const videoLikes = video.likes || 0
+      const videoComments = video.comments || 0
+      const videoRevenue = video.estimated_revenue || 0
       const postedAt = video.posted_at ? new Date(video.posted_at) : null
 
       // All-time: sum all videos
       creatorMetrics[creatorId].allTime.views += videoViews
+      creatorMetrics[creatorId].allTime.likes += videoLikes
+      creatorMetrics[creatorId].allTime.comments += videoComments
+      creatorMetrics[creatorId].allTime.revenue += videoRevenue
 
       // Weekly: only videos posted in last 7 days
       if (postedAt && postedAt >= weeklyStart) {
         creatorMetrics[creatorId].weekly.views += videoViews
+        creatorMetrics[creatorId].weekly.likes += videoLikes
+        creatorMetrics[creatorId].weekly.comments += videoComments
+        creatorMetrics[creatorId].weekly.revenue += videoRevenue
       }
 
       // Daily: only videos posted in last 24 hours
       if (postedAt && postedAt >= dailyStart) {
         creatorMetrics[creatorId].daily.views += videoViews
+        creatorMetrics[creatorId].daily.likes += videoLikes
+        creatorMetrics[creatorId].daily.comments += videoComments
+        creatorMetrics[creatorId].daily.revenue += videoRevenue
       }
-
-      // TODO: Likes, comments, and revenue would come from platform APIs via n8n
-      // For now, these remain at 0 until n8n webhooks update them
     })
 
     // Calculate scores and update leaderboards for each period
@@ -123,8 +129,8 @@ export async function POST(request: Request) {
 
       // Upsert leaderboard entries
       for (const entry of entries) {
-        const { error: upsertError } = await supabase
-          .from('air_leaderboards')
+        const { error: upsertError } = await (supabase
+          .from('air_leaderboards') as any)
           .upsert(
             {
               creator_unique_identifier: entry.creator_unique_identifier,
@@ -148,7 +154,6 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true })
-    */
   } catch (error) {
     console.error('Leaderboard calculation error:', error)
     return NextResponse.json(

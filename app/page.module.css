@@ -1,0 +1,46 @@
+.heroSection {
+  position: relative;
+  background: #050507;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.publisherWord {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  font-size: clamp(5rem, 38vw, 14rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #89cffa;
+  text-shadow: 0 0 25px rgba(137, 207, 240, 0.6), 0 0 60px rgba(137, 207, 240, 0.35);
+  z-index: 1;
+  text-transform: lowercase;
+}
+
+.airWord {
+  position: absolute;
+  top: 6rem;
+  left: 1.25rem;
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  color: #fff;
+  z-index: 2;
+  text-transform: lowercase;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 3;
+  padding: 4rem 2rem 2rem;
+}
+
+.heroVisualContainer {
+  position: absolute;
+  right: 4rem;
+  bottom: 12vh;
+  z-index: 3;
+}
+
+

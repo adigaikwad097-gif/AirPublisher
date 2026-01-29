@@ -58,3 +58,4 @@ After restart, when you click "Connect Instagram", terminal logs should show:
 After restarting, try connecting Instagram again - it should now use the correct Instagram App ID! 🎉
 
 
+

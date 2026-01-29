@@ -45,3 +45,4 @@ When user connects a platform:
 3. Show "Connect Platform" page instead of "Create Profile" page
 
 
+

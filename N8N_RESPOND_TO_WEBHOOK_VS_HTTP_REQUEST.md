@@ -85,3 +85,4 @@ Browser → n8n Webhook (quick response: "received")
 
 "Respond to Webhook" is only for responding to the original webhook caller (the browser), which you don't need in this case.
 
+

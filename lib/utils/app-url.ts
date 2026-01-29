@@ -9,6 +9,9 @@
  * Note: NEXT_PUBLIC_APP_URL is prioritized because it ensures OAuth redirect URIs
  * match exactly what's configured in OAuth app settings, avoiding domain mismatches
  * between deployment URLs (with hash) and project URLs.
+ * 
+ * For live server deployment, set NEXT_PUBLIC_APP_URL=http://93.127.216.83:3003
+ * (or https:// if SSL is configured)
  */
 export function getAppUrl(): string {
   // Prioritize manually set URL (ensures OAuth redirect URIs match exactly)

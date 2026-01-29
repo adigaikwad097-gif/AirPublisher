@@ -19,16 +19,16 @@ export default async function VideosPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-extrabold mb-3">My Videos</h1>
-        <p className="text-foreground/80 text-lg font-medium">
+        <h1 className="text-4xl font-extrabold mb-2 text-white">My Videos</h1>
+        <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
           All your uploaded videos ({videos.length} total)
         </p>
       </div>
 
       {videos.length === 0 ? (
-        <Card>
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="pt-6">
-            <div className="text-center py-8 text-foreground/70">
+            <div className="text-center py-8 text-white/70">
               <p>No videos yet. Upload your first video to get started.</p>
             </div>
           </CardContent>
@@ -36,7 +36,7 @@ export default async function VideosPage() {
       ) : (
         <div className="space-y-4">
           {videos.map((video) => (
-            <Card key={video.id} className="hover:bg-card-hover transition-colors">
+            <Card key={video.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
               <CardContent className="pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Video Preview */}
@@ -54,12 +54,12 @@ export default async function VideosPage() {
                         </video>
                       </div>
                     ) : (
-                      <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
-                        <p className="text-foreground/50 text-sm">No video preview</p>
+                      <div className="w-full aspect-video bg-white/5 rounded-lg flex items-center justify-center">
+                        <p className="text-white/50 text-sm">No video preview</p>
                       </div>
                     )}
                     {video.video_url && (
-                      <p className="text-xs text-foreground/50 mt-2 truncate" title={video.video_url}>
+                      <p className="text-xs text-white/50 mt-2 truncate" title={video.video_url}>
                         {video.video_url}
                       </p>
                     )}
@@ -67,9 +67,9 @@ export default async function VideosPage() {
 
                   {/* Video Info */}
                   <div className="md:col-span-2 flex-1">
-                    <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
+                    <h3 className="font-semibold text-lg mb-2 text-white">{video.title}</h3>
                     {video.description && (
-                      <p className="text-sm text-foreground/70 mb-3 line-clamp-3">{video.description}</p>
+                      <p className="text-sm text-white/70 mb-3 line-clamp-3">{video.description}</p>
                     )}
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <Badge
@@ -83,10 +83,10 @@ export default async function VideosPage() {
                       >
                         {video.status}
                       </Badge>
-                      <Badge variant="outline">{video.platform_target}</Badge>
-                      <Badge variant="outline">{video.source_type}</Badge>
+                      <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20">{video.platform_target}</Badge>
+                      <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20">{video.source_type}</Badge>
                       {video.views !== undefined && (
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20">
                           {video.views || 0} views
                         </Badge>
                       )}
@@ -102,12 +102,12 @@ export default async function VideosPage() {
                       />
                     </div>
                     {video.created_at && (
-                      <p className="text-xs text-foreground/50 mt-3">
+                      <p className="text-xs text-white/50 mt-3">
                         Created: {new Date(video.created_at).toLocaleString()}
                       </p>
                     )}
                     {video.posted_at && (
-                      <p className="text-xs text-foreground/50">
+                      <p className="text-xs text-white/50">
                         Posted: {new Date(video.posted_at).toLocaleString()}
                       </p>
                     )}
@@ -115,31 +115,31 @@ export default async function VideosPage() {
                 </div>
 
                 {/* Debug Info (Collapsible) */}
-                <details className="mt-4 pt-4 border-t border-border">
-                  <summary className="text-sm text-foreground/50 cursor-pointer hover:text-foreground/70">
+                <details className="mt-4 pt-4 border-t border-white/10">
+                  <summary className="text-sm text-white/50 cursor-pointer hover:text-white/70">
                     Debug Info
                   </summary>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
                     <div>
-                      <p className="text-foreground/50">ID</p>
-                      <p className="font-mono text-xs">{video.id}</p>
+                      <p className="text-white/50">ID</p>
+                      <p className="font-mono text-xs text-white/70">{video.id}</p>
                     </div>
                     <div>
-                      <p className="text-foreground/50">Creator ID</p>
-                      <p className="font-mono text-xs truncate">{video.creator_unique_identifier}</p>
+                      <p className="text-white/50">Creator ID</p>
+                      <p className="font-mono text-xs truncate text-white/70">{video.creator_unique_identifier}</p>
                     </div>
                     {video.video_url && (
                       <div>
-                        <p className="text-foreground/50">Video URL</p>
-                        <p className="text-xs truncate" title={video.video_url}>
+                        <p className="text-white/50">Video URL</p>
+                        <p className="text-xs truncate text-white/70" title={video.video_url}>
                           {video.video_url.substring(0, 50)}...
                         </p>
                       </div>
                     )}
                     {video.thumbnail_url && (
                       <div>
-                        <p className="text-foreground/50">Thumbnail URL</p>
-                        <p className="text-xs truncate" title={video.thumbnail_url}>
+                        <p className="text-white/50">Thumbnail URL</p>
+                        <p className="text-xs truncate text-white/70" title={video.thumbnail_url}>
                           {video.thumbnail_url.substring(0, 50)}...
                         </p>
                       </div>

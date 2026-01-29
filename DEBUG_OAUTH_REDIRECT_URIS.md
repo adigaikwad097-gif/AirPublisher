@@ -144,3 +144,4 @@ If the logged redirect URI matches exactly what's configured but still fails:
 4. **Check app status** - make sure your OAuth apps are not in restricted mode
 5. **Verify app IDs** match between code and OAuth apps
 
+

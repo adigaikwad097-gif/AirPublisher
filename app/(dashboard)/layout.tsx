@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/dashboard/sidebar'
+import { Navbar } from '@/components/dashboard/navbar'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -43,10 +43,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-background">
-        <div className="container mx-auto px-6 py-8">{children}</div>
+    <div className="min-h-screen bg-black">
+      <Navbar />
+      <main className="pt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
       </main>
     </div>
   )

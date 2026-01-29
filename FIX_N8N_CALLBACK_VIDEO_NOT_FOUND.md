@@ -62,3 +62,4 @@ Before the callback, add a debug step or check in Supabase:
 
 If the video doesn't exist, you could make the callback handle that gracefully, but it's better to ensure the video exists first.
 
+

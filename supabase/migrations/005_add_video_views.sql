@@ -20,3 +20,4 @@ WHERE status = 'posted';
 -- This is sufficient for the discover page to show all posted videos
 
 
+

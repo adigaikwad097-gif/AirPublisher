@@ -1,6 +1,7 @@
 import { getAllPostedVideos } from '@/lib/db/videos'
 import { getCreatorProfile } from '@/lib/db/creator'
 import { VideoFeed } from '@/components/discover/video-feed'
+import { Calendar } from 'lucide-react'
 
 // Force dynamic rendering - this page uses searchParams
 export const dynamic = 'force-dynamic'
@@ -56,16 +57,18 @@ export default async function DiscoverPage({
   }
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-4xl font-extrabold mb-3">Discover Videos</h1>
-        <p className="text-foreground/80 text-lg font-medium">
-          Watch and support creators on AIR Publisher
-        </p>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Header Section */}
+      <div className="space-y-4 mb-6">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white">
+          Your daily dose of internet
+        </h1>
       </div>
 
-      <VideoFeed initialVideos={sortedVideos} initialFilter={filter} />
+      {/* Video Feed Section - Centered */}
+      <div>
+        <VideoFeed initialVideos={sortedVideos} initialFilter={filter} />
+      </div>
     </div>
   )
 }
-

@@ -97,3 +97,4 @@ publishVideoAction('your-video-id-here')
 4. **Network tab** (F12 → Network) - look for server action POST request
 
 
+

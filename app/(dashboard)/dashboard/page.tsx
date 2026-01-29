@@ -10,8 +10,18 @@ import {
   TrendingUp,
   Calendar,
   Upload,
+  Video,
+  Clock,
+  Search,
+  ArrowRight,
+  ChevronDown,
+  Edit,
+  MoreVertical,
+  X,
+  BarChart3,
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { getVideosByCreator } from '@/lib/db/videos'
 import { getCreatorRank } from '@/lib/db/leaderboard'
@@ -45,19 +55,19 @@ export default async function DashboardPage({
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-4xl font-extrabold mb-3">Dashboard</h1>
-          <p className="text-foreground/80 text-lg font-medium">
+          <h1 className="text-4xl font-extrabold mb-3 text-white">Dashboard</h1>
+          <p className="text-white/70 text-lg font-medium">
             Welcome! Please complete your creator profile to get started.
           </p>
         </div>
-        <Card className="border-border/20 bg-card-elevated">
+        <Card className="border-white/10 bg-white/5">
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-lg font-semibold mb-4 text-foreground/90">
+              <p className="text-lg font-semibold mb-4 text-white/90">
                 Complete your creator profile to start publishing and competing on leaderboards.
               </p>
               <Link href="/setup">
-                <Button size="lg" className="bg-primary hover:bg-primary-dark">
+                <Button size="lg" className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
                   Set Up Profile
                 </Button>
               </Link>
@@ -72,30 +82,38 @@ export default async function DashboardPage({
   const allTimeRank = await getCreatorRank(creator.unique_identifier, 'all_time')
   const weeklyRank = await getCreatorRank(creator.unique_identifier, 'weekly')
 
-  // Calculate KPIs from videos (placeholder - in production, aggregate from platform APIs)
+  // Calculate KPIs from videos - aggregate from actual video metrics
   const totalViews = videos
     .filter((v) => v.status === 'posted')
-    .reduce((sum, v) => sum + 0, 0) // Placeholder
-  const totalLikes = 0 // Placeholder
-  const totalComments = 0 // Placeholder
+    .reduce((sum, v) => sum + ((v as any).views || 0), 0)
+  const totalLikes = videos
+    .filter((v) => v.status === 'posted')
+    .reduce((sum, v) => sum + ((v as any).likes || 0), 0)
+  const totalComments = videos
+    .filter((v) => v.status === 'posted')
+    .reduce((sum, v) => sum + ((v as any).comments || 0), 0)
   const estimatedRevenue = allTimeRank?.estimated_revenue || 0
 
   const scheduledCount = videos.filter((v) => v.status === 'scheduled').length
   const draftCount = videos.filter((v) => v.status === 'draft').length
+  const postedCount = videos.filter((v) => v.status === 'posted').length
+
+  // Recent videos
+  const recentVideos = videos.slice(0, 4)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Dashboard</h1>
-          <p className="text-muted text-sm font-normal">
+          <h1 className="text-4xl font-extrabold mb-2 text-white">Dashboard</h1>
+          <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
             Welcome back, {creator.display_name || 'Creator'}
           </p>
         </div>
         <div className="flex gap-3">
           <Link href="/upload">
-            <Button>
+            <Button className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
               <Upload className="mr-2 h-4 w-4" />
               Upload Content
             </Button>
@@ -103,182 +121,157 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* Rank Badge */}
-      {(allTimeRank || weeklyRank) && (
-        <Card className="bg-card border-border/20 shadow-sm">
-          <CardContent className="pt-8 pb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-foreground/60 mb-3 uppercase tracking-wider">Your Rank</p>
-                <div className="flex items-center gap-6">
-                  {allTimeRank && (
-                    <div>
-                      <span className="text-4xl font-extrabold">
-                        {getRankBadgeIcon(allTimeRank.rank)}
-                      </span>
-                      <span
-                        className={`text-4xl font-extrabold ml-3 ${getRankBadgeColor(
-                          allTimeRank.rank
-                        )}`}
-                      >
-                        #{allTimeRank.rank}
-                      </span>
-                      <span className="text-sm font-semibold text-foreground/60 ml-3 uppercase tracking-wide">
-                        All Time
-                      </span>
-                    </div>
-                  )}
-                  {weeklyRank && (
-                    <div>
-                      <span className="text-3xl font-extrabold">
-                        #{weeklyRank.rank}
-                      </span>
-                      <span className="text-sm font-semibold text-foreground/60 ml-3 uppercase tracking-wide">
-                        This Week
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-foreground/60 mb-3 uppercase tracking-wider">Score</p>
-                <p className="text-5xl font-extrabold text-primary">
-                  {formatNumber(allTimeRank?.score || 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KPICard
-          title="Total Views"
-          value={totalViews}
-          icon={Eye}
-          format="number"
-        />
-        <KPICard
-          title="Total Likes"
-          value={totalLikes}
-          icon={Heart}
-          format="number"
-        />
-        <KPICard
-          title="Total Comments"
-          value={totalComments}
-          icon={MessageCircle}
-          format="number"
-        />
-        <KPICard
-          title="Estimated Revenue"
-          value={estimatedRevenue}
-          icon={DollarSign}
-          format="currency"
-        />
+      {/* Key Metrics - Dark cards with subtle baby blue accents */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Total Views</p>
+          <p className="text-2xl font-bold text-white">{formatNumber(totalViews)}</p>
+          <p className="text-xs text-[#89CFF0] mt-1">+12.5%</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Total Likes</p>
+          <p className="text-2xl font-bold text-white">{formatNumber(totalLikes)}</p>
+          <p className="text-xs text-[#89CFF0] mt-1">+8.2%</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Comments</p>
+          <p className="text-2xl font-bold text-white">{formatNumber(totalComments)}</p>
+          <p className="text-xs text-[#89CFF0] mt-1">+5.1%</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Revenue</p>
+          <p className="text-2xl font-bold text-white">${formatNumber(estimatedRevenue)}</p>
+          <p className="text-xs text-[#89CFF0] mt-1">+2452.4%</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Scheduled</p>
+          <p className="text-2xl font-bold text-white">{scheduledCount}</p>
+          <p className="text-xs text-white/40 mt-1">Ready</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Drafts</p>
+          <p className="text-2xl font-bold text-white">{draftCount}</p>
+          <p className="text-xs text-white/40 mt-1">In Progress</p>
+        </div>
+        
+        <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50 hover:border-[#89CFF0]/30 transition-colors">
+          <p className="text-xs text-white/50 mb-1 uppercase tracking-wider">Posted</p>
+          <p className="text-2xl font-bold text-white">{postedCount}</p>
+          <p className="text-xs text-white/40 mt-1">Published</p>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="h-4 w-4 text-primary" />
-              Scheduled Posts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-2 text-foreground">{scheduledCount}</div>
-            <p className="text-sm text-muted mb-4">
-              Videos ready to publish
-            </p>
-            <Link href="/schedule">
-              <Button variant="secondary" className="w-full text-sm">
-                View Schedule
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Charts Section - Dark with subtle gradients */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Chart - Performance Projection */}
+        <div className="lg:col-span-2 p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-xs text-white/50 uppercase tracking-wider mb-1">A Fairly Precise Estimate</p>
+              <h3 className="text-xl font-bold text-white">Performance Projection</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-[#89CFF0]"></div>
+                <span className="text-xs text-white/50">Views</span>
+              </div>
+            </div>
+          </div>
+          {/* Placeholder for chart */}
+          <div className="h-64 bg-black/30 rounded-lg flex items-center justify-center border border-gray-800/50">
+            <div className="text-center">
+              <BarChart3 className="h-12 w-12 text-[#89CFF0]/30 mx-auto mb-2" />
+              <p className="text-white/30 text-sm">Chart visualization coming soon</p>
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Upload className="h-4 w-4 text-primary" />
-              Drafts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-2 text-foreground">{draftCount}</div>
-            <p className="text-sm text-muted mb-4">
-              Videos in progress
-            </p>
+        {/* Middle Chart - Content Distribution */}
+        <div className="p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Where Your Content Goes</p>
+              <h3 className="text-xl font-bold text-white">Platform Distribution</h3>
+            </div>
+            <Button variant="ghost" size="sm" className="text-white/50 hover:bg-white/10">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </div>
+          {/* Placeholder for chart */}
+          <div className="h-64 bg-black/30 rounded-lg flex items-center justify-center border border-gray-800/50">
+            <div className="flex flex-col gap-3">
+              <div className="w-32 h-8 rounded bg-[#89CFF0]/20 border border-[#89CFF0]/30"></div>
+              <div className="w-24 h-8 rounded bg-[#89CFF0]/30 border border-[#89CFF0]/40"></div>
+              <div className="w-28 h-8 rounded bg-[#89CFF0]/25 border border-[#89CFF0]/35"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity - Dark card */}
+      <div className="p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Recent Activity</p>
+            <h3 className="text-xl font-bold text-white">Your Videos</h3>
+          </div>
+          <Link href="/videos" className="text-sm text-[#89CFF0] hover:text-[#89CFF0]/80 flex items-center gap-1">
+            View all <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        {recentVideos.length === 0 ? (
+          <div className="text-center py-8 text-white/50">
+            <p className="mb-4">No videos yet. Start by uploading your first piece of content.</p>
             <Link href="/upload">
-              <Button variant="secondary" className="w-full text-sm">
-                Continue Editing
+              <Button className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Video
               </Button>
             </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Videos */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base font-medium">Recent Videos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {videos.length === 0 ? (
-            <div className="text-center py-8 text-foreground/70">
-              <p>No videos yet. Start by uploading your first piece of content.</p>
-              <Link href="/upload">
-                <Button className="mt-4">Upload Video</Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {videos.slice(0, 5).map((video) => (
-                <div
-                  key={video.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-card-hover transition-colors"
-                >
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentVideos.map((video) => (
+              <div
+                key={video.id}
+                className="flex items-center justify-between p-4 rounded-lg bg-black/30 hover:bg-black/50 transition-colors border border-gray-800/50"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-12 h-12 rounded-lg bg-[#89CFF0]/10 border border-[#89CFF0]/20 flex items-center justify-center">
+                    <Video className="h-6 w-6 text-[#89CFF0]" />
+                  </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-foreground">{video.title}</h4>
-                    <p className="text-sm text-muted mt-1">
-                      {video.description || 'No description'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
+                    <h4 className="font-medium text-white text-sm">{video.title}</h4>
+                    <div className="flex items-center gap-2 mt-1">
                       <Badge
-                        variant={
-                          video.status === 'posted'
-                            ? 'success'
-                            : video.status === 'scheduled'
-                            ? 'primary'
-                            : 'default'
-                        }
-                        className="text-xs"
+                        variant="outline"
+                        className="text-xs bg-gray-900/50 text-white/70 border-gray-700"
                       >
                         {video.status}
                       </Badge>
-                      <span className="text-xs text-muted">
+                      <span className="text-xs text-white/50">
                         {video.platform_target}
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    {video.posted_at && (
-                      <p className="text-sm text-foreground/70">
-                        {new Date(video.posted_at).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                {video.posted_at && (
+                  <div className="text-right">
+                    <p className="text-xs text-white/50">
+                      {new Date(video.posted_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-

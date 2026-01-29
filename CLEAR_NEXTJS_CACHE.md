@@ -37,3 +37,4 @@ When you click "Connect Instagram", check terminal logs. You should now see:
 If it still shows `META_APP_ID`, then there's a formatting issue in `.env.local` that we need to fix.
 
 
+

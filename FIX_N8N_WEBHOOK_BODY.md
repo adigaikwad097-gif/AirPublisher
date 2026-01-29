@@ -120,3 +120,4 @@ Then access it in n8n as: `{{ $json.body.video_id }}`
 Try adding the "Respond to Webhook" node first - that usually fixes the empty body issue!
 
 
+

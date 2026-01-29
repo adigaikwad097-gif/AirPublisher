@@ -236,3 +236,4 @@ GET /api/n8n/scheduled-posts
   - A: Ayrshare will return an error when we try to post. n8n should handle this and mark the video as failed, then notify the user.
 
 
+

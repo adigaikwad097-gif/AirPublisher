@@ -53,3 +53,4 @@ CREATE POLICY "Users can update own Ayrshare profile"
   USING (auth.uid()::text = user_id::text);
 
 
+

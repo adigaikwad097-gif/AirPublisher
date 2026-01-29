@@ -16,6 +16,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
       const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploadProgressText, setUploadProgressText] = useState('Ready to upload')
+  const [uploadResponse, setUploadResponse] = useState<Response | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('[UploadForm] File input changed', e.target.files)
@@ -56,6 +57,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
 
     setUploading(true)
     setUploadProgressText('Preparing upload...')
+    setUploadResponse(null)
     let uploadResponse: Response | undefined
     try {
       // Create video entry as 'draft' - user will select platform when publishing
@@ -123,6 +125,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
               body: formData,
               signal: controller.signal,
             })
+            setUploadResponse(uploadResponse)
           } catch (fetchError: any) {
             clearTimeout(timeoutId)
             if (fetchError.name === 'AbortError') {
@@ -199,6 +202,7 @@ export function UploadForm({ creatorUniqueIdentifier }: UploadFormProps) {
               // This is important for multipart/form-data
               // Note: Browser will send OPTIONS preflight first if CORS is involved
             })
+            setUploadResponse(uploadResponse)
             
             console.log('[UploadForm] Fetch promise resolved (got response)')
             
@@ -287,6 +291,7 @@ If CORS is already enabled, check:
                   body: fallbackFormData,
                   signal: fallbackController.signal,
                 })
+                setUploadResponse(uploadResponse)
                 clearTimeout(fallbackTimeoutId)
                 
                 if (!uploadResponse.ok) {
@@ -301,7 +306,9 @@ If CORS is already enabled, check:
                 }
                 
                 const text = await uploadResponse.text()
-                uploadResponse = { ok: true, text: () => Promise.resolve(text) } as Response
+                const successResponse = { ok: true, text: () => Promise.resolve(text) } as Response
+                setUploadResponse(successResponse)
+                uploadResponse = successResponse
                 console.log('[UploadForm] ✅ Fallback upload through Next.js succeeded')
               } catch (fallbackError: any) {
                 clearTimeout(fallbackTimeoutId)
@@ -480,12 +487,12 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
       <form onSubmit={handleSubmit} className="space-y-4">
       {/* File Upload */}
       <div>
-        <label className="block text-sm font-medium mb-2">Video File</label>
+        <label className="block text-sm font-medium mb-2 text-white/70">Video File</label>
         {preview ? (
           <div className="relative">
             <video
               src={preview}
-              className="w-full h-48 object-cover rounded-lg border border-border"
+              className="w-full h-48 object-cover rounded-lg border border-white/10"
               controls
             />
             <button
@@ -494,19 +501,19 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
                 setFile(null)
                 setPreview(null)
               }}
-              className="absolute top-2 right-2 p-1 bg-background/80 rounded-full"
+              className="absolute top-2 right-2 p-1 bg-black/80 rounded-full text-white hover:bg-black/90"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-card-hover transition-colors">
+          <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:bg-white/5 hover:border-white/40 transition-colors">
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <UploadIcon className="w-10 h-10 mb-3 text-foreground/50" />
-              <p className="mb-2 text-sm text-foreground/70">
+              <UploadIcon className="w-10 h-10 mb-3 text-[#89CFF0]" />
+              <p className="mb-2 text-sm text-white/70">
                 <span className="font-semibold">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-foreground/50">MP4, MOV, AVI (MAX. 500MB)</p>
+              <p className="text-xs text-white/50">MP4, MOV, AVI (MAX. 500MB)</p>
             </div>
             <input
               type="file"
@@ -524,12 +531,12 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium mb-2">Title</label>
+        <label className="block text-sm font-medium mb-2 text-white/70">Title</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#89CFF0] focus:border-[#89CFF0]/50"
           placeholder="Enter video title"
           required
         />
@@ -537,19 +544,19 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium mb-2">Description</label>
+        <label className="block text-sm font-medium mb-2 text-white/70">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
+          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#89CFF0] focus:border-[#89CFF0]/50 min-h-[100px]"
           placeholder="Enter video description"
         />
       </div>
 
       {/* File Status */}
       {file && (
-        <div className="p-3 bg-card border border-border rounded-lg">
-          <p className="text-sm text-foreground/80">
+        <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
+          <p className="text-sm text-white/80">
             <span className="font-semibold">Selected:</span> {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
           </p>
         </div>
@@ -558,7 +565,7 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
       {/* Submit */}
       <Button 
         type="submit" 
-        className="w-full" 
+        className="w-full bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90 font-semibold" 
         disabled={uploading || !file || !title}
       >
         {uploading ? 'Uploading...' : !file ? 'Select a video file' : !title ? 'Enter a title' : 'Upload Video'}
@@ -568,15 +575,17 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
         <div className="upload-progress">
           <span className="spinner" aria-hidden />
           <div>
-            <p className="font-semibold text-foreground">{uploadProgressText}</p>
-            <p className="text-xs text-foreground/70">
+            <p className="font-semibold text-white">{uploadProgressText}</p>
+            <p className="text-xs text-white/70">
               Uploads can take a few minutes for large videos. Keep this tab open while we transfer the file.
             </p>
           </div>
         </div>
       )}
       {uploadResponse && !uploadResponse.ok && (
-        <div className="text-sm text-red-500">{uploadResponse.statusText}</div>
+        <div className="text-sm text-red-500">
+          {uploadResponse.statusText || 'Upload failed'}
+        </div>
       )}
       </form>
 
@@ -588,18 +597,17 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
         gap: 0.75rem;
         padding: 0.75rem 1rem;
         border-radius: 0.75rem;
-        background: rgba(15, 23, 42, 0.08);
-        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(137, 207, 240, 0.3);
       }
 
       .spinner {
         width: 32px;
         height: 32px;
         border-radius: 9999px;
-        border: 4px solid rgba(148, 163, 184, 0.6);
-        border-top-color: transparent;
+        border: 4px solid rgba(137, 207, 240, 0.3);
+        border-top-color: #89CFF0;
         animation: spin 0.9s linear infinite;
-        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
       }
 
       @keyframes spin {

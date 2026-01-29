@@ -67,3 +67,4 @@ If you see a CORS error, that's the problem.
 
 After enabling CORS, the browser should be able to send requests directly to n8n.
 
+

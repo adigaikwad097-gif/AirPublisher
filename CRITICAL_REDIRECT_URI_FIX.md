@@ -84,3 +84,4 @@ http://localhost:3000/api/auth/instagram/callback
 **If you still get the error after waiting, the redirect URI wasn't added correctly. Double-check it matches exactly!**
 
 
+

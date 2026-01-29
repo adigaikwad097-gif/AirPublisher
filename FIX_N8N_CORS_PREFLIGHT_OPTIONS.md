@@ -79,3 +79,4 @@ Check the n8n Webhook node → Options → CORS and make sure:
 
 If that doesn't work, you may need to add an IF node to explicitly handle OPTIONS requests and return the CORS headers.
 
+

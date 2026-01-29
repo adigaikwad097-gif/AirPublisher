@@ -119,3 +119,4 @@ If you've verified all of the above and it still doesn't work, the issue might b
 Share the terminal logs when you click "Connect Instagram" so I can see exactly what App ID is being used.
 
 
+

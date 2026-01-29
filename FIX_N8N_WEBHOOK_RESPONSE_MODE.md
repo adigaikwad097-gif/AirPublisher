@@ -56,3 +56,4 @@ This way:
 - **After**: Browser gets immediate response → no timeout
 - Workflow still completes and calls Next.js
 
+

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, XCircle, Youtube, Instagram, Music, LogOut, Cloud } from 'lucide-react'
+import { CheckCircle2, XCircle, Youtube, Instagram, Music, LogOut } from 'lucide-react'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
@@ -70,18 +70,18 @@ export default async function ConnectionsPage({
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-4xl font-extrabold mb-3">Platform Connections</h1>
-          <p className="text-foreground/80 text-lg font-medium">
+          <h1 className="text-4xl font-extrabold mb-2 text-white">Platform Connections</h1>
+          <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
             Connect your social media accounts to enable automated publishing.
           </p>
         </div>
-        <Card className="border-yellow-500/30 bg-yellow-500/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="pt-6">
-            <p className="text-yellow-400 mb-4">
+            <p className="text-[#89CFF0] mb-4">
               Please complete your creator profile first to link connections to your account.
             </p>
             <Link href="/setup">
-              <Button>Set Up Profile</Button>
+              <Button className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">Set Up Profile</Button>
             </Link>
           </CardContent>
         </Card>
@@ -95,7 +95,6 @@ export default async function ConnectionsPage({
   let youtubeTokens: { data: any; error: any } = { data: null, error: null }
   let instagramTokens: { data: any; error: any } = { data: null, error: null }
   let tiktokTokens: { data: any; error: any } = { data: null, error: null }
-  let dropboxTokens: { data: { is_configured?: boolean } | null; error: any } = { data: null, error: null }
 
   // Create service role client for fallback
   const serviceClient = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -105,13 +104,6 @@ export default async function ConnectionsPage({
       )
     : null
 
-  // Check Dropbox configuration (uses App Key/Secret from env vars, no database needed)
-  // Just check if env vars are set (we can't check this server-side, so we'll show as configured if we can query)
-  const dropboxConfigured = !!(process.env.DROPBOX_APP_KEY || process.env.DROPBOX_CLIENT_ID) && 
-                            !!(process.env.DROPBOX_APP_SECRET || process.env.DROPBOX_CLIENT_SECRET)
-  
-  // Set Dropbox as "connected" if env vars are configured
-  dropboxTokens = dropboxConfigured ? { data: { is_configured: true }, error: null } : { data: null, error: null }
 
   if (creator?.unique_identifier) {
     // Try new tables with creator_unique_identifier (for YouTube, Instagram, TikTok)
@@ -235,7 +227,6 @@ export default async function ConnectionsPage({
   const isYouTubeConnected = !!youtubeTokens.data
   const isInstagramConnected = !!instagramTokens.data
   const isTikTokConnected = !!tiktokTokens.data
-  const isDropboxConnected = !!dropboxTokens.data
 
   // Check if tokens are expired
   const youtubeExpiresAt = (youtubeTokens.data as any)?.expires_at
@@ -257,18 +248,18 @@ export default async function ConnectionsPage({
       <RefreshOnSuccess success={params?.success} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold mb-3">Platform Connections</h1>
-          <p className="text-foreground/80 text-lg font-medium">
+          <h1 className="text-4xl font-extrabold mb-2 text-white">Platform Connections</h1>
+          <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
             Connect your social media accounts to enable automated publishing.
           </p>
         </div>
         <div className="flex items-center gap-4">
           {user && (
             <div className="text-right">
-              <p className="text-sm text-foreground/60">Signed in as</p>
-              <p className="text-sm font-semibold text-foreground">{user.email}</p>
+              <p className="text-sm text-white/50">Signed in as</p>
+              <p className="text-sm font-semibold text-white">{user.email}</p>
               {user.user_metadata?.full_name && (
-                <p className="text-xs text-foreground/50">{user.user_metadata.full_name}</p>
+                <p className="text-xs text-white/50">{user.user_metadata.full_name}</p>
               )}
             </div>
           )}
@@ -277,23 +268,22 @@ export default async function ConnectionsPage({
       </div>
 
       {params?.success && (
-        <Card className="border-green-500/30 bg-green-500/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="pt-6 flex items-center gap-3">
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
-            <p className="text-sm text-green-400">
+            <CheckCircle2 className="h-6 w-6 text-[#89CFF0]" />
+            <p className="text-sm text-[#89CFF0]">
               {params.success === 'youtube_connected' && 'YouTube connected successfully!'}
               {params.success === 'instagram_connected' && 'Instagram connected successfully!'}
               {params.success === 'tiktok_connected' && 'TikTok connected successfully!'}
-              {params.success === 'dropbox_connected' && 'Dropbox connected successfully!'}
             </p>
           </CardContent>
         </Card>
       )}
 
       {params?.error && (
-        <Card className="border-red-500/30 bg-red-500/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="pt-6 flex items-center gap-3">
-            <XCircle className="h-6 w-6 text-red-500" />
+            <XCircle className="h-6 w-6 text-red-400" />
             <p className="text-sm text-red-400">
               {params.error === 'no_tokens' && 'No tokens received. Please try again.'}
               {params.error === 'oauth_not_configured' && 'OAuth not configured. Please set up OAuth credentials in Supabase.'}
@@ -305,45 +295,10 @@ export default async function ConnectionsPage({
         </Card>
       )}
 
-      {/* Debug: Auth Status (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card className="border-blue-500/30 bg-blue-500/10">
-          <CardHeader>
-            <CardTitle className="text-sm">Debug: Authentication Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>
-              <span className="text-foreground/60">User ID: </span>
-              <span className="font-mono text-xs">{user?.id || 'Not found'}</span>
-            </div>
-            <div>
-              <span className="text-foreground/60">Email: </span>
-              <span>{user?.email || 'Not found'}</span>
-            </div>
-            <div>
-              <span className="text-foreground/60">Auth Error: </span>
-              <span className={authError ? 'text-red-400' : 'text-green-400'}>
-                {authError?.message || 'None'}
-              </span>
-            </div>
-            <div>
-              <span className="text-foreground/60">Creator Profile: </span>
-              <span>{creator ? `Found (${creator.unique_identifier})` : 'Not found'}</span>
-            </div>
-            <div>
-              <span className="text-foreground/60">Session Status: </span>
-              <span className={user ? 'text-green-400' : 'text-yellow-400'}>
-                {user ? 'Authenticated' : 'No session detected'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Platform Connection Cards */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* YouTube */}
-        <Card className={isYouTubeConnected ? 'border-green-500/30' : ''}>
+        <Card className={`bg-white/5 border-white/10 ${isYouTubeConnected ? 'border-[#89CFF0]/30' : ''}`}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -351,12 +306,12 @@ export default async function ConnectionsPage({
                   <Youtube className="h-6 w-6 text-red-500" />
                 </div>
                 <div>
-                  <CardTitle>YouTube</CardTitle>
-                  <CardDescription>Connect your YouTube channel</CardDescription>
+                  <CardTitle className="text-white">YouTube</CardTitle>
+                  <CardDescription className="text-white/70">Connect your YouTube channel</CardDescription>
                 </div>
               </div>
               {isYouTubeConnected && (
-                <Badge variant={isYouTubeExpired ? 'default' : 'success'}>
+                <Badge variant={isYouTubeExpired ? 'default' : 'success'} className={isYouTubeExpired ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-[#89CFF0]/20 text-[#89CFF0] border-[#89CFF0]/30'}>
                   {isYouTubeExpired ? 'Expired' : 'Connected'}
                 </Badge>
               )}
@@ -366,17 +321,17 @@ export default async function ConnectionsPage({
             {isYouTubeConnected ? (
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-foreground/70">Channel:</p>
-                  <p className="font-semibold">{(youtubeTokens.data as any)?.handle || 'Connected'}</p>
+                  <p className="text-sm text-white/70">Channel:</p>
+                  <p className="font-semibold text-white">{(youtubeTokens.data as any)?.handle || 'Connected'}</p>
                   {(youtubeTokens.data as any)?.channel_id && (
-                    <p className="text-xs text-foreground/50">ID: {(youtubeTokens.data as any).channel_id}</p>
+                    <p className="text-xs text-white/50">ID: {(youtubeTokens.data as any).channel_id}</p>
                   )}
                 </div>
                 {isYouTubeExpired && (
                   <p className="text-sm text-yellow-400">Your token has expired. Please reconnect.</p>
                 )}
                 <Link href="/api/auth/youtube">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full bg-white/10 text-white hover:bg-white/20 border-white/10">
                     {isYouTubeExpired ? 'Reconnect' : 'Update Connection'}
                   </Button>
                 </Link>
@@ -392,7 +347,7 @@ export default async function ConnectionsPage({
         </Card>
 
         {/* Instagram */}
-        <Card className={isInstagramConnected ? 'border-green-500/30' : ''}>
+        <Card className={`bg-white/5 border-white/10 ${isInstagramConnected ? 'border-[#89CFF0]/30' : ''}`}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -400,12 +355,12 @@ export default async function ConnectionsPage({
                   <Instagram className="h-6 w-6 text-pink-500" />
                 </div>
                 <div>
-                  <CardTitle>Instagram</CardTitle>
-                  <CardDescription>Connect your Instagram account</CardDescription>
+                  <CardTitle className="text-white">Instagram</CardTitle>
+                  <CardDescription className="text-white/70">Connect your Instagram account</CardDescription>
                 </div>
               </div>
               {isInstagramConnected && (
-                <Badge variant={isInstagramExpired ? 'default' : 'success'}>
+                <Badge variant={isInstagramExpired ? 'default' : 'success'} className={isInstagramExpired ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-[#89CFF0]/20 text-[#89CFF0] border-[#89CFF0]/30'}>
                   {isInstagramExpired ? 'Expired' : 'Connected'}
                 </Badge>
               )}
@@ -415,17 +370,17 @@ export default async function ConnectionsPage({
             {isInstagramConnected ? (
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-foreground/70">Account:</p>
-                  <p className="font-semibold">@{(instagramTokens.data as any)?.username || 'Connected'}</p>
+                  <p className="text-sm text-white/70">Account:</p>
+                  <p className="font-semibold text-white">@{(instagramTokens.data as any)?.username || 'Connected'}</p>
                   {(instagramTokens.data as any)?.instagram_id && (
-                    <p className="text-xs text-foreground/50">ID: {(instagramTokens.data as any).instagram_id}</p>
+                    <p className="text-xs text-white/50">ID: {(instagramTokens.data as any).instagram_id}</p>
                   )}
                 </div>
                 {isInstagramExpired && (
                   <p className="text-sm text-yellow-400">Your token has expired. Please reconnect.</p>
                 )}
                 <Link href="/api/auth/instagram">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full bg-white/10 text-white hover:bg-white/20 border-white/10">
                     {isInstagramExpired ? 'Reconnect' : 'Update Connection'}
                   </Button>
                 </Link>
@@ -441,20 +396,20 @@ export default async function ConnectionsPage({
         </Card>
 
         {/* TikTok */}
-        <Card className={isTikTokConnected ? 'border-green-500/30' : ''}>
+        <Card className={`bg-white/5 border-white/10 ${isTikTokConnected ? 'border-[#89CFF0]/30' : ''}`}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-black/20 rounded-lg">
-                  <Music className="h-6 w-6" />
+                  <Music className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle>TikTok</CardTitle>
-                  <CardDescription>Connect your TikTok account</CardDescription>
+                  <CardTitle className="text-white">TikTok</CardTitle>
+                  <CardDescription className="text-white/70">Connect your TikTok account</CardDescription>
                 </div>
               </div>
               {isTikTokConnected && (
-                <Badge variant={isTikTokExpired ? 'default' : 'success'}>
+                <Badge variant={isTikTokExpired ? 'default' : 'success'} className={isTikTokExpired ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-[#89CFF0]/20 text-[#89CFF0] border-[#89CFF0]/30'}>
                   {isTikTokExpired ? 'Expired' : 'Connected'}
                 </Badge>
               )}
@@ -464,24 +419,24 @@ export default async function ConnectionsPage({
             {isTikTokConnected ? (
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-foreground/70">Account:</p>
-                  <p className="font-semibold">{(tiktokTokens.data as any)?.display_name || 'Connected'}</p>
+                  <p className="text-sm text-white/70">Account:</p>
+                  <p className="font-semibold text-white">{(tiktokTokens.data as any)?.display_name || 'Connected'}</p>
                   {(tiktokTokens.data as any)?.tiktok_open_id && (
-                    <p className="text-xs text-foreground/50">ID: {(tiktokTokens.data as any).tiktok_open_id}</p>
+                    <p className="text-xs text-white/50">ID: {(tiktokTokens.data as any).tiktok_open_id}</p>
                   )}
                 </div>
                 {isTikTokExpired && (
                   <p className="text-sm text-yellow-400">Your token has expired. Please reconnect.</p>
                 )}
                 <Link href="/api/auth/tiktok">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full bg-white/10 text-white hover:bg-white/20 border-white/10">
                     {isTikTokExpired ? 'Reconnect' : 'Update Connection'}
                   </Button>
                 </Link>
               </div>
             ) : (
               <Link href="/api/auth/tiktok">
-                <Button className="w-full bg-black hover:bg-gray-800">
+                <Button className="w-full bg-black hover:bg-gray-800 text-white">
                   Connect TikTok
                 </Button>
               </Link>
@@ -489,58 +444,14 @@ export default async function ConnectionsPage({
           </CardContent>
         </Card>
 
-        {/* Dropbox - Company Account (App Key/Secret) */}
-        <Card className={isDropboxConnected ? 'border-green-500/30' : ''}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Cloud className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <CardTitle>Dropbox Storage</CardTitle>
-                  <CardDescription>Company-wide storage (App Key/Secret)</CardDescription>
-                </div>
-              </div>
-              {isDropboxConnected && (
-                <Badge variant="success">Configured</Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isDropboxConnected ? (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-foreground/70">Status:</p>
-                  <p className="font-semibold">Dropbox configured</p>
-                  <p className="text-xs text-foreground/50">
-                    All creators upload to /airpublisher/creator_{'{id}'}/ automatically
-                  </p>
-                  <p className="text-xs text-foreground/40 mt-2">
-                    Configured via DROPBOX_APP_KEY and DROPBOX_APP_SECRET environment variables
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-foreground/70">
-                  Dropbox is not configured. Add DROPBOX_APP_KEY and DROPBOX_APP_SECRET to your environment variables.
-                </p>
-                <p className="text-xs text-foreground/50">
-                  No OAuth needed - uses App Key/Secret authentication directly.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
-      <Card>
+      <Card className="bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle>Connection Notes</CardTitle>
+          <CardTitle className="text-white">Connection Notes</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2 text-sm text-foreground/70">
+          <ul className="space-y-2 text-sm text-white/70">
             <li>• Click &quot;Connect&quot; to authorize AIR Publisher to post on your behalf</li>
             <li>• You&apos;ll be redirected to the platform to sign in and grant permissions</li>
             <li>• Your access tokens are securely stored and encrypted in Supabase</li>

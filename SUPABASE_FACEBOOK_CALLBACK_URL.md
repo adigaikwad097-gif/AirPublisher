@@ -57,3 +57,4 @@ Add these to Supabase Dashboard → Authentication → Providers → Facebook
 Then try connecting Instagram again!
 
 
+

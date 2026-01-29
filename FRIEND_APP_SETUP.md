@@ -58,3 +58,4 @@ If your friend's app is configured to redirect directly to Instagram (not Facebo
 **Question**: Does your friend have a different app secret, or is `67b086a74833746df6a0a7ed0b50f867` the correct one?
 
 
+

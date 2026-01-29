@@ -31,3 +31,4 @@ CREATE POLICY "Anyone can view profiles"
 -- ALTER TABLE creator_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
 
 
+

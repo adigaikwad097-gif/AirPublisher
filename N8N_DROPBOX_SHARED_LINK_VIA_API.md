@@ -170,3 +170,4 @@ In n8n, you can store the token as an environment variable:
 - Check the HTTP Request node output
 - The response structure might be different - inspect the actual response
 
+

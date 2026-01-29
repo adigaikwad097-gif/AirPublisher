@@ -5,12 +5,8 @@ import { Database } from '@/lib/supabase/types'
 
 // Increase timeout for large file uploads (5 minutes)
 export const maxDuration = 300
-export const config = {
-  api: {
-    bodyParser: false,
-    sizeLimit: '500mb',
-  },
-}
+// Note: Body size limits are handled by Next.js automatically in App Router
+// For large uploads, we proxy through n8n which handles the file
 
 /**
  * Upload video file via n8n to Dropbox

@@ -165,3 +165,4 @@ Add **"HTTP Request"** node:
 **Next:** Build the workflow in n8n following the structure above!
 
 
+

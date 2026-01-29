@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -155,67 +155,119 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl">Sign In</CardTitle>
-          <CardDescription>
-            Sign in to your AIR Publisher account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="h-screen bg-black relative overflow-hidden flex">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 z-50 w-full border-0 bg-transparent">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 text-white/70">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/airpublisher-logo.png?v=3"
+              alt="AIR Publisher"
+              width={673}
+              height={371}
+              className="h-16 w-auto"
+            />
+          </Link>
+          <Link href="/" className="text-sm uppercase tracking-[0.4em] hover:text-white transition-colors">
+            Back
+          </Link>
+        </div>
+      </nav>
+
+      {/* Left Side - Video */}
+      <div className="hidden lg:flex w-1/2 h-screen relative overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/emoji-video.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="flex-1 lg:w-1/2 h-screen flex items-center justify-center px-4 sm:px-6 lg:px-12 overflow-y-auto">
+        <div className="w-full max-w-md space-y-8">
+          {/* Title Section */}
+          <div className="space-y-2">
+            <h1 className="text-5xl font-extrabold text-white tracking-tight">
+              Sign In
+            </h1>
+            <p className="text-xs uppercase tracking-[0.9em] text-white/50">
+              Access your creator operating system
+            </p>
+          </div>
+
+          {/* Form */}
           <form 
             onSubmit={(e) => {
               console.log('Form onSubmit triggered!')
               handleSignIn(e)
             }} 
-            className="space-y-4"
+            className="space-y-6"
           >
             {successMessage && (
-              <div className="p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-sm text-green-400">
+              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-400">
                 {successMessage}
               </div>
             )}
             {error && (
-              <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-sm text-red-400">
+              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
                 {error}
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 placeholder="you@example.com"
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 placeholder="••••••••"
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-white text-black hover:bg-white/90 font-semibold uppercase tracking-[0.4em] py-6 rounded-lg transition-all" 
+              disabled={loading}
+            >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-foreground/70">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary hover:underline">
-              Sign up
-            </Link>
+          {/* Sign Up Link */}
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-white hover:text-white/70 transition-colors underline">
+                Sign up
+              </Link>
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

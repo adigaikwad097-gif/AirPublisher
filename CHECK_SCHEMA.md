@@ -38,3 +38,4 @@ ADD COLUMN IF NOT EXISTS handles TEXT NOT NULL DEFAULT '';
 - `Niche` was removed (migration 010) - niche should come from `creator_profiles` (shared schema)
 
 
+

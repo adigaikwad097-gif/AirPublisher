@@ -33,3 +33,4 @@ Test your app in incognito/private mode where extensions are usually disabled.
 This is **NOT** an error in your code. Your app is working fine - it's just a browser extension causing noise in the console.
 
 
+

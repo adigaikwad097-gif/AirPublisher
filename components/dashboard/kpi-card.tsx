@@ -32,23 +32,23 @@ export function KPICard({
       : value
 
   return (
-    <Card className="hover:border-border/50 transition-all">
+    <Card className="bg-white/5 border-white/10 hover:border-white/20 transition-all">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <Icon className="h-4 w-4 text-primary" />
+          <div className="p-2 bg-[#89CFF0]/20 rounded-md">
+            <Icon className="h-4 w-4 text-[#89CFF0]" />
           </div>
         </div>
-        <div className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
+        <div className="text-3xl md:text-4xl font-bold mb-2 text-white">
           {formattedValue}
         </div>
-        <CardTitle className="text-xs font-medium text-muted uppercase tracking-wider">
+        <CardTitle className="text-xs font-medium text-white/50 uppercase tracking-[0.4em]">
           {title}
         </CardTitle>
         {trend && (
           <p
             className={`text-xs font-semibold mt-3 ${
-              trend.isPositive ? 'text-success' : 'text-error'
+              trend.isPositive ? 'text-[#89CFF0]' : 'text-red-400'
             }`}
           >
             {trend.isPositive ? '+' : ''}

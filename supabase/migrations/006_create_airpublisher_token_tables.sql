@@ -120,3 +120,4 @@ CREATE TRIGGER update_airpublisher_tiktok_tokens_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 
+

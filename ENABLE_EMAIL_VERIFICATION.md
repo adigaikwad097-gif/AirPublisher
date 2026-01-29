@@ -113,3 +113,4 @@ If emails aren't working, you can manually verify users:
 **Quick Fix for Development**: Disable email confirmation temporarily to test the flow, then re-enable for production.
 
 
+

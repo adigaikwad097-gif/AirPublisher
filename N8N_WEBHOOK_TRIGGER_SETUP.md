@@ -247,3 +247,4 @@ N8N_API_KEY=your_api_key_here
 Ready to set up? Follow steps 1-7 above!
 
 
+

@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Only use standalone for server deployment, not Vercel
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', '93.127.216.83'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -18,6 +20,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.vercel.app',
+      },
+      {
+        protocol: 'http',
+        hostname: '93.127.216.83',
       },
     ],
   },

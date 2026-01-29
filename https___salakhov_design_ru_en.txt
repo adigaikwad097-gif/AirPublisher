@@ -1,0 +1,1016 @@
+<html lang="en" class="wf-displayswap-n4-inactive wf-inactive lenis lenis-smooth"><body style=""><div id="awwwards" style="position: fixed; z-index: 999; transform: translateY(-50%); top: 50%;  right: 0"><a href="https://www.awwwards.com/sites/roman-salakhov-2" target="_blank"><svg width="53.08" height="171.358"><path class="js-color-bg" fill="white" d="M0 0h53.08v171.358H0z"></path><g class="js-color-text" fill="black"><path d="M20.048 153.585v-2.002l6.752-3.757h-6.752v-1.9h10.23v2.002l-6.752 3.757h6.752v1.9zM29.899 142.382a3.317 3.317 0 0 1-1.359 1.293c-.575.297-1.223.446-1.944.446-.721 0-1.369-.149-1.944-.446a3.317 3.317 0 0 1-1.359-1.293c-.331-.564-.497-1.232-.497-2.003 0-.769.166-1.437.497-2.002a3.332 3.332 0 0 1 1.359-1.294c.575-.297 1.224-.445 1.944-.445.722 0 1.369.148 1.944.445a3.326 3.326 0 0 1 1.359 1.294c.33.565.496 1.233.496 2.002.001.77-.166 1.438-.496 2.003m-1.703-3.348c-.435-.331-.967-.497-1.601-.497s-1.167.166-1.601.497c-.434.332-.65.78-.65 1.345s.217 1.014.65 1.346c.434.33.967.496 1.601.496s1.166-.166 1.601-.496c.434-.332.649-.78.649-1.346.001-.565-.215-1.013-.649-1.345M22.912 134.996v-1.812h1.185c-.43-.283-.752-.593-.973-.929-.219-.336-.329-.732-.329-1.19 0-.479.127-.902.38-1.272.254-.37.635-.633 1.141-.79-.478-.262-.851-.591-1.118-.985a2.221 2.221 0 0 1-.402-1.265c0-.682.2-1.218.599-1.607.4-.391.957-.585 1.668-.585h5.218v1.812H25.37c-.682 0-1.023.303-1.023.907 0 .467.264.85.789 1.146.527.299 1.286.446 2.28.446h2.865v1.813H25.37c-.682 0-1.023.303-1.023.906 0 .468.275.851.826 1.147.551.298 1.352.446 2.404.446h2.704v1.812h-7.369zM21.626 122.457c-.225.224-.502.336-.833.336s-.608-.112-.833-.336a1.128 1.128 0 0 1-.336-.833c0-.331.111-.609.336-.833.225-.225.502-.336.833-.336s.608.111.833.336c.225.224.337.502.337.833 0 .332-.112.608-.337.833m1.286-1.739h7.366v1.813h-7.366v-1.813zM22.912 118.668v-1.812h1.185a3.348 3.348 0 0 1-.951-1.009 2.434 2.434 0 0 1-.351-1.272c0-.681.19-1.229.57-1.644.38-.414.931-.621 1.651-.621h5.263v1.812h-4.722c-.418 0-.727.096-.92.285-.195.19-.293.447-.293.769 0 .302.116.58.351.833.233.254.577.458 1.03.613.453.156.992.234 1.615.234h2.938v1.812h-7.366zM29.833 109.129a3.33 3.33 0 0 1-1.432 1.169 4.535 4.535 0 0 1-1.805.373 4.537 4.537 0 0 1-1.807-.373c-.579-.248-1.057-.638-1.432-1.169s-.563-1.196-.563-1.995c0-.771.183-1.413.549-1.93a3.28 3.28 0 0 1 1.382-1.141 4.221 4.221 0 0 1 1.709-.364h.746v5.071c.447-.02.838-.183 1.168-.49.332-.307.498-.724.498-1.248 0-.41-.093-.754-.277-1.031-.186-.278-.473-.529-.863-.753l.542-1.462c.69.303 1.224.724 1.592 1.265.371.541.556 1.235.556 2.083 0 .799-.188 1.464-.563 1.995m-4.085-3.574c-.41.088-.746.261-1.009.52-.262.258-.395.61-.395 1.06 0 .428.137.784.409 1.067.272.282.604.458.994.525v-3.172zM29.833 100.878c-.375.531-.852.921-1.432 1.169a4.552 4.552 0 0 1-3.612 0c-.579-.248-1.057-.638-1.432-1.169s-.563-1.196-.563-1.995c0-.77.183-1.412.549-1.93a3.278 3.278 0 0 1 1.382-1.14 4.222 4.222 0 0 1 1.709-.365h.746v5.072a1.794 1.794 0 0 0 1.168-.49c.332-.307.498-.724.498-1.249 0-.41-.093-.753-.277-1.031-.186-.277-.473-.528-.863-.753l.542-1.462c.69.302 1.224.724 1.592 1.265.371.541.556 1.234.556 2.083 0 .799-.188 1.464-.563 1.995m-4.085-3.573c-.41.088-.746.261-1.009.519-.262.258-.395.611-.395 1.06 0 .429.137.784.409 1.067.272.282.604.458.994.526v-3.172zM35.481 16.926l-4.782 14.969h-3.266l-2.584-9.682-2.584 9.682h-3.268l-4.781-14.969h3.713l2.673 10.276 2.524-10.276h3.445l2.524 10.276 2.674-10.276zM37.979 27.083c1.426 0 2.495 1.068 2.495 2.495 0 1.425-1.069 2.495-2.495 2.495-1.425 0-2.495-1.07-2.495-2.495-.001-1.427 1.07-2.495 2.495-2.495"></path></g></svg></a></div>
+
+
+
+
+<!-- Google tag (gtag.js) -->
+
+
+
+
+<!-- Yandex.Metrika counter -->
+
+<noscript>&lt;div&gt;&lt;img src="https://mc.yandex.ru/watch/101771828" style="position:absolute; left:-9999px;" alt="" /&gt;&lt;/div&gt;</noscript>
+<!-- /Yandex.Metrika counter -->
+
+
+<meta name="google-site-verification" content="6kSLPbx7MDbp5VUZEnOy7jwU2L0lpjbRk87_11ETxVg">
+<meta name="yandex-verification" content="e340b71c9bd8f1f2">
+
+
+
+<!-- mosaic.head.scripts -->
+<style>
+.allproject_card_item {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent; /* или исходный цвет фона */
+  z-index: 1;
+  /* остальные стили карточки */
+}
+
+.allproject_card_item::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background-color: #BE2E1D;
+  transition: height 0.5s ease;
+  z-index: -1;
+}
+
+.allproject_card_item:hover::before {
+  height: 100%;
+}
+</style>
+
+
+<!-- /mosaic.head.scripts -->
+
+<div class="mosaic-wrap">
+<div class="root root--u-i2i0md3el" id="i2i0md3el_0">
+<div class="pop-up pop-up--u-ipeimxenx" id="ipeimxenx_0">
+<div class="pop-up__overlay" id="i39znq4ou_0"></div>
+<div class="pop-up__outside-close-button" id="ilx862umc_0">
+
+  
+</div>
+<div class="pop-up__content pop-up__content--u-id50js7pf popup_container" id="id50js7pf_0">
+<div class="pop-up__inside-close-button pop-up__inside-close-button--u-id1l4xghf popup_close_icon" id="id1l4xghf_0">
+
+    
+</div>
+<div class="form form--u-i5k6yghiz form_content" id="i5k6yghiz_0">
+<form action="#" class="form__state-default form__state-default--u-itrt812hj" id="itrt812hj_0" data-s3-anketa-id="218252713">
+<div class="text-title text-title--u-izo3tbxp1 form_title" id="izo3tbxp1_0">
+<span class="text-block-wrap-div">Start a Project</span>
+</div>
+<div data-type-field="checkbox_group" data-field-position="" class="form__field form__field--u-i5mbb9e84 form__field--s2-i5mbb9e84" id="i5mbb9e84_0">
+<div class="text-subtitle text-subtitle--u-ibw5fpj15 label_input" id="ibw5fpj15_0">
+<span class="text-block-wrap-div">How can I help?</span>
+</div>
+<div class="form__widget-group form__widget-group--u-ie53yd2l5" id="ie53yd2l5_0">
+<label class="form__widget-item form__widget-item--u-if8ubtupm checkbox_item" id="if8ubtupm_0">
+<input value="Turnkey design" type="checkbox" name="checkbox-iacpolke5" readonly="" class="form__checkbox form__checkbox--u-iacpolke5" id="iacpolke5_0">
+<span class="form__checkbox-styled form__checkbox-styled--u-ig1ly6dni check" id="ig1ly6dni_0"></span>
+<span class="form__label-text form__label-text--u-ivsmswvho checkbox_text" id="ivsmswvho_0">
+<span class="text-block-wrap-div">Turnkey design</span>
+</span>
+</label>
+<label class="form__widget-item form__widget-item--u-if8ubtupm checkbox_item" id="if8ubtupm_1">
+<input value="Design only" type="checkbox" name="checkbox-iacpolke5" readonly="" class="form__checkbox form__checkbox--u-iacpolke5" id="iacpolke5_1">
+<span class="form__checkbox-styled form__checkbox-styled--u-ig1ly6dni check" id="ig1ly6dni_1"></span>
+<span class="form__label-text form__label-text--u-ivsmswvho checkbox_text" id="ivsmswvho_1">
+<span class="text-block-wrap-div">Design only</span>
+</span>
+</label>
+<label class="form__widget-item form__widget-item--u-if8ubtupm checkbox_item" id="if8ubtupm_2">
+<input value="3D illustrations" type="checkbox" name="checkbox-iacpolke5" readonly="" class="form__checkbox form__checkbox--u-iacpolke5" id="iacpolke5_2">
+<span class="form__checkbox-styled form__checkbox-styled--u-ig1ly6dni check" id="ig1ly6dni_2"></span>
+<span class="form__label-text form__label-text--u-ivsmswvho checkbox_text" id="ivsmswvho_2">
+<span class="text-block-wrap-div">3D illustrations</span>
+</span>
+</label>
+</div>
+<div class="form__field-error" id="itm2yas07_0">
+<span class="text-block-wrap-div">This field required</span>
+</div>
+</div>
+<div data-type-field="text" data-field-position="1" class="form__field form__field--u-i7xwcol1d input_group" id="i7xwcol1d_0">
+<div class="text-subtitle text-subtitle--u-icr2isl4u label_input" id="icr2isl4u_0">
+<span class="text-block-wrap-div">Name or company name*</span>
+</div>
+<input placeholder="" type="text" class="form__input form__input--u-ihuirqvsu input_field" id="ihuirqvsu_0">
+<div class="form__field-error form__field-error--u-i9hhz25i4" id="i9hhz25i4_0">
+<span class="text-block-wrap-div">This field required</span>
+</div>
+</div>
+<div data-type-field="email" data-field-position="2" class="form__field input_group form__field--u-ikbh7c1g1" id="ikbh7c1g1_0">
+<div class="text-subtitle text-subtitle--u-iq19zy64t label_input" id="iq19zy64t_0">
+<span class="text-block-wrap-div">E-mail*</span>
+</div>
+<input placeholder="" type="email" class="form__input form__input--u-i7lbyp71f input_field" id="i7lbyp71f_0">
+<div class="form__field-error form__field-error--u-ilptifbz7" id="ilptifbz7_0">
+<span class="text-block-wrap-div">This field required</span>
+</div>
+</div>
+<div data-type-field="textarea" data-field-position="3" class="form__field input_group form__field--u-iurbwb0nc" id="iurbwb0nc_0">
+<div class="text-subtitle text-subtitle--u-i50jnm9xf label_input" id="i50jnm9xf_0">
+<span class="text-block-wrap-div">Message*</span>
+</div>
+<textarea placeholder="" class="form__textarea form__textarea--u-i0955b3lu input_field text_area" id="i0955b3lu_0"></textarea>
+<div class="form__field-error form__field-error--u-igowy1h5s" id="igowy1h5s_0">
+<span class="text-block-wrap-div">This field required</span>
+</div>
+</div>
+<button type="submit" class="submit_button submit_button--u-iunfc0v5g form_button" id="iunfc0v5g_0">
+<span class="text-button text-button--u-iz9s9zpvs body_14-regular green_text" id="iz9s9zpvs_0">
+<span class="text-block-wrap-div">Send</span>
+</span>
+</button>
+<re-captcha data-name="captcha" data-sitekey="6LddAuIZAAAAAAuuCT_s37EF11beyoreUVbJlVZM" data-lang="en" data-rsize="invisible" data-type="image" data-theme="light"></re-captcha></form>
+<div class="form__state-success" id="i3ebmdxsz_0">
+<div class="text text--u-i83y2sq3a" id="i83y2sq3a_0">
+<span class="text-block-wrap-div">Thank you!</span>
+</div>
+</div>
+<div class="form__state-error form__state-error--u-iga68kiwl" id="iga68kiwl_0">
+<div class="form__text-error form__text-error--u-ie0ixa9hq" id="ie0ixa9hq_0">
+<span class="text-block-wrap-div">Something wrong.<br>Try again later</span>
+</div>
+</div>
+</div>
+</div>
+</div><div class="div preloader div--u-i1kkywuyg" id="i1kkywuyg_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 100%); display: none;">
+<div class="text text--u-i2ss9fbq6 preloader-text" id="i2ss9fbq6_0"><span style="display: inline-block; color: rgb(236, 61, 116); translate: none; rotate: none; scale: none; transform: translate3d(0px, -3.3782px, 0px);">L</span><span style="display: inline-block; color: rgb(239, 33, 111); translate: none; rotate: none; scale: none; transform: translate3d(0px, -3.8641px, 0px);">o</span><span style="display: inline-block; color: rgb(240, 25, 109); translate: none; rotate: none; scale: none; transform: translate3d(0px, -3.9952px, 0px);">a</span><span style="display: inline-block; color: rgb(239, 40, 112); translate: none; rotate: none; scale: none; transform: translate3d(0px, -3.7465px, 0px);">d</span><span style="display: inline-block; color: rgb(235, 73, 119); translate: none; rotate: none; scale: none; transform: translate3d(0px, -3.1654px, 0px);">i</span><span style="display: inline-block; color: rgb(231, 119, 129); translate: none; rotate: none; scale: none; transform: translate3d(0px, -2.3624px, 0px);">n</span><span style="display: inline-block; color: rgb(226, 169, 139); translate: none; rotate: none; scale: none; transform: translate3d(0px, -1.4905px, 0px);">g</span></div>
+<div style="position: absolute; bottom: 0px; left: 0px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 36.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 73.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 110.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 147px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 183.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 220.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 257.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 294px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 330.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 367.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 404.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 441px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 477.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 514.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 551.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 588px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 624.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 661.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 698.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 735px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 771.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 808.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 845.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 882px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 918.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 955.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 992.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1029px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1065.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1102.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1139.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1176px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1212.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1249.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1286.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1323px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1359.75px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1396.5px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div><div style="position: absolute; bottom: 0px; left: 1433.25px; width: 32.75px; height: 4px; background: rgb(217, 255, 157); opacity: 1; transform: scale(1, 200.25); transform-origin: center bottom; translate: none; rotate: none; scale: none;"></div></div>
+<div class="div page_wrapper div--u-i25wuawax" id="i25wuawax_0">
+<div class="div div--u-i2t47klid section_stages" id="i2t47klid_0">
+<div class="div stages_container" id="i3ejk4c6v_0">
+<div class="div stages_title" id="i27hzeeeo_0">
+<h1 class="text text--u-i1c8x84gc heading-2 large" id="i1c8x84gc_0">
+<span class="text-block-wrap-div">Этапы разработки</span>
+</h1>
+</div>
+<div class="div stage_card div--u-ibytd0xzj" id="ibytd0xzj_0">
+<div class="div  div--u-i3e0k4vjq stage_card_title" id="i3e0k4vjq_0" style="opacity: 0.2;">
+<div class="text body_16-regular white_text" id="i127pvlz7_0">
+<span class="text-block-wrap-div">1.</span>
+</div>
+<div class="text heading-2" id="i2nhmgxhk_0">
+<span class="text-block-wrap-div">Знакомство<br>и бриф</span>
+</div>
+</div>
+<div class="image stage_card_image image--u-i3yz510ht" id="i3yz510ht_0" style="opacity: 0.2;">
+
+</div>
+<div class="div stage_card_description div--u-i1k9b2mah" id="i1k9b2mah_0" style="opacity: 0.2;">
+<div class="text body_14-regular gray" id="i2bjnkuzy_0">
+<span class="text-block-wrap-div">Перед началом работы мы созваниваемся для выяснения задачи и пожеланий. Обсуждаем стилистику, первичную структуру, наличие контента. Вы минуете этап заполнения большого брифа.<br>После созвона я подготовлю коммерческое предложение с несколькими вариантами тарифов, исходя из ваших запросов.<br>Подписываем подробный договор со сроками.<br>Приступаю к работе после предоплаты, которую можно разбить на этапы.</span>
+</div>
+</div>
+</div>
+<div class="div stage_card div--u-i2wxsj7ea" id="i2wxsj7ea_0">
+<div class="div  div--u-i2mb5r7w4 stage_card_title" id="i2mb5r7w4_0" style="opacity: 0.2;">
+<div class="text body_16-regular white_text" id="i5kehxd34_0">
+<span class="text-block-wrap-div">1.</span>
+</div>
+<div class="text heading-2" id="i2wea3ims_0">
+<span class="text-block-wrap-div">Знакомство<br>и бриф</span>
+</div>
+</div>
+<div class="image stage_card_image image--u-i2rfzds9x" id="i2rfzds9x_0" style="opacity: 0.2;">
+
+</div>
+<div class="div stage_card_description div--u-i44pbknct" id="i44pbknct_0" style="opacity: 0.2;">
+<div class="text body_14-regular gray" id="ix6sbc551_0">
+<span class="text-block-wrap-div">Перед началом работы мы созваниваемся для выяснения задачи и пожеланий. Обсуждаем стилистику, первичную структуру, наличие контента. Вы минуете этап заполнения большого брифа.<br>После созвона я подготовлю коммерческое предложение с несколькими вариантами тарифов, исходя из ваших запросов.<br>Подписываем подробный договор со сроками.<br>Приступаю к работе после предоплаты, которую можно разбить на этапы.</span>
+</div>
+</div>
+</div>
+<div class="div stage_card div--u-i2bgm3xpz" id="i2bgm3xpz_0">
+<div class="div  div--u-ijm3sev4i stage_card_title" id="ijm3sev4i_0" style="opacity: 0.2;">
+<div class="text body_16-regular white_text" id="ij50ssiak_0">
+<span class="text-block-wrap-div">1.</span>
+</div>
+<div class="text heading-2" id="i2nrarixy_0">
+<span class="text-block-wrap-div">Знакомство<br>и бриф</span>
+</div>
+</div>
+<div class="image stage_card_image image--u-ix49z8lwo" id="ix49z8lwo_0" style="opacity: 0.2;">
+
+</div>
+<div class="div stage_card_description div--u-i3e878uz0" id="i3e878uz0_0" style="opacity: 0.2;">
+<div class="text body_14-regular gray" id="i5bcfo9ad_0">
+<span class="text-block-wrap-div">Перед началом работы мы созваниваемся для выяснения задачи и пожеланий. Обсуждаем стилистику, первичную структуру, наличие контента. Вы минуете этап заполнения большого брифа.<br>После созвона я подготовлю коммерческое предложение с несколькими вариантами тарифов, исходя из ваших запросов.<br>Подписываем подробный договор со сроками.<br>Приступаю к работе после предоплаты, которую можно разбить на этапы.</span>
+</div>
+</div>
+</div>
+<div class="div stage_card div--u-i33w5e10j" id="i33w5e10j_0">
+<div class="div  div--u-i3jgqo7ea stage_card_title" id="i3jgqo7ea_0">
+<div class="text body_16-regular white_text" id="i2m8evk85_0">
+<span class="text-block-wrap-div">1.</span>
+</div>
+<div class="text heading-2" id="icxhbonpz_0">
+<span class="text-block-wrap-div">Знакомство<br>и бриф</span>
+</div>
+</div>
+<div class="image stage_card_image image--u-i3n2tk1c4" id="i3n2tk1c4_0">
+
+</div>
+<div class="div stage_card_description div--u-i3s0y7bsj" id="i3s0y7bsj_0">
+<div class="text body_14-regular gray" id="i2j9b2e35_0">
+<span class="text-block-wrap-div">Перед началом работы мы созваниваемся для выяснения задачи и пожеланий. Обсуждаем стилистику, первичную структуру, наличие контента. Вы минуете этап заполнения большого брифа.<br>После созвона я подготовлю коммерческое предложение с несколькими вариантами тарифов, исходя из ваших запросов.<br>Подписываем подробный договор со сроками.<br>Приступаю к работе после предоплаты, которую можно разбить на этапы.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<main class="div main_wrapper" id="i21o59r0u_0">
+<section class="div section_hero div--u-i3r7rg0pm" id="i3r7rg0pm_0">
+<div class="div spline_bg div--u-im51scl54" id="im51scl54_0">
+<div class="embed embed--u-i1g6u4mx0 spline-embed-desktop-3" id="i1g6u4mx0_0">
+
+<spline-viewer url="https://prod.spline.design/AOoX479E09VEZd56/scene.splinecode"></spline-viewer></div>
+<div class="embed embed--u-i1p8lg9fs spline-embed-mobile" id="i1p8lg9fs_0">
+
+<spline-viewer url="https://prod.spline.design/RFs2rNI65inpncCk/scene.splinecode"></spline-viewer></div>
+<div class="image image--u-icdmmj7sj" id="icdmmj7sj_0">
+
+</div>
+</div>
+<div class="container container--u-i23qxqiw3 hero" id="i23qxqiw3_0">
+<div class="div hero_content div--u-i5s5tn08h" id="i5s5tn08h_0">
+<div class="div hero_description div--u-i160lvrns" id="i160lvrns_0">
+<div class="image hero_photo image--u-i130kjbl4" id="i130kjbl4_0">
+
+</div>
+<div class="text body_16-regular text--u-i2za1l6aa " id="i2za1l6aa_0">
+<span class="text-block-wrap-div">Web designer<br>and no-code developer</span>
+</div>
+</div>
+</div>
+<div class="div hero_logo div--u-ib97kn5wl" id="ib97kn5wl_0">
+<div class="image hero_logo image--u-i31xx0uvo" id="i31xx0uvo_0">
+
+</div>
+</div>
+</div>
+</section>
+<section class="div section_about div--u-i7ehxhqvc" id="i7ehxhqvc_0">
+<div class="div about_title_wrapper" id="itccr4cuh_0">
+<h1 class="text heading-2 split" id="iz0z4tp3r_0" aria-label="00000Website development on Tilda, Webflow, and Taptop. Modern web design, stylish visuals, thoughtful structure, and precise timelines. I create projects that deliver real results"><div aria-hidden="true" style="position: relative; display: block; text-align: start; overflow: clip;"><div aria-hidden="true" style="position: relative; display: block; text-align: start;"> <span class="text-block-wrap-div"><span style="color:rgba(255, 255, 255, 0)"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(7.9686px, 50px) rotate(-2.01422deg) scale(0.95, 0.95);">00000</div></span><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-1.9589px, 50px) rotate(0.859deg) scale(0.95, 0.95);">Website</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(9.2533px, 50px) rotate(1.93575deg) scale(0.95, 0.95);">development</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(5.4135px, 50px) rotate(2.94904deg) scale(0.95, 0.95);">on</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(3.0533px, 50px) rotate(2.65708deg) scale(0.95, 0.95);">Tilda,</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-4.0708px, 50px) rotate(-1.99818deg) scale(0.95, 0.95);">Webflow,</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(1.5024px, 50px) rotate(-0.61626deg) scale(0.95, 0.95);">and</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(8.4596px, 50px) rotate(0.23574deg) scale(0.95, 0.95);">Taptop.</div> </span><span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(4.319px, 50px) rotate(-2.27176deg) scale(0.95, 0.95);">Modern</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-6.1891px, 50px) rotate(-2.69205deg) scale(0.95, 0.95);">web</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-2.9225px, 50px) rotate(-1.05928deg) scale(0.95, 0.95);">design,</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-3.6472px, 50px) rotate(0.74735deg) scale(0.95, 0.95);">stylish</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-8.1725px, 50px) rotate(-0.08238deg) scale(0.95, 0.95);">visuals,</div> </span><span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-4.2122px, 50px) rotate(2.14244deg) scale(0.95, 0.95);">thoughtful</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(6.3712px, 50px) rotate(-1.51252deg) scale(0.95, 0.95);">structure,</div> <span style="white-space:pre"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(1.7554px, 50px) rotate(1.96097deg) scale(0.95, 0.95);">and</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(3.5411px, 50px) rotate(-1.49158deg) scale(0.95, 0.95);">precise</div></span> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-8.7882px, 50px) rotate(1.31293deg) scale(0.95, 0.95);">timelines.</div> <span style="white-space:pre"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(9.7473px, 50px) rotate(-1.49072deg) scale(0.95, 0.95);">I</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-9.0941px, 50px) rotate(-1.66389deg) scale(0.95, 0.95);">create</div></span> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-0.1149px, 50px) rotate(-1.48083deg) scale(0.95, 0.95);">projects</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-8.9627px, 50px) rotate(2.76623deg) scale(0.95, 0.95);">that</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-4.2147px, 50px) rotate(0.33569deg) scale(0.95, 0.95);">deliver</div> <div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(-9.2877px, 50px) rotate(-2.0594deg) scale(0.95, 0.95);">real</div> </span><span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; visibility: hidden; transform: translate(2.5674px, 50px) rotate(0.12879deg) scale(0.95, 0.95);">results</div></span> </div></div></h1>
+<div class="text text--u-i8iiuj1tn body_12-medium uppercase" id="i8iiuj1tn_0">
+<span class="text-block-wrap-div">Обо мне</span>
+</div>
+</div>
+<div class="div div--u-ih1f2ko7l divider" id="ih1f2ko7l_0"></div>
+<div class="div about_content div--u-ilpogfypp" id="ilpogfypp_0">
+<div class="div left_about_content div--u-i5xqmezke" id="i5xqmezke_0">
+<div class="div awards_wrapper div--u-iuc84s4kx" id="iuc84s4kx_0">
+<div class="image award_icon image--u-i5s3t19r8" id="i5s3t19r8_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div>
+<div class="image award_icon image--u-injyh5jm1" id="injyh5jm1_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div>
+<div class="image award_icon image--u-i3kiodlch" id="i3kiodlch_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div>
+<div class="image award_icon" id="i0zjnpbha_0">
+
+</div>
+</div>
+</div>
+<div class="div right_about_content div--u-isgs9qagc" id="isgs9qagc_0">
+<div class="div about_text vertical" id="iatag3pga_0">
+<h2 class="text body_14-regular gray animate" id="iki96pkzu_0">
+<span class="text-block-wrap-div"><span>Hi!</span> <span>I'm</span> <span>Roman,</span> <span>a</span> <span>web</span> <span>designer.</span> <span>You</span> <span>can</span> <span>order</span> <span style="white-space:pre"><span>a</span> <span>website</span></span> <span>on</span> <span>Tilde,</span> <span>Webflow</span> <span>or</span> <span>Taptop</span> <span>turnkey</span> <span style="white-space:pre"><span>for</span> <span>business</span></span> <span>and</span> <span>personal</span> <span>projects</span> <span>from</span> <span>me.</span> <span>I</span> <span>also</span> <span>develop</span> <span>UI/UX</span> <span>design</span> <span>without</span> <span>layout,</span> <span>unique</span> <span>3D</span> <span>illustrations,</span> <span>and</span> <span>generate</span> <span>content</span> <span>using</span> <span>AI.</span><br><br><span>I</span> <span>implement</span> <span>projects</span> <span>of</span> <span>any</span> <span>scale,</span> <span>from</span> <span>small</span> <span>portfolio</span> <span>sites</span> <span>to</span> <span>web</span> <span>and</span> <span>mobile</span> <span>applications.</span> <span style="white-space:pre"><span>My</span> <span>approach</span></span> <span>combines</span> <span>modern</span> <span>design,</span> <span>thoughtful</span> <span>structure</span> <span style="white-space:pre"><span>and</span> <span>user</span></span><span>-friendliness</span> <span>of</span> <span>the</span> <span>interface</span> <span style="white-space:pre"><span>so</span> <span>that</span></span> <span>each</span> <span>project</span> <span>works</span> <span>for</span> <span>the</span> <span>result.</span></span>
+</h2>
+<div href="https://t.me/Roman_Salakhov" data-action-element="ibk6cj3z3_0" role="button" class="link-block button_size-s  link-block--u-i1vd0zvku" id="i1vd0zvku_0">
+<div class="image  image--u-if4w49zo8 btn-arrow" id="if4w49zo8_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div>
+<h1 class="text  button_text-m text--u-ikxshtsjm" id="ikxshtsjm_0" aria-label="I want a website"> <span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">I</div> <div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">w</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">a</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">n</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">t</div> <div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">a</div> <div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">w</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">e</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">b</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">s</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">i</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">t</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">e</div></span> </h1>
+</div>
+</div>
+<div class="div about_text div--u-i7by70vnv vertical" id="i7by70vnv_0">
+<div class="image image--u-ir3yazmyd about-content-image" id="ir3yazmyd_0">
+
+</div>
+<h3 class="text body_12-medium text--u-iit1co2t5 regular" id="iit1co2t5_0">
+<span class="text-block-wrap-div">Previously, I collaborated with Bank RBK (Kazakhstan), RNKB Bank, POSCREDIT, VANTA, Sharmax Motors, Easy Digital Agency, Obit <span style="white-space:pre">and WIM</span> Agency, gaining experience both in large companies <span style="white-space:pre">and freelancing</span></span>
+</h3>
+</div>
+</div>
+</div>
+</section>
+<section class="div div--u-i3fadh63w section_projects" id="i3fadh63w_0">
+<div class="div title_projects" id="i3ln4xnqa_0">
+<div class="text body_14-medium" id="i7bzcy0hw_0">
+<span class="text-block-wrap-div">Recent work</span>
+</div>
+<a href="/all-projects-en" data-action-element="" class="link-block link-block--u-i3ptz1f1h link_button-m" id="i3ptz1f1h_0">
+<p class="text text--u-i2jbb5qoo link_text-m" id="i2jbb5qoo_0">
+<span class="text-block-wrap-div">See all / 16</span>
+</p>
+<div class="image image--u-i39ojgbwf link_icon" id="i39ojgbwf_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div>
+</a>
+</div>
+<div class="container project_card_row container--u-irkz2pohc" id="irkz2pohc_0">
+<a href="https://www.behance.net/gallery/239552687/Roman-Klyachkin-wedding-host-website" data-action-element="" target="_blank" class="link-block project-card link-block--u-i1o3cgq9i last-project-card" id="i1o3cgq9i_0" style="will-change: transform, opacity; translate: none; rotate: none; scale: none; opacity: 1; transform: translate(0px, 0px);">
+<div class="div project_card_image_wrapper div--u-ihpiy121p" id="ihpiy121p_0">
+<div class="image image--u-ibxpkxtwb project_card_image" id="ibxpkxtwb_0" style="translate: none; rotate: none; scale: none; will-change: transform; transform: translate(0px, 0px);">
+
+</div>
+</div>
+<div class="div project_card_description div--u-i6r7iykrx" id="i6r7iykrx_0">
+<div class="div project_name_wrapper div--u-ineogqw9g" id="ineogqw9g_0">
+<div class="text text--u-ideu9jx6l heading-2" id="ideu9jx6l_0">
+<span class="text-block-wrap-div">Klyachkin</span>
+</div>
+<h3 class="text body_14-regular white_text" id="ix8adpkfa_0">
+<span class="text-block-wrap-div">The best wedding host in the country</span>
+</h3>
+</div>
+<div class="div tags_container div--u-ih52hy0zu center-align" id="ih52hy0zu_0">
+<div class="div  div--u-iq42zr5v4 tag pink" id="iq42zr5v4_0">
+<div class="text  tag_text text--u-ia9uq1dex white_text" id="ia9uq1dex_0">
+<span class="text-block-wrap-div">UI/ux</span>
+</div>
+</div>
+<div class="div  div--u-ijgepdqnl tag pink" id="ijgepdqnl_0">
+<div class="text  tag_text text--u-ib8pr5fqc white_text" id="ib8pr5fqc_0">
+<span class="text-block-wrap-div">Tilda</span>
+</div>
+</div>
+</div>
+<video src="https://salakhov-design.ru/f/9bda1d9c9bd3be88c5c205c8d66f94f2_1920.mp4" poster="" preload="metadata" playsinline="1" muted="1" loop="1" class="video video--u-izpgrtucm project_video-preview" id="izpgrtucm_0" style="opacity: 0;"></video>
+</div>
+</a>
+</div>
+<div class="container project_card_row container--u-i3t44lp8f" id="i3t44lp8f_0">
+<a href="https://salakhov-design.ru/projects_en/wellproducts-en" data-action-element="" class="link-block project-card link-block--u-i286yv0oo" id="i286yv0oo_0" style="will-change: transform, opacity; translate: none; rotate: none; scale: none; opacity: 1; transform: translate(0px, 0px);">
+<div class="div project_card_image_wrapper div--u-i2khg2m5y" id="i2khg2m5y_0">
+<div class="image image--u-i931y3wrh project_card_image" id="i931y3wrh_0" style="translate: none; rotate: none; scale: none; will-change: transform; transform: translate(0px, 0px);">
+
+</div>
+</div>
+<div class="div project_card_description div--u-ioku3tu2i" id="ioku3tu2i_0">
+<div class="div project_name_wrapper div--u-i29cxk19i" id="i29cxk19i_0">
+<div class="text text--u-i2lmi6q5y heading-2" id="i2lmi6q5y_0">
+<span class="text-block-wrap-div">WELLDRINK</span>
+</div>
+<h3 class="text body_14-regular white_text" id="i3kbw3kap_0">
+<span class="text-block-wrap-div">Natural drinks</span>
+</h3>
+</div>
+<div class="div tags_container div--u-i24pujqp0 center-align" id="i24pujqp0_0">
+<div class="div  div--u-ixpm70vdv tag pink" id="ixpm70vdv_0">
+<div class="text  tag_text text--u-iu4zhz092 white_text" id="iu4zhz092_0">
+<span class="text-block-wrap-div">Web design</span>
+</div>
+</div>
+</div>
+<video src="https://salakhov-design.ru/f/45199e43a9cac5919be0ad631f087789_1920.mp4" poster="" preload="metadata" playsinline="1" muted="1" loop="1" class="video video--u-inswazjxj project_video-preview" id="inswazjxj_0" style="opacity: 0;"></video>
+</div>
+</a>
+</div>
+<div class="container project_card_row container--u-i3bt98rrr" id="i3bt98rrr_0">
+<a href="https://salakhov-design.ru/projects_en/kirillnagiev-en" data-action-element="" class="link-block project-card link-block--u-i2r47rtv5 last-project-card" id="i2r47rtv5_0" style="will-change: transform, opacity; translate: none; rotate: none; scale: none; opacity: 1; transform: translate(0px, 0px);">
+<div class="div project_card_image_wrapper div--u-iyfl3pjt6" id="iyfl3pjt6_0">
+<div class="image image--u-i30hl1ai6 project_card_image" id="i30hl1ai6_0" style="translate: none; rotate: none; scale: none; will-change: transform; transform: translate(0px, 0px);">
+
+</div>
+</div>
+<div class="div project_card_description div--u-i2tv79pn1" id="i2tv79pn1_0">
+<div class="div project_name_wrapper div--u-i2z44dqgc" id="i2z44dqgc_0">
+<div class="text text--u-iwy4kwpb1 heading-2" id="iwy4kwpb1_0">
+<span class="text-block-wrap-div">Kirill nagiev</span>
+</div>
+<h3 class="text body_14-regular white_text" id="i115lcw8r_0">
+<span class="text-block-wrap-div">Actor and host</span>
+</h3>
+</div>
+<div class="div tags_container div--u-i23sfhn68 center-align" id="i23sfhn68_0">
+<div class="div  div--u-i14hw0kac tag pink" id="i14hw0kac_0">
+<div class="text  tag_text text--u-i2mvjgc7d white_text" id="i2mvjgc7d_0">
+<span class="text-block-wrap-div">UI/ux</span>
+</div>
+</div>
+<div class="div  div--u-iwzfggp1e tag pink" id="iwzfggp1e_0">
+<div class="text  tag_text text--u-i10ar5h1m white_text" id="i10ar5h1m_0">
+<span class="text-block-wrap-div">Tilda</span>
+</div>
+</div>
+</div>
+<video src="https://salakhov-design.ru/f/4d8879b35b0909738697035f212b0e39_1920.mp4" poster="" preload="metadata" playsinline="1" muted="1" loop="1" class="video video--u-iv85a5qi6 project_video-preview" id="iv85a5qi6_0" style="opacity: 0;"></video>
+</div>
+</a>
+</div>
+<div class="container project_card_row container--u-i22i1niiu" id="i22i1niiu_0">
+<a href="https://salakhov-design.ru/projects_en/vanta-en" data-action-element="" class="link-block project-card link-block--u-i38bqaugw" id="i38bqaugw_0" style="will-change: transform, opacity; translate: none; rotate: none; scale: none; opacity: 1; transform: translate(0px, 0px);">
+<div class="div project_card_image_wrapper div--u-i1soqhkeq" id="i1soqhkeq_0">
+<div class="image image--u-i3ilnle6m project_card_image" id="i3ilnle6m_0" style="translate: none; rotate: none; scale: none; will-change: transform; transform: translate(0px, 0px);">
+
+</div>
+</div>
+<div class="div project_card_description div--u-ior1ml6zo" id="ior1ml6zo_0">
+<div class="div project_name_wrapper div--u-i2jovs376" id="i2jovs376_0">
+<div class="text text--u-i3olwhar3 heading-2" id="i3olwhar3_0">
+<span class="text-block-wrap-div">VANTA</span>
+</div>
+<h3 class="text body_14-regular white_text" id="i1ctkedb0_0">
+<span class="text-block-wrap-div">Financial Marketplace</span>
+</h3>
+</div>
+<div class="div tags_container div--u-i3p6mzmh5 center-align" id="i3p6mzmh5_0">
+<div class="div  div--u-i34fx47nh tag pink" id="i34fx47nh_0">
+<div class="text  tag_text text--u-i1u7gpn1j white_text" id="i1u7gpn1j_0">
+<span class="text-block-wrap-div">3D</span>
+</div>
+</div>
+<div class="div  div--u-i1lw666tg tag pink" id="i1lw666tg_0">
+<div class="text  tag_text text--u-i3n3tttaz white_text" id="i3n3tttaz_0">
+<span class="text-block-wrap-div">WEB</span>
+</div>
+</div>
+</div>
+<video src="https://salakhov-design.ru/f/77722c6279f391bb0064f73174e5f184_1920.mp4" poster="" preload="metadata" playsinline="1" muted="1" loop="1" class="video video--u-id5b6vvtl project_video-preview" id="id5b6vvtl_0" style="opacity: 0;"></video>
+</div>
+</a>
+</div>
+<div class="container project_card_row container--u-i2yia9cym" id="i2yia9cym_0">
+<a href="https://salakhov-design.ru/projects_en/studyspace-en" data-action-element="" class="link-block project-card link-block--u-i1isqiuws last-project-card" id="i1isqiuws_0" style="will-change: transform, opacity; translate: none; rotate: none; scale: none; opacity: 1; transform: translate(0px, 0px);">
+<div class="div project_card_image_wrapper div--u-i1n1gl27j" id="i1n1gl27j_0">
+<div class="image image--u-i2skgg0wm project_card_image" id="i2skgg0wm_0" style="translate: none; rotate: none; scale: none; will-change: transform; transform: translate(0px, 0px);">
+
+</div>
+</div>
+<div class="div project_card_description div--u-i3j667rbi" id="i3j667rbi_0">
+<div class="div project_name_wrapper div--u-i3hz4qf7w" id="i3hz4qf7w_0">
+<div class="text text--u-i275hbz1d heading-2" id="i275hbz1d_0">
+<span class="text-block-wrap-div">Study space</span>
+</div>
+<h3 class="text body_14-regular white_text" id="io764325s_0">
+<span class="text-block-wrap-div">Educational platform</span>
+</h3>
+</div>
+<div class="div tags_container div--u-i3noxhyy3 center-align" id="i3noxhyy3_0">
+<div class="div  div--u-i1aiw2huv tag pink" id="i1aiw2huv_0">
+<div class="text  tag_text text--u-ihulcroit white_text" id="ihulcroit_0">
+<span class="text-block-wrap-div">UI/ux</span>
+</div>
+</div>
+<div class="div  div--u-i1766skwc tag pink" id="i1766skwc_0">
+<div class="text  tag_text text--u-i28ib2gb0 white_text" id="i28ib2gb0_0">
+<span class="text-block-wrap-div">Tilda</span>
+</div>
+</div>
+</div>
+<video src="https://salakhov-design.ru/f/9bda1d9c9bd3be88c5c205c8d66f94f2_1920.mp4" poster="" preload="metadata" playsinline="1" muted="1" loop="1" class="video video--u-ibobn6j6j project_video-preview" id="ibobn6j6j_0" style="opacity: 0;"></video>
+</div>
+</a>
+</div>
+</section>
+<section class="div div--u-i2emq9ecu section_services" id="i2emq9ecu_0">
+<div class="text services-word text--u-i26malmql" id="i26malmql_0" aria-label="services"> <span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">s</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">e</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">r</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">v</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">i</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">c</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">e</div><div aria-hidden="true" style="position: relative; display: inline-block; translate: none; rotate: none; scale: none; opacity: 0; transform: translate(0px, 30px);">s</div></span> </div>
+<div class="div services_cards_container div--u-i2wk03gw3" id="i2wk03gw3_0">
+<div class="div trigger-zone top" id="i3earciic_0"></div>
+<div class="div  div--u-ik5ipoo6e product-card item_1" id="ik5ipoo6e_0" style="--x: 50%; --y: 50%; transform: perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1.02); translate: none; rotate: none; scale: none; opacity: 0;">
+<div class="div price-popup div--u-i5e6i0qpo" id="i5e6i0qpo_0">
+<h4 class="text heading-2 text-pink" id="i29f0ieaa_0">
+<span class="text-block-wrap-div">От&nbsp; 70 000 Р</span>
+</h4>
+</div>
+<div class="div service_card_title  div--u-i3cndwq48" id="i3cndwq48_0">
+<div class="image  service_card_icon image--u-i2g7fq3nm" id="i2g7fq3nm_0">
+
+</div>
+<h4 class="text heading-3 white_text hex-animate" id="i39nmw9lm_0">
+<span class="text-block-wrap-div">Design only</span>
+</h4>
+</div>
+<div class="div  divider div--u-i18a73mid" id="i18a73mid_0"></div>
+<div class="div service_card_bottom  div--u-i199pqnzo" id="i199pqnzo_0">
+<div class="div tags_container  div--u-icv8d63mr" id="icv8d63mr_0">
+<div class="div  div--u-i3osm7was tag" id="i3osm7was_0">
+<div class="text  tag_text text--u-i270kituz" id="i270kituz_0">
+<span class="text-block-wrap-div">Figma</span>
+</div>
+</div>
+<div class="div  div--u-i1nozhjm3 tag" id="i1nozhjm3_0">
+<div class="text  tag_text text--u-i3ib7unth" id="i3ib7unth_0">
+<span class="text-block-wrap-div">Ps</span>
+</div>
+</div>
+<div class="div  div--u-i3mtdyc9y tag" id="i3mtdyc9y_0">
+<div class="text  tag_text text--u-i31jhlpbx" id="i31jhlpbx_0">
+<span class="text-block-wrap-div">Ai</span>
+</div>
+</div>
+<div class="div  div--u-i340rivad tag" id="i340rivad_0" style="opacity: 0; translate: none; rotate: none; scale: none; transform: translate(0px, 4px) scale(0.5, 0.5);">
+<div class="text  tag_text text--u-i3eaefg8g text-pink" id="i3eaefg8g_0">
+<span class="text-block-wrap-div">from $900</span>
+</div>
+</div>
+</div>
+<!--noindex--><div href="/" data-action-element="i34qwadn0_0" role="button" class="link-block price-button  link-block--u-i34i0c5uv" id="i34i0c5uv_0">
+<div class="image  image--u-i3732nrew service_button_icon" id="i3732nrew_0">
+
+</div>
+</div>
+<!--/noindex--></div>
+</div>
+<div class="div product-card  div--u-i35q6k10y item_2" id="i35q6k10y_0" style="--x: 50%; --y: 50%; transform: perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1.02); translate: none; rotate: none; scale: none; opacity: 0;">
+<div class="div service_card_title  div--u-i2rkn08t5" id="i2rkn08t5_0">
+<div class="image  service_card_icon image--u-i221yqxi1" id="i221yqxi1_0">
+
+</div>
+<h4 class="text heading-3 white_text hex-animate" id="i22pamvht_0">
+<span class="text-block-wrap-div">Turnkey website</span>
+</h4>
+</div>
+<div class="div  divider div--u-i2926rk84" id="i2926rk84_0"></div>
+<div class="div service_card_bottom  div--u-i54tb5xai" id="i54tb5xai_0">
+<div class="div tags_container  div--u-i3m8q0jn1" id="i3m8q0jn1_0">
+<div class="div  div--u-i3ix3f1jg tag" id="i3ix3f1jg_0">
+<div class="text  tag_text text--u-i3ug6etvh" id="i3ug6etvh_0">
+<span class="text-block-wrap-div">webflow </span>
+</div>
+</div>
+<div class="div   tag" id="i1prx3td2_0">
+<div class="text  tag_text " id="i299ibfbh_0">
+<span class="text-block-wrap-div">tilda </span>
+</div>
+</div>
+<div class="div  div--u-i1hlodiyt tag" id="i1hlodiyt_0">
+<div class="text  tag_text text--u-ik8d8t86f" id="ik8d8t86f_0">
+<span class="text-block-wrap-div">taptop</span>
+</div>
+</div>
+<div class="div  div--u-ibdxevgia tag" id="ibdxevgia_0" style="opacity: 0; translate: none; rotate: none; scale: none; transform: translate(0px, 4px) scale(0.5, 0.5);">
+<div class="text  tag_text text--u-i3jqaq69r text-pink" id="i3jqaq69r_0">
+<span class="text-block-wrap-div">from $1200</span>
+</div>
+</div>
+</div>
+<div href="/" data-action-element="" role="button" class="link-block price-button  link-block--u-i340f7i9l" id="i340f7i9l_0">
+<div class="image  image--u-i3pe7ox41 service_button_icon" id="i3pe7ox41_0">
+
+</div>
+</div>
+</div>
+</div>
+<div class="div product-card  div--u-i1snnuac7 item_3" id="i1snnuac7_0" style="--x: 50%; --y: 50%; transform: perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1.02); translate: none; rotate: none; scale: none; opacity: 0;">
+<div class="div service_card_title  div--u-iholfgjr7" id="iholfgjr7_0">
+<div class="image  service_card_icon image--u-i21km1l3k" id="i21km1l3k_0">
+
+</div>
+<h4 class="text heading-3 white_text hex-animate" id="i3dapvwb6_0">
+<span class="text-block-wrap-div">3D Illustration</span>
+</h4>
+</div>
+<div class="div  divider div--u-i1w7d4nvu" id="i1w7d4nvu_0"></div>
+<div class="div service_card_bottom  div--u-i1ntzejg9" id="i1ntzejg9_0">
+<div class="div tags_container  div--u-i3sjx7wl2" id="i3sjx7wl2_0">
+<div class="div  div--u-i2p3i1zzl tag" id="i2p3i1zzl_0">
+<div class="text  tag_text text--u-iokte36fe" id="iokte36fe_0">
+<span class="text-block-wrap-div">blender</span>
+</div>
+</div>
+<div class="div  div--u-i1mqsm00m tag" id="i1mqsm00m_0">
+<div class="text  tag_text text--u-i2588geht" id="i2588geht_0">
+<span class="text-block-wrap-div">spline 3d</span>
+</div>
+</div>
+<div class="div  div--u-i2i09pym8 tag" id="i2i09pym8_0" style="opacity: 0; translate: none; rotate: none; scale: none; transform: translate(0px, 4px) scale(0.5, 0.5);">
+<div class="text  tag_text text--u-i21ai3vr0 text-pink" id="i21ai3vr0_0">
+<span class="text-block-wrap-div">from $70</span>
+</div>
+</div>
+</div>
+<div href="/" data-action-element="" role="button" class="link-block price-button  link-block--u-i2n1858xs" id="i2n1858xs_0">
+<div class="image  image--u-i3hz7zc1q service_button_icon" id="i3hz7zc1q_0">
+
+</div>
+</div>
+</div>
+</div>
+<div class="div product-card  div--u-i3l450fym item_4" id="i3l450fym_0" style="--x: 50%; --y: 50%; transform: perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1.02); translate: none; rotate: none; scale: none; opacity: 0;">
+<div class="div service_card_title  div--u-i2hap8scs" id="i2hap8scs_0">
+<div class="image  service_card_icon image--u-i1gwhoz58" id="i1gwhoz58_0">
+
+</div>
+<h4 class="text heading-3 white_text" id="i2bxe9ldp_0">
+<span class="text-block-wrap-div">Web &amp; Mobile App</span>
+</h4>
+</div>
+<div class="div  divider div--u-i1is8scon" id="i1is8scon_0"></div>
+<div class="div service_card_bottom  div--u-i2sc8av0a" id="i2sc8av0a_0">
+<div class="div tags_container  div--u-i2tqfqch4" id="i2tqfqch4_0">
+<div class="div  div--u-i1n0eq8q0 tag" id="i1n0eq8q0_0">
+<div class="text  tag_text text--u-i1586woqh" id="i1586woqh_0">
+<span class="text-block-wrap-div">Design system</span>
+</div>
+</div>
+<div class="div  div--u-i21y4sr1c tag" id="i21y4sr1c_0">
+<div class="text  tag_text text--u-i1llj1nrc" id="i1llj1nrc_0">
+<span class="text-block-wrap-div">GLIDE</span>
+</div>
+</div>
+<div class="div  div--u-i2pdsgw6j tag" id="i2pdsgw6j_0" style="opacity: 0; translate: none; rotate: none; scale: none; transform: translate(0px, 4px) scale(0.5, 0.5);">
+<div class="text  tag_text text--u-i3st2q33c text-pink" id="i3st2q33c_0">
+<span class="text-block-wrap-div">On request</span>
+</div>
+</div>
+</div>
+<div href="/" data-action-element="" role="button" class="link-block price-button  link-block--u-i9h0gf6ys" id="i9h0gf6ys_0">
+<div class="image  image--u-in8o62jqa service_button_icon" id="in8o62jqa_0">
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="div trigger-zone" id="i1exk5w9f_0"></div>
+<div class="text text--u-iqyu7rxuc heading-2 large" id="iqyu7rxuc_0" style="">
+<span class="text-block-wrap-div">Этапы разработки</span>
+</div>
+</section>
+<section class="div div--u-i3r68emkg section_faq" id="i3r68emkg_0">
+<div class="div services_left_content div--u-i1k5xdp9x" id="i1k5xdp9x_0">
+<div class="div services_text div--u-i2k70z12q" id="i2k70z12q_0">
+<h1 class="text text--u-i198822q7 heading-2 large" id="i198822q7_0">
+<span class="text-block-wrap-div">Этапы разработки</span>
+</h1>
+<div class="text body_14-medium" id="i3p5km4k8_0">
+<span class="text-block-wrap-div">Я объединяю креатив и технологии, чтобы создавать сайты, которые не только выглядят круто, но и решают задачи бизнеса.</span>
+</div>
+</div>
+<a href="/" data-action-element="" class="link-block button_size-s  link-block--u-iu7xeugtw" id="iu7xeugtw_0">
+
+<div class="image  image--u-i12as1jc2 btn-arrow" id="i12as1jc2_0" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+
+</div><h1 class="text  button_text-m text--u-ib7hc233o" id="ib7hc233o_0" aria-label="Как выбрать платформу"> <span class="text-block-wrap-div"><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">К</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">а</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">к</div> <div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">в</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">ы</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">б</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">р</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">а</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">т</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">ь</div> <div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">п</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">л</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">а</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">т</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">ф</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">о</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">р</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">м</div><div aria-hidden="true" style="position: relative; display: inline-block; color: rgb(255, 255, 255);">у</div></span> </h1>
+</a>
+</div>
+<div class="div faq_container div--u-i3jw03piq" id="i3jw03piq_0">
+<div class="div stages_wrapper div--u-i1dgkol7y" id="i1dgkol7y_0">
+<div class="div stage first-stage div--u-iyn3bmc4j" id="iyn3bmc4j_0">
+<div class="div stage_top_content div--u-i5aa3509h" id="i5aa3509h_0">
+<div class="image image--u-iitsvv18d stage_image" id="iitsvv18d_0">
+
+</div>
+<div class="div stage_text" id="i3j7qjzk2_0">
+<div class="text heading-3" id="i1sws4fc1_0">
+<span class="text-block-wrap-div">Discussion of the project and conclusion <span style="white-space:pre">of the contract</span></span>
+</div>
+<h3 class="text body_14-regular text--u-iocsn126b" id="iocsn126b_0">
+<span class="text-block-wrap-div">Before starting work, we hold a meeting (online or by phone) to discuss your goals, style preferences, the structure of the future website, and the availability of ready-made content in detail. This allows us to avoid filling out a lengthy brief.<br><br>Next, we conclude a contract with clear terms and conditions.<br><br>Work begins after a 50% prepayment</span>
+</h3>
+</div>
+</div>
+<div class="div stage_bottom_content" id="i1v2go03y_0">
+<div class="image image--u-i2c2i2n5q stage_percents_image" id="i2c2i2n5q_0">
+
+</div>
+<div class="text body_14-regular gray text--u-i3mokcaxt" id="i3mokcaxt_0">
+<span class="text-block-wrap-div">Scroll</span>
+</div>
+</div>
+</div>
+<div class="div stage div--u-i1onpq85h" id="i1onpq85h_0">
+<div class="div stage_top_content div--u-i131rg36k" id="i131rg36k_0">
+<div class="image image--u-i1mpqa6xe stage_image" id="i1mpqa6xe_0">
+
+</div>
+<div class="div stage_text" id="iljs0z777_0">
+<div class="text heading-3" id="i188kky86_0">
+<span class="text-block-wrap-div">Research<br>and design</span>
+</div>
+<h3 class="text body_14-regular" id="i3r86fyfn_0">
+<span class="text-block-wrap-div">Next, I analyze your niche and competitors <span style="white-space:pre">to identify</span> key advantages.<br><br>Based on the research, I create a prototype — a diagram of the future website with the layout of blocks, text, and graphics. This helps to immediately assess the ease of navigation and the logic of interaction.<br><br>Sometimes the prototyping stage can <span style="white-space:pre">be skipped</span>, and you can go straight <span style="white-space:pre">to the concepts</span></span>
+</h3>
+</div>
+</div>
+<div class="div stage_bottom_content" id="io9blgnr0_0">
+<div class="image image--u-i1t5dxu7n stage_percents_image" id="i1t5dxu7n_0">
+
+</div>
+<div class="text body_14-regular gray text--u-i2igodt45" id="i2igodt45_0">
+<span class="text-block-wrap-div">Scroll</span>
+</div>
+</div>
+</div>
+<div class="div stage div--u-i25hqm4oa" id="i25hqm4oa_0">
+<div class="div stage_top_content div--u-i2v9a8qn8" id="i2v9a8qn8_0">
+<div class="image image--u-i1hkj41xd stage_image" id="i1hkj41xd_0">
+
+</div>
+<div class="div stage_text" id="i14rk5a85_0">
+<div class="text heading-3" id="ic3lrsorc_0">
+<span class="text-block-wrap-div">Design concept development</span>
+</div>
+<h3 class="text body_14-regular" id="i308tk8n5_0">
+<span class="text-block-wrap-div">I propose 1–3 design options for the main page (first screens).<br><br>The style and visual design are based on the approved references, color palette, and fonts</span>
+</h3>
+</div>
+</div>
+<div class="div stage_bottom_content" id="i1yc1vbrf_0">
+<div class="image image--u-i2gqi02au stage_percents_image" id="i2gqi02au_0">
+
+</div>
+<div class="text body_14-regular gray text--u-i3p7ft1qi" id="i3p7ft1qi_0">
+<span class="text-block-wrap-div">Scroll</span>
+</div>
+</div>
+</div>
+<div class="div stage div--u-i1v8wnzyf" id="i1v8wnzyf_0">
+<div class="div stage_top_content div--u-il7v2x8hl" id="il7v2x8hl_0">
+<div class="image image--u-i1agr48wg stage_image" id="i1agr48wg_0">
+
+</div>
+<div class="div stage_text" id="i2lzgiivz_0">
+<div class="text heading-3" id="i3esmpl6s_0">
+<span class="text-block-wrap-div">Full design of all pages</span>
+</div>
+<h3 class="text body_14-regular" id="i2bdll1il_0">
+<span class="text-block-wrap-div">After the concept is agreed upon, I draw <span style="white-space:pre">the full</span> design of all sections of the site.<br><br>If the order includes only a layout,<span style="white-space:pre"> I additionally</span> prepare a UI-kit (a set <span style="white-space:pre">of interface</span> elements) and submit the project <span style="white-space:pre">for layout</span></span>
+</h3>
+</div>
+</div>
+<div class="div stage_bottom_content" id="i1tptnyby_0">
+<div class="image image--u-i1059fhn9 stage_percents_image" id="i1059fhn9_0">
+
+</div>
+<div class="text body_14-regular gray text--u-ipvkhhtna" id="ipvkhhtna_0">
+<span class="text-block-wrap-div">Scroll</span>
+</div>
+</div>
+</div>
+<div class="div stage div--u-i29ytsm2z last_stage" id="i29ytsm2z_0">
+<div class="div stage_top_content div--u-i1k9jx9fu" id="i1k9jx9fu_0">
+<div class="image image--u-i3r4fgx06 stage_image" id="i3r4fgx06_0">
+
+</div>
+<div class="div stage_text" id="i3bslmbch_0">
+<div class="text heading-3" id="i59zo5tfz_0">
+<span class="text-block-wrap-div">Layout and customization of functionality</span>
+</div>
+<h3 class="text body_14-regular" id="i2mpfuw9f_0">
+<span class="text-block-wrap-div">Adaptively transfer designs from Figma <span style="white-space:pre">to Webflow,</span> Taptop or Tilda, optimizing display on computers, tablets and smartphones.<br><br>I connect the necessary tools:<br><br>- Application forms and payment systems.<br>- Animations and interactive elements.<br>- SEO headlines and descriptions for social networks.<br>- Analytics services (Google Analytics, Yandex.Metrica, etc.).</span>
+</h3>
+</div>
+</div>
+<div class="div stage_bottom_content" id="iywb0ocoh_0">
+<div class="image image--u-i3k3t2x9r stage_percents_image" id="i3k3t2x9r_0">
+
+</div>
+<div class="text body_14-regular gray text--u-i3hb6ges1" id="i3hb6ges1_0">
+<span class="text-block-wrap-div">Scroll</span>
+</div>
+</div>
+</div>
+</div>
+<div class="accordion accordion--u-ib32crzn1 accordion_section" id="ib32crzn1_0">
+<div class="accordion__item accordion__item--u-i1zdxus9h accordion_item" id="i1zdxus9h_0" style="column-gap: 0px;">
+<div class="accordion__header accordion__header--u-i3rokomxn accordion_title last_accordion" id="i3rokomxn_0">
+<div class="text-subtitle text-subtitle--u-i20yeuhre body_14-regular accordion_number" id="i20yeuhre_0">
+<span class="text-block-wrap-div">1.</span>
+</div>
+<div class="text-subtitle text-subtitle--u-ii0qlf934 heading-3" id="ii0qlf934_0">
+<span class="text-block-wrap-div">Знакомство и бриф</span>
+</div>
+</div>
+<div class="accordion__wrapper" id="i1ppk5vuh_0" style="">
+<div class="accordion__content accordion_content accordion__content--u-i1ax9tvlq" id="i1ax9tvlq_0">
+<div class="text text--u-i3nx5ytlc" id="i3nx5ytlc_0">
+<span class="text-block-wrap-div">Перед началом работы мы созваниваемся для выяснения задачи и пожеланий. Обсуждаем стилистику, первичную структуру, наличие контента. Вы минуете этап заполнения большого брифа.<br><br>После созвона я подготовлю коммерческое предложение с несколькими вариантами тарифов, исходя из ваших запросов.<br><br>Подписываем подробный договор со сроками.<br><br>Приступаю к работе после предоплаты, которую можно разбить на этапы.</span>
+</div>
+<div class="image accordion_image image--u-i39sconjl" id="i39sconjl_0">
+
+</div>
+</div>
+</div>
+</div>
+<div class="accordion__item accordion__item--u-i1zdxus9h accordion_item" id="i1zdxus9h_1" style="column-gap: 0px;">
+<div class="accordion__header accordion__header--u-i3rokomxn accordion_title last_accordion" id="i3rokomxn_1">
+<div class="text-subtitle text-subtitle--u-i20yeuhre body_14-regular accordion_number" id="i20yeuhre_1">
+<span class="text-block-wrap-div">2.</span>
+</div>
+<div class="text-subtitle text-subtitle--u-ii0qlf934 heading-3" id="ii0qlf934_1">
+<span class="text-block-wrap-div">Анализ и прототип</span>
+</div>
+</div>
+<div class="accordion__wrapper" id="i1ppk5vuh_1" style="">
+<div class="accordion__content accordion_content accordion__content--u-i1ax9tvlq" id="i1ax9tvlq_1">
+<div class="text text--u-i3nx5ytlc" id="i3nx5ytlc_1">
+<span class="text-block-wrap-div">Анализирую нишу и конкурентов.<br><br>Составляю разбор целевой аудитории, выявляя основные боли, возражения и хотелки, который в последствии можно использовать в соц. сетях и рекламе.<br><br>Использую разбор ЦА как основу для редактирования вашего контента или для составления с 0, чтобы сайт вызывал доверие и побуждал к нужному действию.<br><br>Создаю прототип, на котором можно отследить структуру, элементы интерфейса, расположение текста и иллюстраций.</span>
+</div>
+<div class="image accordion_image image--u-i39sconjl" id="i39sconjl_1">
+
+</div>
+</div>
+</div>
+</div>
+<div class="accordion__item accordion__item--u-i1zdxus9h accordion_item" id="i1zdxus9h_2" style="column-gap: 0px;">
+<div class="accordion__header accordion__header--u-i3rokomxn accordion_title last_accordion" id="i3rokomxn_2">
+<div class="text-subtitle text-subtitle--u-i20yeuhre body_14-regular accordion_number" id="i20yeuhre_2">
+<span class="text-block-wrap-div">3.</span>
+</div>
+<div class="text-subtitle text-subtitle--u-ii0qlf934 heading-3" id="ii0qlf934_2">
+<span class="text-block-wrap-div">Дизайн концепция</span>
+</div>
+</div>
+<div class="accordion__wrapper" id="i1ppk5vuh_2" style="">
+<div class="accordion__content accordion_content accordion__content--u-i1ax9tvlq" id="i1ax9tvlq_2">
+<div class="text text--u-i3nx5ytlc" id="i3nx5ytlc_2">
+<span class="text-block-wrap-div">В зависимости от тарифа, создаю несколько вариантов дизайна первых двух экранов.<br><br>Дизайн-концепция строится на ранее одобренных референсах по стилю, цветам, шрифтам и графике</span>
+</div>
+<div class="image accordion_image image--u-i39sconjl" id="i39sconjl_2">
+
+</div>
+</div>
+</div>
+</div>
+<div class="accordion__item accordion__item--u-i1zdxus9h accordion_item" id="i1zdxus9h_3" style="column-gap: 0px;">
+<div class="accordion__header accordion__header--u-i3rokomxn accordion_title last_accordion" id="i3rokomxn_3">
+<div class="text-subtitle text-subtitle--u-i20yeuhre body_14-regular accordion_number" id="i20yeuhre_3">
+<span class="text-block-wrap-div">4.</span>
+</div>
+<div class="text-subtitle text-subtitle--u-ii0qlf934 heading-3" id="ii0qlf934_3">
+<span class="text-block-wrap-div">Доработка дизайна</span>
+</div>
+</div>
+<div class="accordion__wrapper" id="i1ppk5vuh_3" style="">
+<div class="accordion__content accordion_content accordion__content--u-i1ax9tvlq" id="i1ax9tvlq_3">
+<div class="text text--u-i3nx5ytlc" id="i3nx5ytlc_3">
+<span class="text-block-wrap-div">После утверждения полностью отрисовываю макет+дизайн внутренних страниц.<br><br>*Если в заказ входит только макет, то дополнительно создаю UI kit. А далее передаю на вёрстку.</span>
+</div>
+<div class="image accordion_image image--u-i39sconjl" id="i39sconjl_3">
+
+</div>
+</div>
+</div>
+</div>
+<div class="accordion__item accordion__item--u-i1zdxus9h accordion_item" id="i1zdxus9h_4" style="column-gap: 0px;">
+<div class="accordion__header accordion__header--u-i3rokomxn accordion_title last_accordion" id="i3rokomxn_4">
+<div class="text-subtitle text-subtitle--u-i20yeuhre body_14-regular accordion_number" id="i20yeuhre_4">
+<span class="text-block-wrap-div">5.</span>
+</div>
+<div class="text-subtitle text-subtitle--u-ii0qlf934 heading-3" id="ii0qlf934_4">
+<span class="text-block-wrap-div">Верстка</span>
+</div>
+</div>
+<div class="accordion__wrapper" id="i1ppk5vuh_4" style="">
+<div class="accordion__content accordion_content accordion__content--u-i1ax9tvlq" id="i1ax9tvlq_4">
+<div class="text text--u-i3nx5ytlc" id="i3nx5ytlc_4">
+<span class="text-block-wrap-div">Переношу макет из Figma в Tilda и адаптирую под мобильные.<br><br>Подключаю формы заявок и платежей по необходимости.<br><br>Настраиваю анимацию.<br><br>Заполняю заголовки и описания страниц для социальных сетей.<br><br>*При необходимости помогу подключить сервисы аналитики.</span>
+</div>
+<div class="image accordion_image image--u-i39sconjl" id="i39sconjl_4">
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</div>
+<!-- mosaic.footer.scripts -->
+
+<!-- /mosaic.footer.scripts --><span style="font-size:14px;" class="copyright"><style>
+  .tt_copyright {
+    display: inline-block;
+  }
+
+  .tt_badge__small {
+    display: inline-flex;
+    align-items: center;
+    min-height: 35px;
+    padding: 8px 8px 8px 32px;
+    background-image: url('/g/s3/mosaic/images/widgets/badge-small-light.svg'), linear-gradient(#0c0c0c, #0c0c0c);
+    background-position: 8px center, center;
+    background-repeat: no-repeat;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 5px;
+    color: #ffffff;
+  }
+
+  @media (max-width: 767px) {
+    .tt_badge__small {
+      font-size: 10px;
+      min-height: 28px;
+    }
+  }
+</style>
+<div class="tt_copyright tt_badge">
+  <a target="_blank" href="https://taptop.pro/?utm_source=taptop_pro&amp;utm_medium=embed&amp;utm_campaign=badge&amp;utm_content=icon" class="tt_badge__small">Made in Taptop</a>
+</div></span>	
+    
+    
+ 
+
+
+  
+  
+  
+  
+  
+  
+  
+  <!-- Splitting.js -->
+
+
+<!-- Инициализация Splitting -->
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<canvas id="networkCanvas" width="1470" height="801"></canvas>
+
+
+
+
+<style>
+  #networkCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    background: transparent;
+  }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- assets.bottom -->
+<!-- </noscript></script></style> -->
+
+
+
+<!-- /assets.bottom -->
+
+
+<div id="badge-captcha" style="visibility: hidden;"><div class="grecaptcha-badge" data-style="bottomright" style="width: 256px; height: 60px; display: block; transition: right 0.3s; position: fixed; bottom: 14px; right: -186px; box-shadow: gray 0px 0px 5px; border-radius: 2px; overflow: hidden;"><div class="grecaptcha-logo"></div><div class="grecaptcha-error"></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div></div></body></html>

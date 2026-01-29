@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function SignUpPage() {
   const [name, setName] = useState('')
@@ -80,69 +80,131 @@ export default function SignUpPage() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl">Create Account</CardTitle>
-          <CardDescription>
-            Sign up for AIR Publisher
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+    <div className="flex h-screen bg-black relative overflow-hidden">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 z-50 w-full border-0 bg-transparent">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 text-white/70">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/airpublisher-logo.png?v=3"
+              alt="AIR Publisher"
+              width={673}
+              height={371}
+              className="h-16 w-auto"
+            />
+          </Link>
+          <Link href="/" className="text-sm uppercase tracking-[0.4em] hover:text-white transition-colors">
+            Back
+          </Link>
+        </div>
+      </nav>
+
+      {/* Left Half: Video Background (Hidden on small screens) */}
+      <div className="hidden md:flex md:w-1/2 h-screen relative overflow-hidden">
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+          src="/emoji-video.mp4"
+        >
+          Your browser does not support the video tag.
+        </video>
+        {/* Optional: Gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+      </div>
+
+      {/* Right Half: Sign Up Form */}
+      <div className="w-full md:w-1/2 h-screen flex items-center justify-center px-4 py-16 overflow-y-auto">
+        <div className="w-full max-w-md space-y-8">
+          {/* Title Section */}
+          <div className="space-y-2">
+            <h1 className="text-5xl font-extrabold text-white tracking-tight">
+              Sign Up
+            </h1>
+            <p className="text-xs uppercase tracking-[0.9em] text-white/50">
+              Create your creator account
+            </p>
+          </div>
+
+          {/* Form */}
+          <form
+            onSubmit={(e) => {
+              console.log('Form onSubmit triggered!')
+              handleSignUp(e)
+            }}
+            className="space-y-6"
+          >
             {error && (
-              <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-sm text-red-400">
+              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
                 {error}
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium mb-2">Full Name</label>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+                Full Name
+              </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 placeholder="John Doe"
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 placeholder="you@example.com"
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 placeholder="••••••••"
                 required
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            <Button
+              type="submit"
+              className="w-full bg-white text-black hover:bg-white/90 font-semibold uppercase tracking-[0.4em] py-6 rounded-lg transition-all"
+              disabled={loading}
+            >
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-foreground/70">
-            Already have an account?{' '}
-            <Link href="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>
+          {/* Sign In Link */}
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+              Already have an account?{' '}
+              <Link href="/login" className="text-white hover:text-white/70 transition-colors underline">
+                Sign in
+              </Link>
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
-

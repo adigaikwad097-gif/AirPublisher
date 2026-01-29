@@ -78,3 +78,4 @@ This will skip server-side auth for everyone (not recommended for production, bu
 
 If server-side checks keep failing, you can add a client-side auth check in the dashboard page itself that redirects if not authenticated.
 
+

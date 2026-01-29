@@ -69,3 +69,4 @@ This avoids CORS entirely but may timeout with ngrok for large files.
 
 **Most important**: Check the browser Network tab for the OPTIONS request. That will tell us exactly what's wrong.
 
+

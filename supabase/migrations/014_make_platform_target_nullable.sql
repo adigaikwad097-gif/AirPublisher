@@ -14,3 +14,4 @@ ALTER TABLE air_publisher_videos
   CHECK (platform_target IS NULL OR platform_target IN ('youtube', 'instagram', 'tiktok', 'internal'));
 
 
+

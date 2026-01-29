@@ -1,0 +1,64 @@
+.heroVisual {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floatWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s ease-out;
+  pointer-events: none;
+}
+
+.halo {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 50, 50, 0.2) 0%, transparent 60%);
+  filter: blur(12px);
+  opacity: 0.8;
+}
+
+.diamond {
+  width: 200px;
+  height: 200px;
+  background: #0b0b0f;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.04), 0 30px 60px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg);
+  background-image: linear-gradient(145deg, rgba(255, 0, 0, 0.3), rgba(0, 0, 0, 0.8)),
+    linear-gradient(45deg, rgba(255, 0, 0, 0.4), rgba(0, 0, 0, 0.85));
+  animation: slowRotate 12s linear infinite;
+}
+
+.play {
+  width: 0;
+  height: 0;
+  border-top: 22px solid transparent;
+  border-bottom: 22px solid transparent;
+  border-left: 36px solid rgba(255, 255, 255, 0.92);
+  transform: rotate(-45deg);
+  filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.6));
+}
+
+@keyframes slowRotate {
+  0% {
+    transform: rotate(45deg) translateZ(0);
+  }
+  100% {
+    transform: rotate(45deg) translateZ(0) rotateY(360deg);
+  }
+}

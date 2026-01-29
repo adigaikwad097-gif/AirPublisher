@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+*.log
+*.mp4
+.env.local
+.env*.local
+.DS_Store
+*.md
+!README.md
+!LIVE_DEPLOYMENT_SETUP.md
+.vscode
+.idea
+

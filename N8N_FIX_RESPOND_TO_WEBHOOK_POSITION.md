@@ -79,3 +79,4 @@ You need **TWO connections** from the Webhook node:
 
 This is called "splitting" the flow - one path responds immediately, the other processes the file.
 
+

@@ -50,3 +50,4 @@ CREATE POLICY "Users can insert own profile"
 COMMENT ON TABLE airpublisher_creator_profiles IS 'Main creator profile table for AIR Publisher. Links users to their creator profiles with all profile data.';
 
 
+
