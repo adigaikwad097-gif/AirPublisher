@@ -382,16 +382,19 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           // The browser doesn't need to wait - n8n will process in background
           console.log('[UploadForm] ✅ Upload initiated - n8n will process and call back when done')
           setUploadProgressText('Upload en route – processing in n8n...')
+          
+          // Store response text for later use (if needed)
+          // For n8n uploads, we're done here - no need to parse further
+          return // Exit early for n8n uploads
         }
         
-        // Handle response (for both Next.js and direct n8n uploads)
+        // Handle response (for Next.js fallback uploads only)
         if (uploadResponse && !uploadResponse.ok) {
           let errorData
+          let responseText = ''
           try {
-            // Clone response to avoid "body stream already read" error
-            const responseClone = uploadResponse.clone()
-            const text = await responseClone.text()
-            errorData = text ? JSON.parse(text) : { error: uploadResponse.statusText }
+            responseText = await uploadResponse.text()
+            errorData = responseText ? JSON.parse(responseText) : { error: uploadResponse.statusText }
           } catch (e) {
             errorData = { error: `Upload failed with status ${uploadResponse.status}: ${uploadResponse.statusText}` }
           }
@@ -409,17 +412,13 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           throw new Error(errorMessage)
         }
 
-        // For direct n8n uploads, we don't need to parse response
-        // n8n will call back when done
-        if (n8nWebhookUrl && uploadResponse && uploadResponse.ok) {
-          console.log('[UploadForm] ✅ File sent directly to n8n - waiting for callback')
-          // Don't try to parse JSON response - n8n might not return JSON
-        } else if (uploadResponse) {
-          // For Next.js uploads, parse the response
+        // For Next.js uploads, parse the response
+        if (uploadResponse && uploadResponse.ok) {
           let uploadResult
+          let responseText = ''
           try {
-            const text = await uploadResponse.text()
-            uploadResult = text ? JSON.parse(text) : { success: true }
+            responseText = await uploadResponse.text()
+            uploadResult = responseText ? JSON.parse(responseText) : { success: true }
           } catch (e) {
             console.error('[UploadForm] Failed to parse response:', e)
             throw new Error('Upload completed but failed to parse server response')
@@ -427,16 +426,8 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           
           console.log('[UploadForm] ✅ File uploaded successfully:', uploadResult.video_url)
           setUploadProgressText('Upload completed successfully!')
+          return // Exit early - response already processed
         }
-
-        if (!uploadResponse.ok) {
-          let errorData
-          try {
-            const text = await uploadResponse.text()
-            errorData = text ? JSON.parse(text) : { error: uploadResponse.statusText }
-          } catch (e) {
-            errorData = { error: `Upload failed with status ${uploadResponse.status}: ${uploadResponse.statusText}` }
-          }
           console.error('[UploadForm] Upload error:', errorData)
           
           // Build detailed error message
@@ -451,16 +442,11 @@ If CORS can't be enabled, the upload will fall back to Next.js.`
           throw new Error(errorMessage)
         }
 
-        let uploadResult
-        try {
-          const text = await uploadResponse.text()
-          uploadResult = text ? JSON.parse(text) : { success: true }
-        } catch (e) {
-          console.error('[UploadForm] Failed to parse response:', e)
-          throw new Error('Upload completed but failed to parse server response')
+        // This code should not be reached if we handled n8n or Next.js uploads above
+        // But if we get here, the response was already processed
+        if (uploadResponse && uploadResponse.ok) {
+          console.log('[UploadForm] ✅ Upload completed')
         }
-        
-        console.log('[UploadForm] ✅ File uploaded successfully:', uploadResult.video_url)
       } else {
         console.warn('[UploadForm] Skipping file upload - no file or video ID')
       }
