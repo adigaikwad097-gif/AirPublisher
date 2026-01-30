@@ -105,8 +105,10 @@ export async function GET(
           if (platform === 'youtube') {
             // getValidYouTubeAccessToken expects tokens object, not creatorId
             // We already have tokens from above, so pass them
+            // This function will refresh the token if expired
             const validToken = await getValidYouTubeAccessToken(tokens, creatorId)
             tokenValid = !!validToken
+            // If we can't get a valid token (refresh failed), it's expired
             tokenExpired = !validToken
           } else if (platform === 'instagram') {
             // getValidInstagramAccessToken expects tokens object, not creatorId
@@ -117,16 +119,18 @@ export async function GET(
           } else if (platform === 'tiktok') {
             // Check TikTok token expiration
             const tokenData = tokens as any
+            // TikTok tokens are stored as tiktok_access_token, not access_token
+            const accessToken = tokenData.tiktok_access_token || tokenData.access_token
             const expiresAt = tokenData.expires_at
             if (expiresAt) {
               const expirationDate = new Date(expiresAt)
               // Add 5 minute buffer for expiration check
               const bufferTime = 5 * 60 * 1000 // 5 minutes in milliseconds
               tokenExpired = expirationDate.getTime() < (Date.now() + bufferTime)
-              tokenValid = !tokenExpired && !!tokens.access_token
+              tokenValid = !tokenExpired && !!accessToken
             } else {
               // If no expiration, assume valid if token exists
-              tokenValid = !!tokens.access_token
+              tokenValid = !!accessToken
             }
           }
         } catch (error) {

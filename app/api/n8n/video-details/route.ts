@@ -137,7 +137,8 @@ export async function GET(request: Request) {
         }
       } else if (video.platform_target === 'instagram') {
         formattedTokens = {
-          access_token: tokens.instagram_access_token || tokens.facebook_access_token || tokens.access_token,
+          // Instagram Graph API uses Facebook access tokens, so prioritize facebook_access_token
+          access_token: tokens.facebook_access_token || tokens.instagram_access_token || tokens.access_token,
           instagram_id: tokens.instagram_id || tokens.instagram_business_account_id,
           username: tokens.username,
         }

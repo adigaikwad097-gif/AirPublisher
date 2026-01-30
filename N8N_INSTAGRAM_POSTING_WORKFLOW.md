@@ -122,8 +122,14 @@ This immediately responds to the caller, allowing n8n to process in the backgrou
 - **URL:** `https://graph.facebook.com/v18.0/{{ $('Get Video Details').item.json.platform_tokens.instagram_id }}/media`
 - **Headers:**
   - `Authorization`: `Bearer {{ $('Get Video Details').item.json.platform_tokens.access_token }}`
+    - ⚠️ **CRITICAL:** Must include "Bearer " (with space) before the token
+    - ⚠️ **DO NOT** use `=` prefix in n8n (just `Bearer {{ ... }}`)
   - `Content-Type`: `application/json`
-- **Body (JSON):**
+    - ⚠️ **CRITICAL:** Must be `application/json`, NOT `multipart/form-data`
+- **Body:**
+  - **Send Body:** ✅ Yes
+  - **Specify Body:** `JSON` (NOT Form-Data or Form-Urlencoded)
+  - **JSON Body:**
 ```json
 {
   "media_type": "REELS",
@@ -134,10 +140,18 @@ This immediately responds to the caller, allowing n8n to process in the backgrou
 ```
 
 **Important Notes:**
+- ⚠️ **Authorization header MUST have "Bearer " prefix** (space after "Bearer")
+- ⚠️ **Content-Type MUST be "application/json"** (not multipart/form-data)
+- ⚠️ **Body MUST be JSON format** (not Form-Data in n8n)
 - Use `REELS` for reels/videos (not `VIDEO` for feed posts)
 - Video URL must be publicly accessible (use `?dl=1` for Dropbox)
 - Caption can include title and description
 - `thumb_offset` is optional (seconds into video for thumbnail)
+
+**Common Error:** If you get "Invalid OAuth access token - Cannot parse access token":
+1. Check Authorization header has "Bearer " prefix
+2. Check Content-Type is "application/json" (not multipart/form-data)
+3. Check body is set to JSON (not Form-Data)
 
 **Response:**
 ```json
