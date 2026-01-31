@@ -123,36 +123,165 @@ Split the `posts` array so each post is processed individually.
 - `{{ $json.platform }}` equals `instagram` → Instagram branch
 - `{{ $json.platform }}` equals `tiktok` → TikTok branch
 
-### 7. Platform-Specific Posting
+### 7. Mark Scheduled Post as Processing (Before Posting)
+
+**Node:** HTTP Request  
+**Name:** "Mark as Processing"
+
+**Method:** POST  
+**URL:** `https://airpublisher.vercel.app/api/n8n/scheduled-posts/{{ $json.scheduled_post_id }}/update-status`
+
+**Headers:**
+- `x-n8n-api-key: {{ $env.N8N_API_KEY }}`
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{
+  "status": "processing"
+}
+```
+
+**Important:** Do this BEFORE posting to prevent duplicate processing if the workflow runs multiple times.
+
+### 8. Platform-Specific Posting
 
 #### For TikTok:
-Use your existing TikTok immediate posting workflow:
-- Download video from Dropbox
-- Initialize Upload
-- Upload Video
-- Publish Video
-- Get Video URL
-- Update TikTok URL in Supabase
+Reuse your existing TikTok immediate posting workflow steps:
+
+1. **Download Video from Dropbox:**
+   - **HTTP Request** node
+   - **Method:** GET
+   - **URL:** `{{ $json.video_url.replace('&dl=0', '&dl=1') }}`
+   - **Response:** Binary video file
+
+2. **Extract File Metadata:**
+   - **Code** node (JavaScript)
+   - Extract video size, calculate chunks, prepare post_info and source_info
+   - See `N8N_IMMEDIATE_POSTING_GUIDE.md` for exact code
+
+3. **Initialize Upload:**
+   - **HTTP Request** node
+   - **Method:** POST
+   - **URL:** `https://open.tiktokapis.com/v2/post/publish/inbox/video/init/`
+   - **Headers:**
+     ```
+     Authorization: Bearer {{ $('Get Video Details & Tokens').item.json.platform_tokens.access_token }}
+     Content-Type: application/json
+     ```
+   - **Body:** Use post_info and source_info from previous step
+
+4. **Upload Video:**
+   - **HTTP Request** node
+   - **Method:** PUT
+   - **URL:** `{{ $('Initialize Upload').item.json.data.upload_url }}`
+   - **Headers:**
+     ```
+     Content-Type: video/mp4
+     Content-Range: bytes 0-{{ $('Extract File Metadata').item.json.video_size - 1 }}/{{ $('Extract File Metadata').item.json.video_size }}
+     ```
+   - **Body:** Binary data from download step
+
+5. **Publish Video:**
+   - **HTTP Request** node
+   - **Method:** POST
+   - **URL:** `https://open.tiktokapis.com/v2/post/publish/status/fetch/`
+   - **Headers:**
+     ```
+     Authorization: Bearer {{ $('Get Video Details & Tokens').item.json.platform_tokens.access_token }}
+     Content-Type: application/json
+     ```
+   - **Body:**
+     ```json
+     {
+       "publish_id": "{{ $('Initialize Upload').item.json.data.publish_id }}"
+     }
+     ```
+
+6. **Get TikTok Video URL:**
+   - Construct URL from video ID: `https://www.tiktok.com/@username/video/{{ $json.video_id }}`
+   - Or use TikTok Video List API if you have `video.list` scope
 
 #### For YouTube:
-- YouTube API Upload node
-- Update YouTube URL in Supabase
+1. **Download Video from Dropbox:**
+   - Same as TikTok step 1
+
+2. **Upload to YouTube:**
+   - Use YouTube API v3 Upload endpoint
+   - **Method:** POST
+   - **URL:** `https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status`
+   - **Headers:**
+     ```
+     Authorization: Bearer {{ $('Get Video Details & Tokens').item.json.platform_tokens.access_token }}
+     Content-Type: application/json
+     ```
+   - **Body:**
+     ```json
+     {
+       "snippet": {
+         "title": "{{ $json.title }}",
+         "description": "{{ $json.description }}"
+       },
+       "status": {
+         "privacyStatus": "public"
+       }
+     }
+     ```
+   - Then upload binary data to the resumable upload URL
+
+3. **Get YouTube Video URL:**
+   - Extract video ID from upload response
+   - Construct URL: `https://www.youtube.com/watch?v={{ $json.id }}`
 
 #### For Instagram:
-- Instagram API Upload node
-- Update Instagram URL in Supabase
+1. **Download Video from Dropbox:**
+   - Same as TikTok step 1
 
-### 8. Update Scheduled Post Status
+2. **Create Media Container:**
+   - **HTTP Request** node
+   - **Method:** POST
+   - **URL:** `https://graph.facebook.com/v18.0/{{ $('Get Video Details & Tokens').item.json.platform_tokens.instagram_account_id }}/media`
+   - **Headers:**
+     ```
+     Authorization: Bearer {{ $('Get Video Details & Tokens').item.json.platform_tokens.access_token }}
+     ```
+   - **Body (Form Data):**
+     ```
+     media_type: VIDEO
+     video_url: {{ $json.video_url }}
+     caption: {{ $json.description }}
+     ```
 
-**Node:** Supabase  
+3. **Publish Media:**
+   - **HTTP Request** node
+   - **Method:** POST
+   - **URL:** `https://graph.facebook.com/v18.0/{{ $('Get Video Details & Tokens').item.json.platform_tokens.instagram_account_id }}/media_publish`
+   - **Headers:**
+     ```
+     Authorization: Bearer {{ $('Get Video Details & Tokens').item.json.platform_tokens.access_token }}
+     ```
+   - **Body (Form Data):**
+     ```
+     creation_id: {{ $('Create Media Container').item.json.id }}
+     ```
+
+4. **Get Instagram Post URL:**
+   - Extract post ID from publish response
+   - Construct URL: `https://www.instagram.com/p/{{ $json.id }}/`
+
+### 9. Update Scheduled Post Status (After Posting)
+
+**Node:** HTTP Request  
 **Name:** "Update Scheduled Post Status"
 
-**Operation:** Update  
-**Table:** `air_publisher_scheduled_posts`  
-**Update Key:** `id`  
-**Update Key Value:** `{{ $('Get Scheduled Posts').item.json.scheduled_post_id }}`
+**Method:** POST  
+**URL:** `https://airpublisher.vercel.app/api/n8n/scheduled-posts/{{ $('Get Scheduled Posts').item.json.scheduled_post_id }}/update-status`
 
-**Fields:**
+**Headers:**
+- `x-n8n-api-key: {{ $env.N8N_API_KEY }}`
+- `Content-Type: application/json`
+
+**On Success:**
 ```json
 {
   "status": "posted",
@@ -164,48 +293,115 @@ Use your existing TikTok immediate posting workflow:
 ```json
 {
   "status": "failed",
-  "error_message": "{{ $json.error }}"
+  "error_message": "{{ $json.error || $json.message }}"
 }
 ```
 
-### 9. Update Video Status (Optional)
+### 10. Update Video Status and Platform URL
 
-**Node:** Supabase  
+**Node:** HTTP Request  
 **Name:** "Update Video Status"
 
-**Operation:** Update  
-**Table:** `air_publisher_videos`  
-**Update Key:** `id`  
-**Update Key Value:** `{{ $json.video_id }}`
+**Method:** POST  
+**URL:** `https://airpublisher.vercel.app/api/webhooks/n8n/post-status`
 
-**Fields:**
+**Headers:**
+- `x-n8n-api-key: {{ $env.N8N_API_KEY }}`
+- `Content-Type: application/json`
+
+**Body:**
 ```json
 {
+  "video_id": "{{ $json.video_id }}",
   "status": "posted",
-  "posted_at": "{{ $now }}"
+  "platform": "{{ $json.platform }}",
+  "youtube_url": "{{ $json.youtube_url }}",
+  "instagram_url": "{{ $json.instagram_url }}",
+  "tiktok_url": "{{ $json.tiktok_url }}",
+  "published_at": "{{ $now }}"
 }
+```
+
+**Note:** Use the appropriate platform URL field based on which platform was posted to.
+
+## Complete Workflow Structure
+
+```
+[Cron Trigger] (every 10 minutes)
+  ↓
+[Get Scheduled Posts] → GET /api/n8n/scheduled-posts
+  ↓
+[Split Out Items] → Iterate over posts array
+  ↓
+[Get Video Details & Tokens] → GET /api/n8n/video-details
+  ↓
+[IF Error] → [Mark as Failed] → [Stop]
+  ↓
+[Mark as Processing] → POST /api/n8n/scheduled-posts/{id}/update-status
+  ↓
+[IF Platform Router]
+  ├── TikTok → [Download] → [Initialize] → [Upload] → [Publish] → [Get URL]
+  ├── YouTube → [Download] → [Upload] → [Get URL]
+  └── Instagram → [Download] → [Create Container] → [Publish] → [Get URL]
+  ↓
+[IF Posting Success]
+  ├── [Update Video Status] → POST /api/webhooks/n8n/post-status
+  └── [Update Scheduled Post] → POST /api/n8n/scheduled-posts/{id}/update-status (status: posted)
+  ↓
+[IF Posting Failed]
+  └── [Update Scheduled Post] → POST /api/n8n/scheduled-posts/{id}/update-status (status: failed)
 ```
 
 ## Error Handling
 
 ### Mark Failed Posts
 
-If posting fails, update the scheduled post:
+If posting fails at any step, update the scheduled post:
 
-**Fields:**
+**Node:** HTTP Request  
+**Name:** "Mark as Failed"
+
+**Method:** POST  
+**URL:** `https://airpublisher.vercel.app/api/n8n/scheduled-posts/{{ $json.scheduled_post_id }}/update-status`
+
+**Body:**
 ```json
 {
   "status": "failed",
-  "error_message": "{{ $json.error_message }}"
+  "error_message": "{{ $json.error || $json.message || 'Unknown error' }}"
 }
 ```
 
-### Retry Logic (Optional)
+### Error Handling Flow
 
-You can add retry logic:
-- If status is "failed" and error is temporary (e.g., rate limit)
-- Retry up to 3 times
-- After 3 failures, mark as "failed" permanently
+1. **Wrap each platform posting step in error handling:**
+   - Use n8n's "On Error" workflow feature
+   - Or use IF nodes to check for errors after each step
+
+2. **Common Error Scenarios:**
+   - **Token expired:** Should trigger token refresh (handled by `/api/n8n/video-details`)
+   - **Rate limit:** Mark as failed, can retry later
+   - **Invalid video:** Mark as failed with error message
+   - **Network error:** Retry up to 3 times, then mark as failed
+
+3. **Retry Logic (Optional):**
+   - Add a "Retry" node after marking as failed
+   - Check if error is temporary (rate limit, network)
+   - Retry up to 3 times with exponential backoff
+   - After 3 failures, mark as "failed" permanently
+
+### Error Handling Example
+
+```
+[Post to Platform]
+  ↓
+[IF Error]
+  ├── [Check Error Type]
+  │   ├── Rate Limit → [Wait 5 min] → [Retry]
+  │   ├── Token Expired → [Mark as Failed] (shouldn't happen, tokens auto-refresh)
+  │   └── Other → [Mark as Failed]
+  └── [Success] → [Continue to Update Status]
+```
 
 ## Complete n8n Workflow JSON Structure
 
