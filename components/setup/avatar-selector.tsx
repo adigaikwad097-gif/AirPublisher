@@ -146,12 +146,9 @@ export function AvatarSelector({ value, onChange }: AvatarSelectorProps) {
               variant="outline"
               className="w-full"
               disabled={uploading}
-              asChild
             >
-              <span>
-                <Upload className="h-4 w-4 mr-2" />
-                {uploading ? 'Uploading...' : 'Upload Image'}
-              </span>
+              <Upload className="h-4 w-4 mr-2" />
+              {uploading ? 'Uploading...' : 'Upload Image'}
             </Button>
           </label>
           <Button
