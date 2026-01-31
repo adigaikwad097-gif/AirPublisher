@@ -113,20 +113,26 @@ export default function VideosPage() {
                 <div className="w-64 h-40 bg-muted overflow-hidden relative flex-shrink-0">
                   {video.video_url ? (
                     <video
-                      src={video.video_url}
+                      src={video.video_url.includes('dropbox.com') 
+                        ? video.video_url.replace('&dl=0', '&dl=1').replace('?dl=0', '?dl=1')
+                        : video.video_url}
                       className="w-full h-full object-cover"
                       controls
                       preload="metadata"
+                      crossOrigin="anonymous"
                     >
                       Your browser does not support the video tag.
                     </video>
                   ) : video.thumbnail_url ? (
-                    <Image
-                      src={video.thumbnail_url}
-                      alt={video.title}
-                      fill
-                      className="object-cover"
-                    />
+                    <div className="w-full h-full relative">
+                      <Image
+                        src={video.thumbnail_url}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted">
                       <span className="text-muted">No preview</span>
