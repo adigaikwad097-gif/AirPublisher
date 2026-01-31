@@ -129,12 +129,12 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setShowMenu(false)}
           />
           
           {/* Menu */}
-          <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[100] p-2">
+          <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2">
             <div className="space-y-1">
               {platforms.map(({ platform, name, icon }) => {
                 const status = getPlatformStatus(platform)
