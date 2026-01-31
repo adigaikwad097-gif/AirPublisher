@@ -60,7 +60,7 @@ export async function POST(
         .from('air_publisher_scheduled_posts') as any)
         .insert({
           video_id: videoId,
-          creator_unique_identifier: profile.creator_unique_identifier,
+          creator_unique_identifier: (profile as any).creator_unique_identifier,
           platform: platform,
           scheduled_at: scheduledDate.toISOString(),
           status: 'pending',
