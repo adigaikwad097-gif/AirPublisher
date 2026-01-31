@@ -97,9 +97,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Update video in database
-    const { data, error } = await supabase
-      .from('air_publisher_videos')
-      .update(updates as any)
+    const { data, error } = await (supabase
+      .from('air_publisher_videos') as any)
+      .update(updates)
       .eq('id', video_id)
       .select()
       .single()
