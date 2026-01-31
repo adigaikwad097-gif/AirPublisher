@@ -56,8 +56,8 @@ export async function POST(
       }
 
       // Insert into scheduled_posts table
-      const { data: scheduledPost, error: scheduleError } = await supabase
-        .from('air_publisher_scheduled_posts')
+      const { data: scheduledPost, error: scheduleError } = await (supabase
+        .from('air_publisher_scheduled_posts') as any)
         .insert({
           video_id: videoId,
           creator_unique_identifier: profile.creator_unique_identifier,
@@ -77,8 +77,8 @@ export async function POST(
       }
 
       // Update video status
-      await supabase
-        .from('air_publisher_videos')
+      await (supabase
+        .from('air_publisher_videos') as any)
         .update({ status: 'scheduled' })
         .eq('id', videoId)
 
