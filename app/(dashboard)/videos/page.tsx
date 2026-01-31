@@ -16,6 +16,7 @@ interface Video {
   title: string
   description: string | null
   thumbnail_url: string | null
+  video_url: string | null
   platform_target: string
   status: string
   views: number
@@ -101,59 +102,71 @@ export default function VideosPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4">
           {videos.map((video) => (
             <Card key={video.id} className="overflow-hidden">
-              {video.thumbnail_url && (
-                <div className="aspect-video bg-muted overflow-hidden relative">
-                  <Image
-                    src={video.thumbnail_url}
-                    alt={video.title}
-                    fill
-                    className="object-cover"
-                  />
+              <div className="flex gap-4">
+                {/* Video Preview */}
+                <div className="w-64 h-40 bg-muted overflow-hidden relative flex-shrink-0">
+                  {video.video_url ? (
+                    <video
+                      src={video.video_url}
+                      className="w-full h-full object-cover"
+                      controls
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : video.thumbnail_url ? (
+                    <Image
+                      src={video.thumbnail_url}
+                      alt={video.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <span className="text-muted">No preview</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="line-clamp-2 text-lg">{video.title}</CardTitle>
-                  {getStatusBadge(video.status)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {video.description && (
-                  <p className="text-sm text-foreground/70 line-clamp-2">
-                    {video.description}
-                  </p>
-                )}
 
-                <div className="flex items-center gap-4 text-sm text-foreground/60">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>{formatNumber(video.views || 0)}</span>
+                {/* Video Details */}
+                <div className="flex-1 p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <CardTitle className="text-lg">{video.title}</CardTitle>
+                    {getStatusBadge(video.status)}
                   </div>
-                  {video.posted_at && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{new Date(video.posted_at).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  {video.scheduled_at && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{new Date(video.scheduled_at).toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-border">
-                  <Badge variant="outline" className="capitalize">
-                    {video.platform_target}
-                  </Badge>
-                </div>
+                  {video.description && (
+                    <p className="text-sm text-foreground/70 mb-3 line-clamp-2">
+                      {video.description}
+                    </p>
+                  )}
 
-                {video.status === 'draft' && (
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex items-center gap-4 text-sm text-foreground/60 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      <span>{formatNumber(video.views || 0)}</span>
+                    </div>
+                    {video.posted_at && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{new Date(video.posted_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {video.scheduled_at && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(video.scheduled_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <Badge variant="outline" className="capitalize">
+                      {video.platform_target}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
                     <PostNowButton
                       videoId={video.id}
                       creatorUniqueIdentifier={video.creator_unique_identifier}
@@ -162,15 +175,14 @@ export default function VideosPage() {
                       videoId={video.id}
                       creatorUniqueIdentifier={video.creator_unique_identifier}
                     />
+                    <Link href={`/videos/${video.id}`}>
+                      <Button variant="outline">
+                        View Details
+                      </Button>
+                    </Link>
                   </div>
-                )}
-
-                <Link href={`/videos/${video.id}`}>
-                  <Button variant="outline" className="w-full mt-2">
-                    View Details
-                  </Button>
-                </Link>
-              </CardContent>
+                </div>
+              </div>
             </Card>
           ))}
         </div>
