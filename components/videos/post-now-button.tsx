@@ -134,7 +134,7 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
           />
           
           {/* Menu */}
-          <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-20 p-2">
+          <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[100] p-2">
             <div className="space-y-1">
               {platforms.map(({ platform, name, icon }) => {
                 const status = getPlatformStatus(platform)

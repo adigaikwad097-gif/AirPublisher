@@ -37,6 +37,9 @@ export default function VideosPage() {
         if (response.ok) {
           const data = await response.json()
           setVideos(data.videos || [])
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          console.error('Error fetching videos:', errorData.error || 'Unknown error')
         }
       } catch (error) {
         console.error('Error fetching videos:', error)
@@ -132,7 +135,7 @@ export default function VideosPage() {
                 </div>
 
                 {/* Video Details */}
-                <div className="flex-1 p-4">
+                <div className="flex-1 p-4 relative">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <CardTitle className="text-lg">{video.title}</CardTitle>
                     {getStatusBadge(video.status)}
@@ -166,7 +169,7 @@ export default function VideosPage() {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 pt-2 border-t border-border relative z-0">
                     <PostNowButton
                       videoId={video.id}
                       creatorUniqueIdentifier={video.creator_unique_identifier}

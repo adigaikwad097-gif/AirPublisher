@@ -13,14 +13,14 @@ const config: Config = {
         background: '#0a0a0f', // Near-black charcoal base
         foreground: '#EDEDED', // Muted off-white text
         primary: {
-          DEFAULT: '#7c3aed', // Restrained elegant purple accent
-          dark: '#6d28d9',
-          light: '#8b5cf6',
-          glow: '#7c3aed',
+          DEFAULT: '#89CFF0', // Light baby blue accent
+          dark: '#7ab8d9',
+          light: '#9dd5f5',
+          glow: '#89CFF0',
         },
         accent: {
-          DEFAULT: '#7c3aed',
-          dark: '#6d28d9',
+          DEFAULT: '#89CFF0',
+          dark: '#7ab8d9',
         },
         card: {
           DEFAULT: '#0f0f14', // Soft matte dark surface, blends with background

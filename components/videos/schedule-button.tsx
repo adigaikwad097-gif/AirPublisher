@@ -167,7 +167,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             />
             
             {/* Menu */}
-            <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-20 p-2">
+            <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[100] p-2">
               <div className="space-y-1">
                 {platforms.map(({ platform, name, icon }) => {
                   const status = getPlatformStatus(platform)
@@ -206,14 +206,14 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       {showDateTimePicker && selectedPlatform && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-30"
+            className="fixed inset-0 bg-black/50 z-[200]"
             onClick={() => {
               setShowDateTimePicker(false)
               setSelectedPlatform(null)
             }}
           />
-          <div className="fixed inset-0 flex items-center justify-center z-40">
-            <div className="bg-card border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="fixed inset-0 flex items-center justify-center z-[300] pointer-events-none">
+            <div className="bg-card border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4 pointer-events-auto">
               <h3 className="text-lg font-semibold mb-4">
                 Schedule for {platforms.find(p => p.platform === selectedPlatform)?.name}
               </h3>
