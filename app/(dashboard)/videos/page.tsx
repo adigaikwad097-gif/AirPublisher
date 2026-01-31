@@ -10,6 +10,7 @@ import { Eye, Calendar, Clock, Plus } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
+import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
 
 interface Video {
   id: string
@@ -111,7 +112,19 @@ export default function VideosPage() {
               <div className="flex gap-4">
                 {/* Video Preview */}
                 <div className="w-64 h-40 bg-muted overflow-hidden relative flex-shrink-0">
-                  {video.thumbnail_url ? (
+                  {video.video_url ? (
+                    <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
+                      <video
+                        src={getVideoStreamUrl(video.id)}
+                        controls
+                        className="w-full h-full object-contain"
+                        preload="metadata"
+                      >
+                        <source src={getVideoStreamUrl(video.id)} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  ) : video.thumbnail_url ? (
                     <div className="w-full h-full relative">
                       <Image
                         src={video.thumbnail_url}
@@ -120,15 +133,6 @@ export default function VideosPage() {
                         className="object-cover"
                       />
                     </div>
-                  ) : video.video_url ? (
-                    <video
-                      src={video.video_url}
-                      className="w-full h-full object-cover"
-                      controls
-                      preload="metadata"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted">
                       <span className="text-muted">No preview</span>

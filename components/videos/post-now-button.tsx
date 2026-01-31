@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Youtube, Instagram, Music, Globe, Clock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -20,9 +20,11 @@ interface PlatformStatus {
 
 export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButtonProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
 
   // Check platform token statuses
@@ -113,10 +115,32 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
     )
   }
 
+  const handleMenuToggle = () => {
+    if (!showMenu && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      const menuHeight = 200 // Approximate menu height
+      const viewportHeight = window.innerHeight
+      const spaceBelow = viewportHeight - rect.bottom
+      const spaceAbove = rect.top
+      
+      // If not enough space below, show above the button
+      const top = spaceBelow < menuHeight && spaceAbove > spaceBelow
+        ? rect.top + window.scrollY - menuHeight - 8
+        : rect.bottom + window.scrollY + 8
+      
+      setMenuPosition({
+        top,
+        left: rect.left + window.scrollX,
+      })
+    }
+    setShowMenu(!showMenu)
+  }
+
   return (
-    <div className="relative">
+    <>
       <Button
-        onClick={() => setShowMenu(!showMenu)}
+        ref={buttonRef}
+        onClick={handleMenuToggle}
         variant="outline"
         size="sm"
         disabled={posting}
@@ -133,8 +157,14 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
             onClick={() => setShowMenu(false)}
           />
           
-          {/* Menu */}
-          <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2">
+          {/* Menu - Fixed positioning to hover over page */}
+          <div 
+            className="fixed w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2"
+            style={{
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+            }}
+          >
             <div className="space-y-1">
               {platforms.map(({ platform, name, icon }) => {
                 const status = getPlatformStatus(platform)
@@ -167,7 +197,7 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
           </div>
         </>
       )}
-    </div>
+    </>
   )
 }
 

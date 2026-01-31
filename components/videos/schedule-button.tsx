@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Youtube, Instagram, Music, Globe, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -20,12 +20,14 @@ interface PlatformStatus {
 
 export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleButtonProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
   const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [scheduling, setScheduling] = useState(false)
   const [dateTime, setDateTime] = useState('')
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
 
   // Check platform token statuses
@@ -145,29 +147,56 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
     )
   }
 
+  const handleMenuToggle = () => {
+    if (!showMenu && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      const menuHeight = 200 // Approximate menu height
+      const viewportHeight = window.innerHeight
+      const spaceBelow = viewportHeight - rect.bottom
+      const spaceAbove = rect.top
+      
+      // If not enough space below, show above the button
+      const top = spaceBelow < menuHeight && spaceAbove > spaceBelow
+        ? rect.top + window.scrollY - menuHeight - 8
+        : rect.bottom + window.scrollY + 8
+      
+      setMenuPosition({
+        top,
+        left: rect.left + window.scrollX,
+      })
+    }
+    setShowMenu(!showMenu)
+  }
+
   return (
     <>
-      <div className="relative">
-        <Button
-          onClick={() => setShowMenu(!showMenu)}
-          variant="outline"
-          size="sm"
-          disabled={scheduling}
-        >
-          <Calendar className="h-4 w-4 mr-2" />
-          {scheduling ? 'Scheduling...' : 'Schedule'}
-        </Button>
+      <Button
+        ref={buttonRef}
+        onClick={handleMenuToggle}
+        variant="outline"
+        size="sm"
+        disabled={scheduling}
+      >
+        <Calendar className="h-4 w-4 mr-2" />
+        {scheduling ? 'Scheduling...' : 'Schedule'}
+      </Button>
 
-        {showMenu && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-[9998]"
-              onClick={() => setShowMenu(false)}
-            />
-            
-            {/* Menu */}
-            <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2">
+      {showMenu && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[9998]"
+            onClick={() => setShowMenu(false)}
+          />
+          
+          {/* Menu - Fixed positioning to hover over page */}
+          <div 
+            className="fixed w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2"
+            style={{
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+            }}
+          >
               <div className="space-y-1">
                 {platforms.map(({ platform, name, icon }) => {
                   const status = getPlatformStatus(platform)
@@ -200,7 +229,6 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             </div>
           </>
         )}
-      </div>
 
       {/* Date/Time Picker Modal */}
       {showDateTimePicker && selectedPlatform && (
