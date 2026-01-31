@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { HeroBoxes } from '@/components/HeroBoxes'
 
 export default function HomePage() {
   return (
@@ -34,9 +33,6 @@ export default function HomePage() {
       </nav>
 
       <section className="relative min-h-screen w-screen overflow-visible bg-black">
-        {/* BOXES LAYOUT */}
-        <HeroBoxes />
-
         {/* BIG WORD */}
         <h1
           aria-hidden="true"
