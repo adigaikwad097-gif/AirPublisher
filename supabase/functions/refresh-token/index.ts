@@ -25,8 +25,8 @@ serve(async (req) => {
       )
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL_ALYAN') || Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY_ALYAN') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get tokens from database
@@ -57,12 +57,15 @@ serve(async (req) => {
       }
 
       // Refresh YouTube token
+      const clientId = Deno.env.get('GOOGLE_CLIENT_ID_ALYAN') || Deno.env.get('GOOGLE_CLIENT_ID')!
+      const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET_ALYAN') || Deno.env.get('GOOGLE_CLIENT_SECRET')!
+      
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: Deno.env.get('GOOGLE_CLIENT_ID')!,
-          client_secret: Deno.env.get('GOOGLE_CLIENT_SECRET')!,
+          client_id: clientId,
+          client_secret: clientSecret,
           refresh_token: refreshToken,
           grant_type: 'refresh_token',
         }),
@@ -101,8 +104,8 @@ serve(async (req) => {
       }
 
       // Refresh Instagram token using Graph API
-      const appId = Deno.env.get('INSTAGRAM_APP_ID') || Deno.env.get('META_APP_ID')
-      const appSecret = Deno.env.get('INSTAGRAM_APP_SECRET') || Deno.env.get('META_APP_SECRET')
+      const appId = Deno.env.get('INSTAGRAM_APP_ID_ALYAN') || Deno.env.get('META_APP_ID_ALYAN') || Deno.env.get('INSTAGRAM_APP_ID') || Deno.env.get('META_APP_ID')
+      const appSecret = Deno.env.get('INSTAGRAM_APP_SECRET_ALYAN') || Deno.env.get('META_APP_SECRET_ALYAN') || Deno.env.get('INSTAGRAM_APP_SECRET') || Deno.env.get('META_APP_SECRET')
 
       if (!appId || !appSecret) {
         return new Response(
@@ -143,9 +146,61 @@ serve(async (req) => {
         .eq('creator_unique_identifier', creator_unique_identifier)
 
     } else if (platform === 'tiktok') {
-      // TikTok tokens typically don't expire, just return existing
-      newAccessToken = tokens.tiktok_access_token || tokens.access_token
-      newExpiresAt = tokens.expires_at
+      const refreshToken = tokens.tiktok_refresh_token || tokens.refresh_token
+      if (!refreshToken) {
+        // If no refresh token, return existing token
+        newAccessToken = tokens.tiktok_access_token || tokens.access_token
+        newExpiresAt = tokens.expires_at
+      } else {
+        // Refresh TikTok token
+        const clientKey = Deno.env.get('TIKTOK_CLIENT_KEY_ALYAN') || Deno.env.get('TIKTOK_CLIENT_KEY')!
+        const clientSecret = Deno.env.get('TIKTOK_CLIENT_SECRET_ALYAN') || Deno.env.get('TIKTOK_CLIENT_SECRET')!
+        
+        if (!clientKey || !clientSecret) {
+          return new Response(
+            JSON.stringify({ error: 'TikTok Client Key or Secret not configured' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // TikTok token refresh endpoint
+        const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_key: clientKey,
+            client_secret: clientSecret,
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+          }),
+        })
+
+        if (!response.ok) {
+          const error = await response.text()
+          return new Response(
+            JSON.stringify({ error: 'TikTok token refresh failed', details: error }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const data = await response.json()
+        newAccessToken = data.access_token
+        const expiresIn = data.expires_in || 86400 // Default to 24 hours
+        newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+
+        // Update database
+        await supabase
+          .from(tokenTable)
+          .update({
+            tiktok_access_token: newAccessToken,
+            tiktok_refresh_token: data.refresh_token || refreshToken, // TikTok may return new refresh token
+            expires_at: newExpiresAt,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('creator_unique_identifier', creator_unique_identifier)
+      }
     }
 
     return new Response(
@@ -163,4 +218,5 @@ serve(async (req) => {
     )
   }
 })
+
 
