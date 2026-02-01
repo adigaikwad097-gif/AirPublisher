@@ -43,3 +43,12 @@ export async function getLeaderboard(
 
   return (entries || []) as LeaderboardEntry[]
 }
+
+export function calculateScore(
+  views: number,
+  likes: number,
+  comments: number,
+  estimatedRevenue: number
+): number {
+  return (views * 0.4) + (likes * 0.2) + (comments * 0.2) + (estimatedRevenue * 2)
+}

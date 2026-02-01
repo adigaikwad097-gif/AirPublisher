@@ -20,14 +20,23 @@ export async function getVideosByCreator(creatorUniqueIdentifier: string): Promi
   return videos || []
 }
 
-export async function getAllPostedVideos(): Promise<Video[]> {
+export async function getAllPostedVideos(limit?: number, offset?: number): Promise<Video[]> {
   const supabase = await createClient()
 
-  const { data: videos, error } = await (supabase
+  let query = (supabase
     .from('air_publisher_videos') as any)
     .select('*')
     .eq('status', 'posted')
     .order('posted_at', { ascending: false })
+
+  if (limit) {
+    query = query.limit(limit)
+  }
+  if (offset) {
+    query = query.range(offset, offset + (limit || 100) - 1)
+  }
+
+  const { data: videos, error } = await query
 
   if (error) {
     console.error('Error fetching posted videos:', error)
@@ -82,6 +91,27 @@ export async function incrementVideoViews(videoId: string): Promise<Video | null
   }
 
   return updatedVideo as Video
+}
+
+export async function updateVideo(id: string, updates: Partial<Video>): Promise<Video | null> {
+  const supabase = await createClient()
+
+  const { data: video, error } = await (supabase
+    .from('air_publisher_videos') as any)
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !video) {
+    console.error('Error updating video:', error)
+    return null
+  }
+
+  return video as Video
 }
 
 export async function getScheduledVideos(creatorUniqueIdentifier?: string): Promise<Video[]> {
