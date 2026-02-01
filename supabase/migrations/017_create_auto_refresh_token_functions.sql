@@ -22,9 +22,7 @@ BEGIN
   SELECT 
     google_access_token,
     google_refresh_token,
-    refresh_token,
-    expires_at,
-    access_token as fallback_access_token
+    expires_at
   INTO v_tokens
   FROM airpublisher_youtube_tokens
   WHERE creator_unique_identifier = p_creator_unique_identifier
@@ -90,13 +88,12 @@ DECLARE
 BEGIN
   -- Get tokens from database
   SELECT 
-    facebook_access_token,
-    instagram_access_token,
-    access_token as fallback_access_token,
-    expires_at
+    t.facebook_access_token,
+    t.instagram_access_token,
+    t.expires_at
   INTO v_tokens
-  FROM airpublisher_instagram_tokens
-  WHERE creator_unique_identifier = p_creator_unique_identifier
+  FROM airpublisher_instagram_tokens t
+  WHERE t.creator_unique_identifier = p_creator_unique_identifier
   LIMIT 1;
 
   -- If no tokens found, return empty
@@ -156,7 +153,7 @@ BEGIN
 
   -- TikTok tokens typically don't expire, just return existing
   RETURN QUERY SELECT 
-    COALESCE(v_tokens.tiktok_access_token, v_tokens.fallback_access_token)::TEXT,
+    v_tokens.tiktok_access_token::TEXT,
     v_tokens.expires_at,
     FALSE;
 END;
@@ -201,4 +198,5 @@ GRANT EXECUTE ON FUNCTION get_valid_instagram_token(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_valid_instagram_token(TEXT) TO anon;
 GRANT EXECUTE ON FUNCTION get_valid_tiktok_token(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_valid_tiktok_token(TEXT) TO anon;
+
 
