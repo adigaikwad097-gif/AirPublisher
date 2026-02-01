@@ -25,7 +25,7 @@ export default async function CreatorProfilePage({
     getCreatorRank(creator.unique_identifier, 'weekly'),
   ])
 
-  const postedVideos = videos.filter((v) => v.status === 'posted')
+  const postedVideos = videos.filter((v: any) => v.status === 'posted')
 
   return (
     <div className="space-y-8">
