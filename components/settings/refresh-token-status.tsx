@@ -40,16 +40,23 @@ export function RefreshTokenStatus({
 
         const data = await response.json()
         
-        // If refresh fails with requires_reconnection, refresh token is expired
-        if (data.requires_reconnection || !data.success) {
+        // Only show "Refresh Token Expired" if explicitly indicated by requires_reconnection
+        // Don't show it for other errors (network, auth, etc.) as those don't mean the refresh token is expired
+        if (data.requires_reconnection === true) {
           setRefreshTokenExpired(true)
+        } else if (data.success === true) {
+          // Token refreshed successfully
+          setRefreshTokenExpired(false)
         } else {
+          // Other error - don't assume refresh token is expired
+          // The edge function cron jobs will handle automatic refresh
           setRefreshTokenExpired(false)
         }
       } catch (error) {
         console.error(`[RefreshTokenStatus] Error checking ${platform}:`, error)
-        // On error, assume refresh token might be expired
-        setRefreshTokenExpired(true)
+        // On network/API error, don't assume refresh token is expired
+        // The edge function cron jobs will handle automatic refresh
+        setRefreshTokenExpired(false)
       } finally {
         setChecking(false)
       }

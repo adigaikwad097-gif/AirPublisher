@@ -67,7 +67,7 @@ export default async function DiscoverPage({
 
       {/* Video Feed Section - Centered */}
       <div>
-        <VideoFeed initialVideos={sortedVideos} initialFilter={filter} />
+        <VideoFeed initialVideos={sortedVideos as any} initialFilter={filter} />
       </div>
     </div>
   )

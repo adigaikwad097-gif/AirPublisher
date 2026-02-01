@@ -185,17 +185,18 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[9998]"
+            className="fixed inset-0 z-[9998] bg-black/20"
             onClick={() => setShowMenu(false)}
           />
           
           {/* Menu - Fixed positioning to hover over page */}
           <div 
-            className="fixed w-64 bg-card border border-border rounded-lg shadow-lg z-[9999] p-2"
+            className="fixed w-64 bg-black border border-white/20 rounded-lg shadow-xl z-[9999] p-2"
             style={{
               top: `${menuPosition.top}px`,
               left: `${menuPosition.left}px`,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
               <div className="space-y-1">
                 {platforms.map(({ platform, name, icon }) => {
@@ -203,18 +204,19 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
                   const isConnected = status?.connected && !status?.tokenExpired
                   
                   return (
-                    <Button
+                    <button
                       key={platform}
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start"
-                      onClick={() => handlePlatformSelect(platform)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-white/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handlePlatformSelect(platform)
+                      }}
                       disabled={!isConnected || scheduling}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                           {icon}
-                          <span className="text-sm font-medium">{name}</span>
+                          <span className="text-sm font-medium text-white">{name}</span>
                         </div>
                         {isConnected ? (
                           <span className="text-xs text-green-400">✓</span>
@@ -222,7 +224,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
                           <span className="text-xs text-red-400">✗</span>
                         )}
                       </div>
-                    </Button>
+                    </button>
                   )
                 })}
               </div>
@@ -241,21 +243,24 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             }}
           />
           <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
-            <div className="bg-card border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4 pointer-events-auto">
-              <h3 className="text-lg font-semibold mb-4">
+            <div 
+              className="bg-black border border-white/20 rounded-lg shadow-xl p-6 w-full max-w-md mx-4 pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold mb-4 text-white">
                 Schedule for {platforms.find(p => p.platform === selectedPlatform)?.name}
               </h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-2 text-white">
                     Date & Time
                   </label>
                   <input
                     type="datetime-local"
                     value={dateTime}
                     onChange={(e) => setDateTime(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white"
                     min={new Date().toISOString().slice(0, 16)}
                   />
                 </div>
@@ -267,12 +272,14 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
                       setShowDateTimePicker(false)
                       setSelectedPlatform(null)
                     }}
+                    className="text-white border-white/20 hover:bg-white/10"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSchedule}
                     disabled={scheduling || !dateTime}
+                    className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90"
                   >
                     {scheduling ? 'Scheduling...' : 'Schedule'}
                   </Button>
