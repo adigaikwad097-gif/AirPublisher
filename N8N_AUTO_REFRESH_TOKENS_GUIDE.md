@@ -11,6 +11,7 @@ Instead of calling `/api/n8n/video-details` or `/api/n8n/refresh-token` endpoint
 1. **Database Functions**: Created functions that check if tokens are expired and return valid tokens
 2. **Database View**: A view (`valid_platform_tokens`) that n8n can query to get valid tokens
 3. **Edge Function**: A Supabase Edge Function that handles the actual token refresh via HTTP calls to OAuth providers
+4. **Background Refresh**: A cron job (optional) that periodically refreshes expired tokens in the background
 
 ## Setup
 
@@ -28,9 +29,15 @@ Make sure to set these environment variables in Supabase Dashboard:
 - `INSTAGRAM_APP_ID` (or `META_APP_ID`)
 - `INSTAGRAM_APP_SECRET` (or `META_APP_SECRET`)
 
-### 2. Run the Migration
+### 2. Run the Migrations
 
-Run the migration `017_create_auto_refresh_token_functions.sql` to create the database functions and view.
+Run these migrations in order:
+1. `017_create_auto_refresh_token_functions.sql` - Creates database functions and view
+2. `018_add_pg_net_for_auto_refresh.sql` - Enables pg_net extension (optional)
+3. `019_add_background_token_refresh.sql` - Sets up background refresh (optional)
+4. `020_simplify_token_refresh_functions.sql` - Simplifies functions for reliability
+
+**Note**: The background refresh (migration 019) is optional but recommended. It ensures tokens are refreshed proactively.
 
 ### 3. Configure n8n
 
@@ -139,9 +146,16 @@ WHERE creator_unique_identifier = '{{ $('Get Video').item.json.creator_unique_id
 
 ## Token Refresh Logic
 
-- **YouTube**: Refreshes if token expires within 5 minutes
-- **Instagram**: Refreshes if token expires within 7 days
+- **YouTube**: Checks if token expires within 5 minutes. If expired, returns existing token (background job refreshes it)
+- **Instagram**: Checks if token expires within 7 days. If expired, returns existing token (background job refreshes it)
 - **TikTok**: Tokens typically don't expire, returns existing token
+
+**Important**: The database functions return tokens even if expired. The actual refresh happens:
+1. **Automatically** via background cron job (if migration 019 is run)
+2. **On-demand** when the app's token refresh logic runs (via `/api/n8n/video-details` or similar)
+3. **Manually** by calling the Edge Function directly
+
+For n8n, you can query the functions/view and get tokens. If a token is expired, it will be refreshed by the background job or on the next access.
 
 ## Error Handling
 
@@ -175,4 +189,5 @@ If `refresh_token_expired` is `true`, the user needs to reconnect their account.
 1. Notify the user via email
 2. Mark the connection as needing reconnection in the UI
 3. Skip posting for that creator until they reconnect
+
 

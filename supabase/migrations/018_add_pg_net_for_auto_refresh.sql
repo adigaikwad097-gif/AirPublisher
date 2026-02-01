@@ -54,46 +54,13 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Token needs refresh - try to call Edge Function via pg_net
-  -- Get Supabase project URL from current database
-  v_edge_function_url := current_setting('app.settings.supabase_url', true) || '/functions/v1/refresh-token';
+  -- Token needs refresh
+  -- Note: Direct HTTP calls from PostgreSQL require pg_net extension
+  -- For automatic refresh, we'll use a background job approach
+  -- The function will return the existing token, and a cron job will refresh expired tokens
   
-  -- If pg_net is available, call Edge Function
-  BEGIN
-    SELECT content::jsonb INTO v_response
-    FROM net.http_post(
-      url := v_edge_function_url,
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true)
-      ),
-      body := jsonb_build_object(
-        'platform', 'youtube',
-        'creator_unique_identifier', p_creator_unique_identifier
-      )
-    );
-
-    -- Extract new token from response
-    IF v_response->>'success' = 'true' THEN
-      v_new_token := v_response->>'access_token';
-      v_new_expires_at := (v_response->>'expires_at')::timestamptz;
-      
-      -- Update database with new token
-      UPDATE airpublisher_youtube_tokens
-      SET 
-        google_access_token = v_new_token,
-        expires_at = v_new_expires_at,
-        updated_at = NOW()
-      WHERE creator_unique_identifier = p_creator_unique_identifier;
-      
-      RETURN QUERY SELECT v_new_token, v_new_expires_at, FALSE;
-      RETURN;
-    END IF;
-  EXCEPTION WHEN OTHERS THEN
-    -- If pg_net call fails, return existing token
-    -- Log error but don't fail
-    RAISE WARNING 'Failed to refresh token via Edge Function: %', SQLERRM;
-  END;
+  -- Mark token as needing refresh (we can add a flag column if needed)
+  -- For now, we'll return the existing token and let background refresh handle it
 
   -- Fallback: return existing token (might be expired)
   -- Check if refresh token exists
@@ -116,4 +83,5 @@ $$;
 -- Similar update for Instagram (simplified - can be expanded)
 -- For now, the functions will return tokens and rely on background refresh
 -- The Edge Function can be called manually or via cron job
+
 
