@@ -151,7 +151,7 @@ export default async function CreatorProfilePage({
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {postedVideos.map((video) => (
+              {postedVideos.map((video: any) => (
                 <div
                   key={video.id}
                   className="rounded-lg border border-border overflow-hidden hover:bg-card-hover transition-colors"
