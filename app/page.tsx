@@ -57,9 +57,11 @@ export default function HomePage() {
           "
         >
           pu
-          <img
+          <Image
             src="/b.png"
             alt="b"
+            width={20}
+            height={20}
             className="inline-block align-baseline"
             style={{
               height: '0.9em',
