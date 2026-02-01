@@ -1,11 +1,31 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentCreator } from '@/lib/db/creator'
-// Helper to get app URL
-const getAppUrl = () => {
-  return process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
-    : 'http://localhost:3000')
+
+// Helper to get app URL from request (most reliable)
+const getAppUrl = (request: Request) => {
+  // First, try to get from request URL (most reliable)
+  const requestUrl = new URL(request.url)
+  const protocol = requestUrl.protocol.replace(':', '') || 'https'
+  const host = requestUrl.host
+  
+  // If we have a valid host from request, use it
+  if (host && !host.includes('localhost')) {
+    return `${protocol}://${host}`
+  }
+  
+  // Fallback to environment variables
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '') // Remove trailing slash
+  }
+  
+  // Vercel provides VERCEL_URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Last resort: localhost
+  return 'http://localhost:3000'
 }
 
 // Force dynamic rendering - this route uses cookies and request.url
@@ -67,8 +87,8 @@ export async function GET(request: Request) {
     // Remove any whitespace/newlines from app ID
     const appId = (process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID || '836687999185692').trim()
     
-    // Use getAppUrl() utility which properly detects Vercel, ngrok, or localhost
-    const baseUrl = getAppUrl()
+    // Use getAppUrl() utility which properly detects from request URL first
+    const baseUrl = getAppUrl(request)
     // Ensure no trailing slash in baseUrl before appending path
     const cleanBaseUrl = baseUrl.replace(/\/$/, '')
     const redirectUri = `${cleanBaseUrl}/api/auth/instagram/callback`
@@ -77,11 +97,14 @@ export async function GET(request: Request) {
       VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NOT SET',
       NODE_ENV: process.env.NODE_ENV,
+      requestUrl: request.url,
+      requestHost: new URL(request.url).host,
     })
     console.log('[Instagram OAuth] Base URL:', baseUrl)
     console.log('[Instagram OAuth] Clean Base URL:', cleanBaseUrl)
     console.log('[Instagram OAuth] Redirect URI:', redirectUri)
     console.log('[Instagram OAuth] Redirect URI length:', redirectUri.length)
+    console.log('[Instagram OAuth] ⚠️ IMPORTANT: Make sure this redirect URI is EXACTLY registered in Instagram OAuth settings:', redirectUri)
     
     // Debug logging - Check all Instagram-related env vars
     console.log('[Instagram OAuth] Environment variables check:', {
