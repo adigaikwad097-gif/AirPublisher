@@ -40,10 +40,11 @@ export async function getLeaderboard(
     (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
   )
 
-  return (data as any[]).map((entry: any) => {
+  return (data as any[]).map((entry: any, index: number) => {
     const profile = profileMap.get(entry.creator_unique_identifier) as any
     return {
       ...entry,
+      rank: entry.rank || index + 1, // Use existing rank or calculate from index
       creator_profiles: {
         unique_identifier: entry.creator_unique_identifier,
         display_name: profile?.handles || null, // Map 'handles' to 'display_name'
@@ -52,6 +53,7 @@ export async function getLeaderboard(
       },
     }
   }) as (LeaderboardEntry & {
+    rank: number
     creator_profiles: {
       unique_identifier: string
       display_name: string | null
@@ -129,10 +131,11 @@ export async function getLeaderboardByNiche(
     (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
   )
 
-  return (data as any[]).map((entry: any) => {
+  return (data as any[]).map((entry: any, index: number) => {
     const profile = profileMap.get(entry.creator_unique_identifier) as any
     return {
       ...entry,
+      rank: entry.rank || index + 1, // Use existing rank or calculate from index
       creator_profiles: {
         unique_identifier: entry.creator_unique_identifier,
         display_name: profile?.handles || null, // Map 'handles' to 'display_name'
@@ -141,6 +144,7 @@ export async function getLeaderboardByNiche(
       },
     }
   }) as (LeaderboardEntry & {
+    rank: number
     creator_profiles: {
       unique_identifier: string
       display_name: string | null

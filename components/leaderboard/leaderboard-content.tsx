@@ -235,7 +235,7 @@ export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreat
                   />
                 ) : (
                   <Image
-                    src={getRandomAvatar(topPlayer.creator_unique_identifier || topPlayer.id)}
+                    src={getRandomAvatar(topPlayer.creator_unique_identifier || topPlayer.id || 'default')}
                     alt={topPlayer.creator_profiles?.display_name || 'Top Creator'}
                     width={160}
                     height={160}
@@ -307,7 +307,7 @@ export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreat
                         />
                       ) : (
                         <Image
-                          src={getRandomAvatar(entry.creator_unique_identifier || entry.id)}
+                          src={getRandomAvatar(entry.creator_unique_identifier || entry.id || 'default')}
                           alt={entry.creator_profiles?.display_name || 'Creator'}
                           width={80}
                           height={80}
