@@ -24,6 +24,9 @@ export default async function DiscoverPage({
         const creator = await getCreatorProfile(video.creator_unique_identifier)
         return {
           ...video,
+          views: video.views ?? 0,
+          likes: video.likes ?? 0,
+          comments: video.comments ?? 0,
           creator: {
             unique_identifier: creator.unique_identifier,
             display_name: (creator as any).handles || creator.display_name || 'Unknown Creator',
@@ -34,6 +37,9 @@ export default async function DiscoverPage({
       } catch {
         return {
           ...video,
+          views: video.views ?? 0,
+          likes: video.likes ?? 0,
+          comments: video.comments ?? 0,
           creator: {
             unique_identifier: video.creator_unique_identifier,
             display_name: 'Unknown Creator',

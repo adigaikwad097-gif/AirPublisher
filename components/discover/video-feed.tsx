@@ -6,7 +6,7 @@ import { Clock, TrendingUp, Sparkles, Heart, MessageCircle, MoreHorizontal, Eye,
 import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
 import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
-import { VideoActions } from './video-actions'
+import { VideoActions } from '@/components/discover/video-actions'
 
 // Video component with auto-play on scroll
 function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; videoId: string }) {
@@ -108,6 +108,8 @@ type Video = {
   platform_target: string
   source_type: string
   views: number
+  likes: number
+  comments: number
   created_at: string
   posted_at: string | null
   creator_unique_identifier: string
