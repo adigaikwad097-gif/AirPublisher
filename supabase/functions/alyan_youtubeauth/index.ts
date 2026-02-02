@@ -14,6 +14,8 @@ const DEFAULT_ORIGIN = Deno.env.get("FRONTEND_URL") || Deno.env.get("NEXT_PUBLIC
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Allow anonymous access for OAuth flows (init and callback actions)
+  // Supabase Edge Functions require auth by default, but we need public access for OAuth redirects
   const url = new URL(req.url);
   let action = url.searchParams.get("action");
   let origin = url.searchParams.get("origin") || DEFAULT_ORIGIN;
@@ -39,8 +41,35 @@ serve(async (req: Request) => {
   const clientId = (Deno.env.get("GOOGLE_CLIENT_ID_ALYAN") || Deno.env.get("GOOGLE_OAUTH_CLIENT_ID") || Deno.env.get("GOOGLE_CLIENT_ID")) ?? "";
   const clientSecret = (Deno.env.get("GOOGLE_CLIENT_SECRET_ALYAN") || Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET") || Deno.env.get("GOOGLE_CLIENT_SECRET")) ?? "";
 
-  if (!supabaseUrl || !supabaseServiceKey || !clientId || !clientSecret) {
-    return new Response(JSON.stringify({ error: "Missing Env Vars" }), { 
+  console.log('[alyan_youtubeauth] Environment check:', {
+    hasSupabaseUrl: !!supabaseUrl,
+    hasServiceKey: !!supabaseServiceKey,
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    clientIdLength: clientId?.length || 0,
+    clientSecretLength: clientSecret?.length || 0,
+  });
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('[alyan_youtubeauth] Missing Supabase configuration');
+    return new Response(JSON.stringify({ error: "Missing Supabase configuration" }), { 
+      status: 500, 
+      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    });
+  }
+
+  if (!clientId || !clientSecret) {
+    console.error('[alyan_youtubeauth] Missing OAuth credentials:', {
+      hasGOOGLE_CLIENT_ID_ALYAN: !!Deno.env.get("GOOGLE_CLIENT_ID_ALYAN"),
+      hasGOOGLE_OAUTH_CLIENT_ID: !!Deno.env.get("GOOGLE_OAUTH_CLIENT_ID"),
+      hasGOOGLE_CLIENT_ID: !!Deno.env.get("GOOGLE_CLIENT_ID"),
+      hasGOOGLE_CLIENT_SECRET_ALYAN: !!Deno.env.get("GOOGLE_CLIENT_SECRET_ALYAN"),
+      hasGOOGLE_OAUTH_CLIENT_SECRET: !!Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET"),
+      hasGOOGLE_CLIENT_SECRET: !!Deno.env.get("GOOGLE_CLIENT_SECRET"),
+    });
+    return new Response(JSON.stringify({ 
+      error: "YouTube OAuth not configured. Please set GOOGLE_CLIENT_ID_ALYAN (or GOOGLE_OAUTH_CLIENT_ID or GOOGLE_CLIENT_ID) and GOOGLE_CLIENT_SECRET_ALYAN (or GOOGLE_OAUTH_CLIENT_SECRET or GOOGLE_CLIENT_SECRET) in Supabase Edge Function secrets." 
+    }), { 
       status: 500, 
       headers: { ...corsHeaders, "Content-Type": "application/json" } 
     });
@@ -52,7 +81,7 @@ serve(async (req: Request) => {
 
   // 1. INIT
   if (action === "init") {
-    const state = encodeURIComponent(JSON.stringify({ origin }));
+    const state = JSON.stringify({ origin }); // Will be encoded in URL
     // 'offline' access type is required to get a refresh_token
     const scope = [
       "https://www.googleapis.com/auth/youtube.readonly",
@@ -62,14 +91,21 @@ serve(async (req: Request) => {
       "openid"
     ].join(" ");
 
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}&access_type=offline&state=${state}`;
+    // Build OAuth URL with proper URL encoding
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('redirect_uri', REDIRECT_URI); // URLSearchParams automatically encodes
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', scope);
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('state', state); // URLSearchParams will encode it
 
     if (url.searchParams.get("redirect") === "false") {
-      return new Response(JSON.stringify({ url: authUrl }), { 
+      return new Response(JSON.stringify({ url: authUrl.toString() }), { 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       });
     }
-    return Response.redirect(authUrl, 302);
+    return Response.redirect(authUrl.toString(), 302);
   }
 
   // 2. CALLBACK
@@ -122,8 +158,8 @@ serve(async (req: Request) => {
       });
       const channelData = await channelRes.json();
 
-      let channelId = null;
-      let handle = null;
+      let channelId: string | null = null;
+      let handle: string | null = null;
 
       if (channelData.items && channelData.items.length > 0) {
         const ch = channelData.items[0];
@@ -302,8 +338,6 @@ serve(async (req: Request) => {
           .upsert(upsertPayload, { onConflict: 'user_id' });
         if (upsertError) throw upsertError;
       }
-      
-      if (upsertError) throw upsertError;
 
       console.log(`✅ YouTube auth complete for: yt_${channelId}`);
 

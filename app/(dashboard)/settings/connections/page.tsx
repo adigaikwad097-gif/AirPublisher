@@ -487,19 +487,23 @@ export default async function ConnectionsPage({
                   accessTokenExpired={isTikTokExpired}
                   hasRefreshToken={!!tiktokRefreshToken}
                 />
-                <Button 
-                  variant="outline" 
-                  className={`w-full bg-white/10 text-white hover:bg-white/20 border-white/10 ${isTikTokRefreshTokenExpired ? 'border-yellow-500/50 bg-yellow-500/10' : ''}`}
-                >
-                  <Link href="/api/auth/tiktok">{isTikTokRefreshTokenExpired ? 'Update Connection' : isTikTokExpired ? 'Reconnect' : 'Update Connection'}</Link>
-                </Button>
+                <a href="/api/auth/tiktok">
+                  <Button 
+                    variant="outline" 
+                    className={`w-full bg-white/10 text-white hover:bg-white/20 border-white/10 ${isTikTokRefreshTokenExpired ? 'border-yellow-500/50 bg-yellow-500/10' : ''}`}
+                  >
+                    {isTikTokRefreshTokenExpired ? 'Update Connection' : isTikTokExpired ? 'Reconnect' : 'Update Connection'}
+                  </Button>
+                </a>
               </div>
             ) : (
-              <Button 
-                className="w-full bg-black hover:bg-gray-800 text-white"
-              >
-                <Link href="/api/auth/tiktok">Connect TikTok</Link>
-              </Button>
+              <a href="/api/auth/tiktok">
+                <Button 
+                  className="w-full bg-black hover:bg-gray-800 text-white"
+                >
+                  Connect TikTok
+                </Button>
+              </a>
             )}
           </CardContent>
         </Card>

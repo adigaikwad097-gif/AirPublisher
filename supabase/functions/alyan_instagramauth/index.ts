@@ -43,7 +43,17 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+  console.log('[alyan_instagramauth] Environment check:', {
+    hasSupabaseUrl: !!supabaseUrl,
+    hasServiceKey: !!supabaseServiceKey,
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    clientIdLength: clientId?.length || 0,
+    clientSecretLength: clientSecret?.length || 0,
+  });
+
   if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('[alyan_instagramauth] Missing Supabase configuration');
     return new Response(JSON.stringify({ error: "Missing Supabase configuration" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -53,11 +63,14 @@ serve(async (req) => {
   const cleanSupabaseUrl = supabaseUrl.replace(/\/$/, "");
   const REDIRECT_URI = `${cleanSupabaseUrl}/functions/v1/alyan_instagramauth`;
 
+  console.log('[alyan_instagramauth] Redirect URI:', REDIRECT_URI);
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   // 1. INIT
   if (action === 'init') {
     if (!clientId) {
+      console.error('[alyan_instagramauth] Missing Instagram Client ID');
       return new Response(JSON.stringify({ error: "Missing Instagram Client ID" }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -72,16 +85,24 @@ serve(async (req) => {
       'instagram_business_manage_insights'
     ].join(',');
 
-    const state = encodeURIComponent(JSON.stringify({ origin }));
-    const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scopes}&state=${state}`;
+    const state = JSON.stringify({ origin });
+    // Build OAuth URL - Instagram requires redirect_uri to be URL encoded
+    const authUrl = new URL('https://www.instagram.com/oauth/authorize');
+    authUrl.searchParams.set('enable_fb_login', '0');
+    authUrl.searchParams.set('force_authentication', '1');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('redirect_uri', REDIRECT_URI); // URLSearchParams automatically encodes
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', scopes);
+    authUrl.searchParams.set('state', state); // URLSearchParams will encode it
 
     if (url.searchParams.get('redirect') === 'false') {
-      return new Response(JSON.stringify({ url: authUrl }), {
+      return new Response(JSON.stringify({ url: authUrl.toString() }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    return Response.redirect(authUrl, 302);
+    return Response.redirect(authUrl.toString(), 302);
   }
 
   // 2. CALLBACK
