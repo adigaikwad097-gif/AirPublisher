@@ -91,48 +91,137 @@ export async function POST(
       })
     } else {
       // Post now - trigger n8n webhook directly for instant posting
-      const appUrl = getAppUrl()
-      const webhookUrl = `${appUrl}/api/webhooks/n8n/post-video`
-      
-      console.log('[publish] Triggering post-video webhook:', {
-        webhookUrl,
-        videoId,
-        platform,
+      const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL_POST_VIDEO
+      const n8nApiKey = process.env.N8N_API_KEY
+
+      if (!n8nWebhookUrl) {
+        console.error('[publish] ❌ N8N_WEBHOOK_URL_POST_VIDEO not configured!')
+        console.error('[publish] Please set N8N_WEBHOOK_URL_POST_VIDEO in environment variables')
+        console.error('[publish] Example: https://support-team.app.n8n.cloud/webhook/15ec8f2d-a77c-4407-8ab8-cd505284bb42')
+        
+        // Fallback: create scheduled post with immediate time
+        const now = new Date()
+        const { data: scheduledPost, error: scheduleError } = await (supabase
+          .from('air_publisher_scheduled_posts') as any)
+          .insert({
+            video_id: videoId,
+            creator_unique_identifier: (profile as any).creator_unique_identifier,
+            platform: platform,
+            scheduled_at: now.toISOString(),
+            status: 'pending',
+          })
+          .select()
+          .single()
+
+        if (scheduleError) {
+          console.error('[publish] Error creating immediate scheduled post:', scheduleError)
+          return NextResponse.json(
+            { 
+              error: 'Failed to schedule post', 
+              details: scheduleError.message,
+              note: 'N8N_WEBHOOK_URL_POST_VIDEO is not configured. Please set it in Vercel environment variables for instant posting.',
+            },
+            { status: 500 }
+          )
+        }
+
+        console.warn('[publish] ⚠️ Using scheduled post fallback (n8n webhook URL not configured)')
+        return NextResponse.json({
+          success: true,
+          scheduled_post: scheduledPost,
+          message: 'Video queued for posting. n8n will process it shortly.',
+          warning: 'N8N_WEBHOOK_URL_POST_VIDEO is not configured. Set it in Vercel for instant posting.',
+        })
+      }
+
+      // Get video details to send to n8n
+      const { data: video, error: videoError } = await (supabase
+        .from('air_publisher_videos') as any)
+        .select('*')
+        .eq('id', videoId)
+        .single()
+
+      if (videoError || !video) {
+        return NextResponse.json(
+          { error: 'Video not found' },
+          { status: 404 }
+        )
+      }
+
+      const webhookPayload = {
+        video_id: videoId,
+        creator_unique_identifier: (profile as any).creator_unique_identifier,
+        platform: platform,
+        trigger_type: 'immediate', // Indicates this is an immediate post, not scheduled
+      }
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+
+      // Add API key if configured
+      if (n8nApiKey) {
+        headers['x-n8n-api-key'] = n8nApiKey
+      }
+
+      console.log('[publish] Calling n8n webhook:', {
+        url: n8nWebhookUrl,
+        payload: webhookPayload,
+        hasApiKey: !!n8nApiKey,
+        headers: Object.keys(headers),
       })
 
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-n8n-api-key': process.env.N8N_API_KEY || '',
-        },
-        body: JSON.stringify({
-          video_id: videoId,
-          platform: platform,
-        }),
-      })
+      let response
+      try {
+        response = await fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(webhookPayload),
+        })
+        console.log('[publish] Webhook response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+        })
+      } catch (fetchError: any) {
+        console.error('[publish] Fetch error calling n8n webhook:', {
+          error: fetchError.message,
+          stack: fetchError.stack,
+          url: n8nWebhookUrl,
+        })
+        return NextResponse.json(
+          { 
+            error: 'Failed to call n8n webhook',
+            details: fetchError.message || 'Network error',
+          },
+          { status: 500 }
+        )
+      }
 
       if (!response.ok) {
-        let errorData
-        try {
-          errorData = await response.json()
-        } catch {
-          errorData = { error: `HTTP ${response.status}: ${response.statusText}` }
-        }
-        console.error('[publish] Webhook error:', errorData)
+        const errorText = await response.text()
+        console.error('[publish] n8n webhook error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+        })
         return NextResponse.json(
-          { error: 'Failed to post video', details: errorData.error || 'Unknown error' },
+          { 
+            error: 'Failed to trigger n8n webhook',
+            details: errorText || `HTTP ${response.status}: ${response.statusText}`,
+          },
           { status: response.status || 500 }
         )
       }
 
-      const result = await response.json()
-      console.log('[publish] ✅ Video posted successfully:', result)
+      const result = await response.json().catch(() => ({ success: true }))
+      console.log('[publish] ✅ Successfully triggered n8n webhook:', result)
 
       return NextResponse.json({
         success: true,
-        message: 'Video posted successfully',
-        result,
+        message: 'Video posting triggered immediately',
+        video_id: videoId,
+        webhook_response: result,
       })
     }
   } catch (error) {
