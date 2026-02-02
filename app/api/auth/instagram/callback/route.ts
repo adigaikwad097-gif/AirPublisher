@@ -113,9 +113,8 @@ export async function GET(request: Request) {
     // Instagram Business Login uses Instagram App ID and Secret
     // Get from: Instagram > API setup with Instagram login > Business login settings
     // NOT from Meta App settings (those are different)
-    // Hardcode all IDs/secrets as fallback since .env.local isn't loading properly
-    const appId = process.env.INSTAGRAM_APP_ID || '836687999185692' || process.env.META_APP_ID || '771396602627794'
-    const appSecret = process.env.INSTAGRAM_APP_SECRET || '4691b6a3b97ab0dcaec41b218e4321c1' || process.env.META_APP_SECRET || '67b086a74833746df6a0a7ed0b50f867'
+    const appId = (process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID || '').trim()
+    const appSecret = (process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET || '').trim()
     
     // Get redirect URI - use the one from state if available (ensures exact match with OAuth request)
     // Otherwise detect ngrok from request

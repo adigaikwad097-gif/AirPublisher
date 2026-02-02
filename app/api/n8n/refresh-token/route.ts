@@ -4,6 +4,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { getValidYouTubeAccessToken } from '@/lib/youtube/tokens'
 import { getValidInstagramAccessToken } from '@/lib/instagram/tokens'
 
+// Force dynamic rendering - this route uses request body
+export const dynamic = 'force-dynamic'
+
 /**
  * API endpoint for n8n to refresh platform access tokens
  * 
