@@ -94,10 +94,22 @@ export async function POST(
       const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL_POST_VIDEO
       const n8nApiKey = process.env.N8N_API_KEY
 
+      // Debug: Log all environment variables that might be related
+      console.log('[publish] Environment check:', {
+        hasN8N_WEBHOOK_URL_POST_VIDEO: !!n8nWebhookUrl,
+        n8nWebhookUrlLength: n8nWebhookUrl?.length || 0,
+        n8nWebhookUrlPreview: n8nWebhookUrl ? `${n8nWebhookUrl.substring(0, 50)}...` : 'NOT SET',
+        hasN8N_API_KEY: !!n8nApiKey,
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+        allEnvKeys: Object.keys(process.env).filter(k => k.includes('N8N') || k.includes('WEBHOOK')).join(', '),
+      })
+
       if (!n8nWebhookUrl) {
         console.error('[publish] ❌ N8N_WEBHOOK_URL_POST_VIDEO not configured!')
         console.error('[publish] Please set N8N_WEBHOOK_URL_POST_VIDEO in environment variables')
         console.error('[publish] Example: https://support-team.app.n8n.cloud/webhook/15ec8f2d-a77c-4407-8ab8-cd505284bb42')
+        console.error('[publish] Current environment:', process.env.NODE_ENV, process.env.VERCEL_ENV)
         
         // Fallback: create scheduled post with immediate time
         const now = new Date()
