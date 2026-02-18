@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { safeLocalStorage } from '@/lib/utils/safe-storage'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -32,7 +33,7 @@ export function Sidebar() {
 
   const handleSignOut = async () => {
     const supabase = createClient()
-    
+
     // Clear the creator profile cookie before signing out
     // This prevents the next user from seeing the previous user's profile
     try {
@@ -40,12 +41,12 @@ export function Sidebar() {
       await fetch('/api/auth/clear-profile-cookie', { method: 'POST' })
       // Also clear from localStorage if it exists
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('creator_unique_identifier')
+        safeLocalStorage.removeItem('creator_unique_identifier')
       }
     } catch (e) {
       console.warn('Could not clear creator profile cookie:', e)
     }
-    
+
     await supabase.auth.signOut()
     window.location.href = '/'
   }

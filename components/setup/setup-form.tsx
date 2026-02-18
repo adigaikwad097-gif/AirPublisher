@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { createProfileAction } from '@/app/api/profile/actions'
 import { createClient } from '@/lib/supabase/client'
+import { safeLocalStorage } from '@/lib/utils/safe-storage'
 import { AvatarSelector } from './avatar-selector'
 
 export function SetupForm() {
@@ -64,7 +65,7 @@ export function SetupForm() {
 
       // Store the unique_identifier in localStorage for client-side use
       if (profile?.unique_identifier) {
-        localStorage.setItem('creator_unique_identifier', profile.unique_identifier)
+        safeLocalStorage.setItem('creator_unique_identifier', profile.unique_identifier)
         console.log('✅ Profile created with unique_identifier:', profile.unique_identifier)
         console.log('✅ Redirecting to dashboard with profile param')
         // Use a small delay to ensure cookie is set
@@ -81,7 +82,7 @@ export function SetupForm() {
     } catch (err: any) {
       console.error('Profile creation error:', err)
       const errorMessage = err?.message || 'Failed to create profile. Please try again.'
-      
+
       // Provide helpful error message
       if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
         setError(

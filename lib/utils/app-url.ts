@@ -20,7 +20,7 @@ export function getAppUrl(): string {
     console.log('[getAppUrl] Using NEXT_PUBLIC_APP_URL:', url)
     return url
   }
-  
+
   // Fallback to Vercel's auto-set URL
   if (process.env.VERCEL_URL) {
     const vercelUrl = process.env.VERCEL_URL.trim()
@@ -29,10 +29,10 @@ export function getAppUrl(): string {
     console.log('[getAppUrl] Using VERCEL_URL:', { VERCEL_URL: vercelUrl, finalUrl: url })
     return url.replace(/\/$/, '') // Remove trailing slash
   }
-  
+
   // Development fallback
   console.log('[getAppUrl] Using localhost fallback')
-  return 'http://localhost:3000'
+  return 'http://localhost:8000'
 }
 
 /**

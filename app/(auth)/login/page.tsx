@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { safeLocalStorage } from '@/lib/utils/safe-storage'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -22,11 +23,11 @@ export default function LoginPage() {
       const urlParams = new URLSearchParams(window.location.search)
       const emailParam = urlParams.get('email')
       const messageParam = urlParams.get('message')
-      const storedEmail = localStorage.getItem('prefill_email')
-      
+      const storedEmail = safeLocalStorage.getItem('prefill_email')
+
       if (emailParam) {
         setEmail(emailParam)
-        localStorage.removeItem('prefill_email')
+        safeLocalStorage.removeItem('prefill_email')
       } else if (storedEmail) {
         setEmail(storedEmail)
       }
@@ -74,7 +75,7 @@ export default function LoginPage() {
       if (result.data?.user && result.data.session) {
         console.log('User signed in successfully:', result.data.user.id)
         console.log('Session exists:', !!result.data.session)
-        
+
         // Sync session to cookies for server-side auth
         try {
           const syncResponse = await fetch('/api/auth/sync-session', {
@@ -100,18 +101,18 @@ export default function LoginPage() {
 
         // Wait a moment for cookies to be set
         await new Promise(resolve => setTimeout(resolve, 500))
-        
+
         // Verify session is available before redirecting
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (sessionError) {
           console.warn('Session check error (non-critical):', sessionError.message)
         }
-        
+
         if (session) {
           console.log('✅ Session confirmed, redirecting to dashboard...')
           console.log('Session user ID:', session.user.id)
-          
+
           // For ngrok/development, use a hard redirect to ensure cookies are sent
           // Use setTimeout to ensure all async operations complete
           setTimeout(() => {
@@ -122,11 +123,11 @@ export default function LoginPage() {
           // Try one more time after a longer delay
           await new Promise(resolve => setTimeout(resolve, 1000))
           const { data: { session: retrySession }, error: retryError } = await supabase.auth.getSession()
-          
+
           if (retryError) {
             console.warn('Retry session check error:', retryError.message)
           }
-          
+
           if (retrySession) {
             console.log('✅ Session confirmed on retry, redirecting...')
             setTimeout(() => {
@@ -202,11 +203,11 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form 
+          <form
             onSubmit={(e) => {
               console.log('Form onSubmit triggered!')
               handleSignIn(e)
-            }} 
+            }}
             className="space-y-6"
           >
             {successMessage && (
@@ -248,9 +249,9 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full bg-white text-black hover:bg-white/90 font-semibold uppercase tracking-[0.4em] py-6 rounded-lg transition-all" 
+            <Button
+              type="submit"
+              className="w-full bg-white text-black hover:bg-white/90 font-semibold uppercase tracking-[0.4em] py-6 rounded-lg transition-all"
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign In'}
