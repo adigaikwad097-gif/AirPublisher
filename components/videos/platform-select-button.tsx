@@ -1,9 +1,10 @@
-'use client'
+
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Youtube, Instagram, Music, Globe, Calendar, Clock } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Globe, Calendar, Clock, Music, Youtube, Instagram } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useModal } from '@/components/providers/modal-provider'
 
 interface PlatformSelectButtonProps {
   videoId: string
@@ -24,7 +25,8 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
   const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
-  const router = useRouter()
+  const navigate = useNavigate()
+  const { showConfirm, showToast } = useModal()
 
   // Check platform token statuses
   useEffect(() => {
@@ -53,14 +55,18 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
 
   const handlePlatformSelect = async (platform: Platform, postType: PostType) => {
     const status = getPlatformStatus(platform)
-    
+
     // If not connected or token expired, redirect to OAuth
     if (!status?.connected || status.tokenExpired) {
       const platformName = platform === 'internal' ? 'Air Publisher' : platform
-      if (confirm(`${platformName} is not connected or your token has expired. Would you like to connect it now?`)) {
+      const confirmed = await showConfirm({
+        title: 'Platform Not Connected',
+        message: `${platformName} is not connected or your token has expired. Would you like to connect it now?`,
+        confirmLabel: 'Connect Now'
+      })
+      if (confirmed) {
         // Redirect to settings page with platform focus
-        router.push(`/settings/connections?platform=${platform}&returnTo=/videos`)
-        return
+        navigate(`/settings/connections?platform=${platform}&returnTo=/videos`)
       }
       return
     }
@@ -70,10 +76,10 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
       // Get current date/time as default
       const now = new Date()
       const defaultDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-      
+
       const dateTime = prompt('Enter date and time (YYYY-MM-DD HH:MM):', defaultDateTime)
       if (!dateTime) return
-      
+
       // Parse date/time - handle both formats
       let scheduledDate: Date
       if (dateTime.includes('T')) {
@@ -83,26 +89,31 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
         // Try parsing as YYYY-MM-DD HH:MM
         const [datePart, timePart] = dateTime.split(' ')
         if (!datePart || !timePart) {
-          alert('Invalid date/time format. Please use YYYY-MM-DD HH:MM')
+          showToast({ message: 'Invalid date/time format. Please use YYYY-MM-DD HH:MM', type: 'error' })
           return
         }
         scheduledDate = new Date(`${datePart}T${timePart}:00`)
       }
-      
+
       if (isNaN(scheduledDate.getTime())) {
-        alert('Invalid date/time format. Please use YYYY-MM-DD HH:MM')
+        showToast({ message: 'Invalid date/time format. Please use YYYY-MM-DD HH:MM', type: 'error' })
         return
       }
 
       if (scheduledDate < new Date()) {
-        alert('Scheduled time must be in the future')
+        showToast({ message: 'Scheduled time must be in the future', type: 'error' })
         return
       }
 
       await handlePost(videoId, platform, postType, scheduledDate)
     } else {
       // Post now
-      if (!confirm(`Post this video to ${platform === 'internal' ? 'Air Publisher' : platform} now?`)) {
+      const confirmed = await showConfirm({
+        title: 'Post Video Now',
+        message: `Are you sure you want to post this video to ${platform === 'internal' ? 'Air Publisher' : platform} immediately?`,
+        confirmLabel: 'Post Now'
+      })
+      if (!confirmed) {
         return
       }
       await handlePost(videoId, platform, postType)
@@ -110,11 +121,12 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
   }
 
   const handlePost = async (
-    videoId: string, 
-    platform: Platform, 
+    videoId: string,
+    platform: Platform,
     postType: PostType,
     scheduledAt?: Date
   ) => {
+    setShowMenu(false)
     setPosting(true)
     try {
       const response = await fetch(`/api/videos/${videoId}/publish`, {
@@ -133,14 +145,12 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
         throw new Error(data.error || 'Failed to publish video')
       }
 
-      alert(`Video ${postType === 'now' ? 'posted' : 'scheduled'} successfully!`)
-      router.refresh()
-    } catch (error: any) {
-      console.error('[PlatformSelectButton] Post error:', error)
-      alert(`Failed to ${postType === 'now' ? 'post' : 'schedule'} video: ${error.message || 'Unknown error'}`)
+      showToast({ message: `Video ${postType === 'now' ? 'posted' : 'scheduled'} successfully!`, type: 'success' })
+    } catch (e: any) {
+      console.error('[PlatformSelectButton] Post error:', e)
+      showToast({ message: `Failed to ${postType === 'now' ? 'post' : 'schedule'} video: ${e.message || 'Unknown error'}`, type: 'error' })
     } finally {
       setPosting(false)
-      setShowMenu(false)
     }
   }
 
@@ -177,14 +187,14 @@ export function PlatformSelectButton({ videoId, creatorUniqueIdentifier }: Platf
             className="fixed inset-0 z-10"
             onClick={() => setShowMenu(false)}
           />
-          
+
           {/* Menu */}
           <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-20 p-2">
             <div className="space-y-1">
               {platforms.map(({ platform, name, icon }) => {
                 const status = getPlatformStatus(platform)
                 const isConnected = status?.connected && !status?.tokenExpired
-                
+
                 return (
                   <div key={platform} className="space-y-1">
                     <div className="flex items-center justify-between px-3 py-2 rounded hover:bg-card-hover">

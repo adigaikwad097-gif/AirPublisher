@@ -1,7 +1,6 @@
-'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+
+import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Upload,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 import { safeLocalStorage } from '@/lib/utils/safe-storage'
 
 const navigation = [
@@ -29,10 +28,9 @@ const navigation = [
 ]
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const { pathname } = useLocation()
 
   const handleSignOut = async () => {
-    const supabase = createClient()
 
     // Clear the creator profile cookie before signing out
     // This prevents the next user from seeing the previous user's profile
@@ -62,7 +60,7 @@ export function Sidebar() {
           return (
             <Link
               key={item.name}
-              href={item.href}
+              to={item.href}
               className={cn(
                 'flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
                 isActive

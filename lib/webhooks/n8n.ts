@@ -5,7 +5,7 @@
 export async function verifyN8nWebhook(request: Request | { headers: Headers }): Promise<boolean> {
   const apiKey = request.headers.get('x-n8n-api-key')
   const authHeader = request.headers.get('authorization')
-  const expectedApiKey = process.env.N8N_API_KEY
+  const expectedApiKey = import.meta.env.VITE_N8N_API_KEY || import.meta.env.N8N_API_KEY
 
   if (!expectedApiKey) {
     console.warn('[verifyN8nWebhook] N8N_API_KEY not configured')
@@ -14,7 +14,7 @@ export async function verifyN8nWebhook(request: Request | { headers: Headers }):
 
   // Check authentication
   const providedKey = apiKey || authHeader?.replace('Bearer ', '')
-  
+
   if (!providedKey || providedKey !== expectedApiKey) {
     console.warn('[verifyN8nWebhook] Invalid API key provided')
     return false

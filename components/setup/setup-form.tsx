@@ -1,12 +1,10 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
-import { createProfileAction } from '@/app/api/profile/actions'
-import { createClient } from '@/lib/supabase/client'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/lib/supabase/client'
 import { safeLocalStorage } from '@/lib/utils/safe-storage'
 import { AvatarSelector } from './avatar-selector'
+import { setCreatorId } from '@/lib/auth/session'
 
 export function SetupForm() {
   const [displayName, setDisplayName] = useState('')
@@ -15,10 +13,9 @@ export function SetupForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  const router = useRouter()
-  const supabase = createClient()
+  const navigate = useNavigate()
 
-  // Get user ID from client-side session (workaround for server-side session detection issues)
+  // Get user ID from client-side session
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -40,17 +37,19 @@ export function SetupForm() {
     setError(null)
 
     try {
-      // Use API route instead of server action (handles cookies better)
-      const response = await fetch('/api/profile/create', {
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-profile`
+
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           display_name: displayName || null,
           niche: niche || null,
           avatar_url: avatarUrl || null,
-          user_id: userId || null, // Pass user ID from client as fallback
+          user_id: userId || null,
         }),
       })
 
@@ -63,35 +62,19 @@ export function SetupForm() {
       const profile = data.profile
       console.log('Profile created:', profile)
 
-      // Store the unique_identifier in localStorage for client-side use
       if (profile?.unique_identifier) {
         safeLocalStorage.setItem('creator_unique_identifier', profile.unique_identifier)
+        setCreatorId(profile.unique_identifier)
         console.log('✅ Profile created with unique_identifier:', profile.unique_identifier)
-        console.log('✅ Redirecting to dashboard with profile param')
-        // Use a small delay to ensure cookie is set
-        setTimeout(() => {
-          window.location.href = `/dashboard?profile=${encodeURIComponent(profile.unique_identifier)}`
-        }, 100)
+        navigate('/dashboard')
       } else {
         console.warn('⚠️ Profile created but no unique_identifier returned')
-        // Fallback: just redirect
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 500)
+        navigate('/dashboard')
       }
     } catch (err: any) {
       console.error('Profile creation error:', err)
       const errorMessage = err?.message || 'Failed to create profile. Please try again.'
-
-      // Provide helpful error message
-      if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
-        setError(
-          'Database permission error. Please ensure RLS policies are set up correctly. ' +
-          'Check the migration file: supabase/migrations/002_add_creator_profiles_rls.sql'
-        )
-      } else {
-        setError(errorMessage)
-      }
+      setError(errorMessage)
       setLoading(false)
     }
   }
@@ -117,7 +100,7 @@ export function SetupForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-4 bg-error/10 border border-error/30 rounded-lg text-sm text-error">
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-500">
           {error}
         </div>
       )}
@@ -130,7 +113,7 @@ export function SetupForm() {
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#89CFF0]/50 focus:border-[#89CFF0]/50 transition-colors"
           placeholder="Your creator name"
         />
         <p className="text-xs text-foreground/60 mt-2">
@@ -145,7 +128,7 @@ export function SetupForm() {
         <select
           value={niche}
           onChange={(e) => setNiche(e.target.value)}
-          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#89CFF0]/50 focus:border-[#89CFF0]/50 transition-colors"
         >
           <option value="" className="bg-background">Select a niche</option>
           {popularNiches.map((n) => (
@@ -177,7 +160,7 @@ export function SetupForm() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push('/dashboard')}
+          onClick={() => navigate('/dashboard')}
           disabled={loading}
         >
           Skip for Now
@@ -186,4 +169,3 @@ export function SetupForm() {
     </form>
   )
 }
-

@@ -26,10 +26,10 @@ serve(async (req) => {
     // Allow calls from same Supabase project without explicit auth
     // This allows database functions to call via pg_net
     // The Edge Function will use its own SUPABASE_SERVICE_ROLE_KEY from environment
-    
+
     const body = await req.json()
     console.log('[refresh-token] Request body:', body)
-    
+
     const { platform, creator_unique_identifier } = body
 
     if (!platform || !creator_unique_identifier) {
@@ -46,8 +46,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get tokens from database
-    const tokenTable = `airpublisher_${platform}_tokens`
+    // Get tokens from database - using shared tables now
+    const tokenTable = `${platform}_tokens`
     const { data: tokens, error: tokenError } = await supabase
       .from(tokenTable)
       .select('*')
@@ -68,7 +68,14 @@ serve(async (req) => {
     let newExpiresAt: string | null = null
 
     if (platform === 'youtube') {
-      const refreshToken = tokens.google_refresh_token || tokens.refresh_token
+      let refreshToken = tokens.google_refresh_token || tokens.refresh_token
+      if (!refreshToken && tokens.google_refresh_token_secret_id) {
+        const { data: decRefresh } = await supabase.rpc('get_decrypted_secret', {
+          p_secret_id: tokens.google_refresh_token_secret_id
+        })
+        if (decRefresh) refreshToken = decRefresh
+      }
+
       if (!refreshToken) {
         return new Response(
           JSON.stringify({ error: 'No refresh token available' }),
@@ -79,7 +86,7 @@ serve(async (req) => {
       // Refresh YouTube token
       const clientId = Deno.env.get('GOOGLE_CLIENT_ID_ALYAN') || Deno.env.get('GOOGLE_CLIENT_ID')!
       const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET_ALYAN') || Deno.env.get('GOOGLE_CLIENT_SECRET')!
-      
+
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -105,17 +112,50 @@ serve(async (req) => {
       newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
 
       // Update database
+      const updateData: any = {
+        expires_at: newExpiresAt,
+        updated_at: new Date().toISOString(),
+      }
+
+      let hasNewSecret = false
+      if (tokens.google_access_token_secret_id) {
+        const { data: updated } = await supabase.rpc('update_vault_secret', {
+          p_secret_id: tokens.google_access_token_secret_id,
+          p_new_secret: newAccessToken
+        })
+        if (updated) hasNewSecret = true
+      } else if (tokens.user_id) {
+        const { data: secretId } = await supabase.rpc('create_vault_secret', {
+          p_secret: newAccessToken,
+          p_name: `youtube_access_${tokens.user_id}`
+        })
+        if (secretId) {
+          updateData.google_access_token_secret_id = secretId
+          hasNewSecret = true
+        }
+      }
+
+      if (hasNewSecret) {
+        updateData.google_access_token = null
+        updateData.access_token = null
+      } else {
+        updateData.google_access_token = newAccessToken
+      }
+
       await supabase
         .from(tokenTable)
-        .update({
-          google_access_token: newAccessToken,
-          expires_at: newExpiresAt,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('creator_unique_identifier', creator_unique_identifier)
 
     } else if (platform === 'instagram') {
-      const accessToken = tokens.facebook_access_token || tokens.instagram_access_token
+      let accessToken = tokens.facebook_access_token || tokens.instagram_access_token || tokens.access_token
+      if (!accessToken && tokens.access_token_secret_id) {
+        const { data: decAccess } = await supabase.rpc('get_decrypted_secret', {
+          p_secret_id: tokens.access_token_secret_id
+        })
+        if (decAccess) accessToken = decAccess
+      }
+
       if (!accessToken) {
         return new Response(
           JSON.stringify({ error: 'No access token available' }),
@@ -155,27 +195,69 @@ serve(async (req) => {
       newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
 
       // Update database
+      const updateData: any = {
+        expires_at: newExpiresAt,
+        updated_at: new Date().toISOString(),
+      }
+
+      let hasNewSecret = false
+      if (tokens.access_token_secret_id) {
+        const { data: updated } = await supabase.rpc('update_vault_secret', {
+          p_secret_id: tokens.access_token_secret_id,
+          p_new_secret: newAccessToken
+        })
+        if (updated) hasNewSecret = true
+      } else if (tokens.user_id) {
+        const { data: secretId } = await supabase.rpc('create_vault_secret', {
+          p_secret: newAccessToken,
+          p_name: `instagram_access_${tokens.user_id}`
+        })
+        if (secretId) {
+          updateData.access_token_secret_id = secretId
+          hasNewSecret = true
+        }
+      }
+
+      if (hasNewSecret) {
+        updateData.facebook_access_token = null
+        updateData.instagram_access_token = null
+        updateData.access_token = null
+      } else {
+        updateData.facebook_access_token = newAccessToken
+        updateData.instagram_access_token = newAccessToken
+        updateData.access_token = newAccessToken
+      }
+
       await supabase
         .from(tokenTable)
-        .update({
-          facebook_access_token: newAccessToken,
-          instagram_access_token: newAccessToken,
-          expires_at: newExpiresAt,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('creator_unique_identifier', creator_unique_identifier)
 
     } else if (platform === 'tiktok') {
-      const refreshToken = tokens.tiktok_refresh_token || tokens.refresh_token
+      let refreshToken = tokens.tiktok_refresh_token || tokens.refresh_token
+      if (!refreshToken && tokens.tiktok_refresh_token_secret_id) {
+        const { data: decRefresh } = await supabase.rpc('get_decrypted_secret', {
+          p_secret_id: tokens.tiktok_refresh_token_secret_id
+        })
+        if (decRefresh) refreshToken = decRefresh
+      }
+
       if (!refreshToken) {
         // If no refresh token, return existing token
-        newAccessToken = tokens.tiktok_access_token || tokens.access_token
+        let accessToken = tokens.tiktok_access_token || tokens.access_token
+        if (!accessToken && tokens.tiktok_access_token_secret_id) {
+          const { data: decAccess } = await supabase.rpc('get_decrypted_secret', {
+            p_secret_id: tokens.tiktok_access_token_secret_id
+          })
+          if (decAccess) accessToken = decAccess
+        }
+        newAccessToken = accessToken
         newExpiresAt = tokens.expires_at
       } else {
         // Refresh TikTok token
         const clientKey = Deno.env.get('TIKTOK_CLIENT_KEY_ALYAN') || Deno.env.get('TIKTOK_CLIENT_KEY')!
         const clientSecret = Deno.env.get('TIKTOK_CLIENT_SECRET_ALYAN') || Deno.env.get('TIKTOK_CLIENT_SECRET')!
-        
+
         if (!clientKey || !clientSecret) {
           return new Response(
             JSON.stringify({ error: 'TikTok Client Key or Secret not configured' }),
@@ -186,7 +268,7 @@ serve(async (req) => {
         // TikTok token refresh endpoint
         const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: new URLSearchParams({
@@ -209,16 +291,67 @@ serve(async (req) => {
         newAccessToken = data.access_token
         const expiresIn = data.expires_in || 86400 // Default to 24 hours
         newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+        const newRefreshToken = data.refresh_token || refreshToken
 
         // Update database
+        const updateData: any = {
+          expires_at: newExpiresAt,
+          updated_at: new Date().toISOString(),
+        }
+
+        let hasNewAccessSecret = false
+        if (tokens.tiktok_access_token_secret_id) {
+          const { data: updated } = await supabase.rpc('update_vault_secret', {
+            p_secret_id: tokens.tiktok_access_token_secret_id,
+            p_new_secret: newAccessToken
+          })
+          if (updated) hasNewAccessSecret = true
+        } else if (tokens.user_id) {
+          const { data: secretId } = await supabase.rpc('create_vault_secret', {
+            p_secret: newAccessToken,
+            p_name: `tiktok_access_${tokens.user_id}`
+          })
+          if (secretId) {
+            updateData.tiktok_access_token_secret_id = secretId
+            hasNewAccessSecret = true
+          }
+        }
+
+        if (hasNewAccessSecret) {
+          updateData.tiktok_access_token = null
+          updateData.access_token = null
+        } else {
+          updateData.tiktok_access_token = newAccessToken
+        }
+
+        let hasNewRefreshSecret = false
+        if (tokens.tiktok_refresh_token_secret_id) {
+          const { data: updated } = await supabase.rpc('update_vault_secret', {
+            p_secret_id: tokens.tiktok_refresh_token_secret_id,
+            p_new_secret: newRefreshToken
+          })
+          if (updated) hasNewRefreshSecret = true
+        } else if (tokens.user_id) {
+          const { data: secretId } = await supabase.rpc('create_vault_secret', {
+            p_secret: newRefreshToken,
+            p_name: `tiktok_refresh_${tokens.user_id}`
+          })
+          if (secretId) {
+            updateData.tiktok_refresh_token_secret_id = secretId
+            hasNewRefreshSecret = true
+          }
+        }
+
+        if (hasNewRefreshSecret) {
+          updateData.tiktok_refresh_token = null
+          updateData.refresh_token = null
+        } else {
+          updateData.tiktok_refresh_token = newRefreshToken
+        }
+
         await supabase
           .from(tokenTable)
-          .update({
-            tiktok_access_token: newAccessToken,
-            tiktok_refresh_token: data.refresh_token || refreshToken, // TikTok may return new refresh token
-            expires_at: newExpiresAt,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('creator_unique_identifier', creator_unique_identifier)
       }
     }
@@ -233,7 +366,7 @@ serve(async (req) => {
     )
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

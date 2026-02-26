@@ -1,11 +1,10 @@
-'use client'
+
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import { Clock, TrendingUp, Sparkles, Heart, MessageCircle, MoreHorizontal, Eye, Volume2, VolumeX } from 'lucide-react'
-import Image from 'next/image'
 import { formatNumber } from '@/lib/utils'
-import { getVideoStreamUrl } from '@/lib/utils/dropbox-url'
+import { getVideoPlaybackUrl } from '@/lib/utils/video-url'
 import { VideoActions } from '@/components/discover/video-actions'
 
 // Video component with auto-play on scroll
@@ -22,7 +21,7 @@ function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; vi
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            video.play().catch(() => {})
+            video.play().catch(() => { })
             setIsPlaying(true)
           } else {
             video.pause()
@@ -51,7 +50,7 @@ function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; vi
     }
   }
 
-  const streamUrl = getVideoStreamUrl(videoId)
+  const streamUrl = getVideoPlaybackUrl(src)
 
   return (
     <div className="relative w-full group" onClick={(e) => e.stopPropagation()}>
@@ -66,7 +65,7 @@ function AutoPlayVideo({ src, title, videoId }: { src: string; title: string; vi
         onClick={(e) => e.stopPropagation()}
         onMouseEnter={() => {
           if (videoRef.current && !isPlaying) {
-            videoRef.current.play().catch(() => {})
+            videoRef.current.play().catch(() => { })
           }
         }}
         onMouseLeave={() => {
@@ -208,33 +207,30 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
       <div className="flex items-center gap-3 overflow-x-auto pb-2">
         <button
           onClick={() => handleFilterChange('latest')}
-          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-            filter === 'latest'
-              ? 'bg-[#89CFF0] text-black'
-              : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'latest'
+            ? 'bg-[#89CFF0] text-black'
+            : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
         >
           <Clock className="h-4 w-4 inline mr-2" />
           Latest
         </button>
         <button
           onClick={() => handleFilterChange('top')}
-          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-            filter === 'top'
-              ? 'bg-[#89CFF0] text-black'
-              : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'top'
+            ? 'bg-[#89CFF0] text-black'
+            : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
         >
           <TrendingUp className="h-4 w-4 inline mr-2" />
           Top
         </button>
         <button
           onClick={() => handleFilterChange('trending')}
-          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-            filter === 'trending'
-              ? 'bg-[#89CFF0] text-black'
-              : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'trending'
+            ? 'bg-[#89CFF0] text-black'
+            : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
         >
           <Sparkles className="h-4 w-4 inline mr-2" />
           Trending
@@ -252,9 +248,9 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
               {/* Creator Header */}
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <Link href={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
+                  <Link to={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
                     {video.creator.avatar_url ? (
-                      <Image
+                      <img
                         src={video.creator.avatar_url}
                         alt={video.creator.display_name}
                         width={48}
@@ -270,7 +266,7 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                     )}
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <Link href={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
+                    <Link to={`/creator/${video.creator.unique_identifier}`} onClick={(e) => e.stopPropagation()}>
                       <p className="font-semibold text-white hover:text-[#89CFF0] transition-colors">
                         {video.creator.display_name}
                       </p>
@@ -294,15 +290,13 @@ export function VideoFeed({ initialVideos, initialFilter }: VideoFeedProps) {
                     <AutoPlayVideo src={video.video_url} title={video.title} videoId={video.id} />
                   </div>
                 ) : (
-                  <Link href={`/videos/${video.id}`}>
+                  <Link to={`/videos/${video.id}`}>
                     {video.thumbnail_url ? (
-                      <div className="relative w-full aspect-video">
-                        <Image
+                      <div className="relative aspect-video w-full overflow-hidden bg-muted group-hover:opacity-90 transition-opacity">
+                        <img
                           src={video.thumbnail_url}
                           alt={video.title}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 800px"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                     ) : (

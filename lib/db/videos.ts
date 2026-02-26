@@ -1,30 +1,26 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
 
 type Video = Database['public']['Tables']['air_publisher_videos']['Row']
 
 export async function getVideosByCreator(creatorUniqueIdentifier: string): Promise<Video[]> {
-  const supabase = await createClient()
-  
   const { data: videos, error } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .select('*')
     .eq('creator_unique_identifier', creatorUniqueIdentifier)
     .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Error fetching videos by creator:', error)
-      return []
-    }
-    
+    return []
+  }
+
   return videos || []
 }
 
 export async function getAllPostedVideos(limit?: number, offset?: number): Promise<Video[]> {
-  const supabase = await createClient()
-
   let query = (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .select('*')
     .eq('status', 'posted')
     .order('posted_at', { ascending: false })
@@ -39,35 +35,31 @@ export async function getAllPostedVideos(limit?: number, offset?: number): Promi
   const { data: videos, error } = await query
 
   if (error) {
-    console.error('Error fetching posted videos:', error)
-      return []
+    console.error('Error fetching posted videos:', error?.message || error, JSON.stringify(error))
+    return []
   }
-  
+
   return videos || []
 }
 
 export async function getVideoById(videoId: string): Promise<Video | null> {
-  const supabase = await createClient()
-
   const { data: video, error } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .select('*')
     .eq('id', videoId)
     .single()
 
   if (error || !video) {
-      return null
-    }
-    
+    return null
+  }
+
   return video as Video
 }
 
 export async function incrementVideoViews(videoId: string): Promise<Video | null> {
-  const supabase = await createClient()
-
   // First get the current video to check if it exists
   const { data: video, error: fetchError } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .select('*')
     .eq('id', videoId)
     .single()
@@ -77,9 +69,9 @@ export async function incrementVideoViews(videoId: string): Promise<Video | null
   }
 
   // Increment views (if views column exists, otherwise just return the video)
-  const currentViews = (video as any).views || 0
+  const currentViews = (video).views || 0
   const { data: updatedVideo, error: updateError } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .update({ views: currentViews + 1, updated_at: new Date().toISOString() })
     .eq('id', videoId)
     .select()
@@ -94,10 +86,8 @@ export async function incrementVideoViews(videoId: string): Promise<Video | null
 }
 
 export async function getScheduledVideos(creatorUniqueIdentifier?: string): Promise<Video[]> {
-  const supabase = await createClient()
-
   let query = (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .select('*')
     .eq('status', 'scheduled')
     .order('scheduled_at', { ascending: true })
@@ -110,17 +100,15 @@ export async function getScheduledVideos(creatorUniqueIdentifier?: string): Prom
 
   if (error) {
     console.error('Error fetching scheduled videos:', error)
-      return []
+    return []
   }
 
   return videos || []
 }
 
 export async function createVideo(video: any): Promise<Video | null> {
-  const supabase = await createClient()
-  
   const { data, error } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .insert(video)
     .select()
     .single()
@@ -134,10 +122,8 @@ export async function createVideo(video: any): Promise<Video | null> {
 }
 
 export async function updateVideo(videoId: string, updates: any): Promise<Video | null> {
-  const supabase = await createClient()
-
   const { data, error } = await (supabase
-    .from('air_publisher_videos') as any)
+    .from('air_publisher_videos'))
     .update(updates)
     .eq('id', videoId)
     .select()

@@ -1,10 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase/client'
 
 const BUCKET_NAME = 'air-publisher-videos'
 
 export async function uploadVideo(file: File, path: string) {
-  const supabase = await createClient()
-  
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(path, file, {
@@ -23,7 +21,6 @@ export async function uploadVideo(file: File, path: string) {
 }
 
 export async function deleteVideo(path: string) {
-  const supabase = await createClient()
   const { error } = await supabase.storage
     .from(BUCKET_NAME)
     .remove([path])
@@ -34,7 +31,7 @@ export async function deleteVideo(path: string) {
 export function getVideoUrl(path: string) {
   // This would be used to generate signed URLs for private videos
   // For now, returning public URL structure
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${path}`
+  return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${path}`
 }
 
 

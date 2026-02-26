@@ -1,21 +1,14 @@
-'use client'
-
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Youtube, Instagram, Music, Globe, Calendar } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
+import { getPlatformStatuses, type PlatformStatus, type Platform } from '@/lib/db/platform-status'
+import { supabase } from '@/lib/supabase/client'
+import { useModal } from '@/components/providers/modal-provider'
 
 interface ScheduleButtonProps {
   videoId: string
   creatorUniqueIdentifier: string
-}
-
-type Platform = 'internal' | 'youtube' | 'instagram' | 'tiktok'
-
-interface PlatformStatus {
-  platform: Platform
-  connected: boolean
-  tokenExpired?: boolean
 }
 
 export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleButtonProps) {
@@ -28,18 +21,16 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
   const [scheduling, setScheduling] = useState(false)
   const [dateTime, setDateTime] = useState('')
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const router = useRouter()
+  const navigate = useNavigate()
+  const { showConfirm, showToast } = useModal()
 
-  // Check platform token statuses
+  // Check platform token statuses via direct Supabase queries
   useEffect(() => {
     async function checkPlatformStatuses() {
       setLoading(true)
       try {
-        const response = await fetch(`/api/videos/${videoId}/platform-status`)
-        if (response.ok) {
-          const data = await response.json()
-          setPlatformStatuses(data.platforms || [])
-        }
+        const statuses = await getPlatformStatuses(creatorUniqueIdentifier)
+        setPlatformStatuses(statuses)
       } catch (error) {
         console.error('[ScheduleButton] Error checking platform statuses:', error)
       } finally {
@@ -47,7 +38,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       }
     }
     checkPlatformStatuses()
-  }, [videoId])
+  }, [creatorUniqueIdentifier])
 
   // Set default date/time (1 hour from now)
   useEffect(() => {
@@ -65,15 +56,20 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
     return platformStatuses.find(p => p.platform === platform)
   }
 
-  const handlePlatformSelect = (platform: Platform) => {
+  const handlePlatformSelect = async (platform: Platform) => {
     const status = getPlatformStatus(platform)
-    
-    // If not connected or token expired, redirect to OAuth
-    if (!status?.connected || status.tokenExpired) {
+
+    // If not connected, redirect to settings
+    if (!status?.connected) {
       const platformName = platform === 'internal' ? 'Air Publisher' : platform
-      if (confirm(`${platformName} is not connected or your token has expired. Would you like to connect it now?`)) {
-        router.push(`/settings/connections?platform=${platform}&returnTo=/videos`)
-        return
+      const confirmed = await showConfirm({
+        title: 'Platform Not Connected',
+        message: `${platformName} is not connected or your token has expired. Would you like to connect it now?`,
+        confirmLabel: 'Connect Now'
+      })
+
+      if (confirmed) {
+        navigate(`/settings/connections?platform=${platform}&returnTo=/videos`)
       }
       return
     }
@@ -87,14 +83,14 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
     if (!selectedPlatform || !dateTime) return
 
     const scheduledDate = new Date(dateTime)
-    
+
     if (isNaN(scheduledDate.getTime())) {
-      alert('Invalid date/time format')
+      showToast({ message: 'Invalid date/time format', type: 'error' })
       return
     }
 
     if (scheduledDate < new Date()) {
-      alert('Scheduled time must be in the future')
+      showToast({ message: 'Scheduled time must be in the future', type: 'error' })
       return
     }
 
@@ -102,31 +98,28 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
   }
 
   const handlePost = async (videoId: string, platform: Platform, scheduledAt: Date) => {
+    setShowDateTimePicker(false)
+    setSelectedPlatform(null)
     setScheduling(true)
     try {
-      const response = await fetch(`/api/videos/${videoId}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          platform,
-          postType: 'schedule',
-          scheduledAt: scheduledAt.toISOString(),
-        }),
-      })
+      // Scheduling = save future timestamp + platform target to the video record
+      const { error } = await supabase
+        .from('air_publisher_videos')
+        .update({
+          scheduled_at: scheduledAt.toISOString(),
+          platform_target: platform,
+          status: 'scheduled',
+        })
+        .eq('id', videoId)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to schedule video')
+      if (error) {
+        throw new Error(error.message || 'Failed to schedule video')
       }
 
-      alert('Video scheduled successfully!')
-      setShowDateTimePicker(false)
-      setSelectedPlatform(null)
-      router.refresh()
+      showToast({ message: 'Video scheduled successfully!', type: 'success' })
     } catch (error: any) {
       console.error('[ScheduleButton] Schedule error:', error)
-      alert(`Failed to schedule video: ${error.message || 'Unknown error'}`)
+      showToast({ message: `Failed to schedule video: ${error.message || 'Unknown error'}`, type: 'error' })
     } finally {
       setScheduling(false)
     }
@@ -150,42 +143,27 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
   const handleMenuToggle = () => {
     if (!showMenu && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
-      const menuHeight = 200 // Approximate menu height
-      const menuWidth = 256 // w-64 = 256px
+      const menuHeight = 200
+      const menuWidth = 256
       const viewportHeight = window.innerHeight
       const viewportWidth = window.innerWidth
       const spaceBelow = viewportHeight - rect.bottom
       const spaceAbove = rect.top
-      
-      // Calculate position - use viewport coordinates (getBoundingClientRect already gives viewport-relative)
+
       let top = rect.bottom + 8
       let left = rect.left
-      
-      // If not enough space below, show above the button
+
       if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
         top = rect.top - menuHeight - 8
       }
-      
-      // Ensure menu doesn't go off-screen horizontally
       if (left + menuWidth > viewportWidth) {
         left = viewportWidth - menuWidth - 8
       }
-      if (left < 8) {
-        left = 8
-      }
-      
-      // Ensure menu doesn't go off-screen vertically
-      if (top + menuHeight > viewportHeight) {
-        top = viewportHeight - menuHeight - 8
-      }
-      if (top < 8) {
-        top = 8
-      }
-      
-      setMenuPosition({
-        top,
-        left,
-      })
+      if (left < 8) left = 8
+      if (top + menuHeight > viewportHeight) top = viewportHeight - menuHeight - 8
+      if (top < 8) top = 8
+
+      setMenuPosition({ top, left })
     }
     setShowMenu(!showMenu)
   }
@@ -210,9 +188,9 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             className="fixed inset-0 z-[999998] bg-black/20"
             onClick={() => setShowMenu(false)}
           />
-          
-          {/* Menu - Fixed positioning to hover over page */}
-          <div 
+
+          {/* Menu */}
+          <div
             className="fixed w-64 bg-black border border-white/20 rounded-lg shadow-2xl z-[999999] p-2 pointer-events-auto"
             style={{
               top: `${menuPosition.top}px`,
@@ -223,43 +201,43 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-              <div className="space-y-1">
-                {platforms.map(({ platform, name, icon }) => {
-                  const status = getPlatformStatus(platform)
-                  const isConnected = status?.connected && !status?.tokenExpired
-                  
-                  return (
-                    <button
-                      key={platform}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-white/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        e.preventDefault()
-                        handlePlatformSelect(platform)
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation()
-                      }}
-                      disabled={!isConnected || scheduling}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          {icon}
-                          <span className="text-sm font-medium text-white">{name}</span>
-                        </div>
-                        {isConnected ? (
-                          <span className="text-xs text-green-400">✓</span>
-                        ) : (
-                          <span className="text-xs text-red-400">✗</span>
-                        )}
+            <div className="space-y-1">
+              {platforms.map(({ platform, name, icon }) => {
+                const status = getPlatformStatus(platform)
+                const isConnected = status?.connected ?? false
+
+                return (
+                  <button
+                    key={platform}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-white/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handlePlatformSelect(platform)
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                    }}
+                    disabled={!isConnected || scheduling}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        {icon}
+                        <span className="text-sm font-medium text-white">{name}</span>
                       </div>
-                    </button>
-                  )
-                })}
-              </div>
+                      {isConnected ? (
+                        <span className="text-xs text-green-400">✓</span>
+                      ) : (
+                        <span className="text-xs text-red-400">✗</span>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
             </div>
-          </>
-        )}
+          </div>
+        </>
+      )}
 
       {/* Date/Time Picker Modal */}
       {showDateTimePicker && selectedPlatform && (
@@ -272,7 +250,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
             }}
           />
           <div className="fixed inset-0 flex items-center justify-center z-[999999] pointer-events-none">
-            <div 
+            <div
               className="bg-black border border-white/20 rounded-lg shadow-xl p-6 w-full max-w-md mx-4 pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
@@ -280,7 +258,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
               <h3 className="text-lg font-semibold mb-4 text-white">
                 Schedule for {platforms.find(p => p.platform === selectedPlatform)?.name}
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-white">
@@ -322,4 +300,3 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
     </>
   )
 }
-

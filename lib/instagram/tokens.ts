@@ -12,7 +12,7 @@ async function refreshInstagramToken(
 ): Promise<{ access_token: string; expires_in: number } | null> {
   try {
     console.log('[refreshInstagramToken] Refreshing Instagram token')
-    
+
     // Instagram/Facebook long-lived tokens can be refreshed using the Graph API
     // See: https://developers.facebook.com/docs/instagram-basic-display-api/guides/long-lived-access-tokens
     const response = await fetch(
@@ -29,7 +29,7 @@ async function refreshInstagramToken(
     if (!response.ok) {
       const error = await response.text()
       console.error('[refreshInstagramToken] Token refresh failed:', error)
-      
+
       // Check if refresh token is invalid/expired
       try {
         const errorJson = JSON.parse(error)
@@ -37,24 +37,25 @@ async function refreshInstagramToken(
           console.error('[refreshInstagramToken] Refresh token is expired or invalid')
           // Mark refresh token as expired in database
           const serviceClient = createServiceClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
+            import.meta.env.VITE_SUPABASE_URL,
+            import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
           )
-          
-          await (serviceClient
-            .from('airpublisher_instagram_tokens') as any)
-            .update({ 
-              updated_at: new Date().toISOString(),
-            })
-            .eq('creator_unique_identifier', creatorUniqueIdentifier)
-            .catch(() => {
-              // Ignore update errors
-            })
+
+          try {
+            await serviceClient
+              .from('instagram_tokens')
+              .update({
+                updated_at: new Date().toISOString(),
+              })
+              .eq('creator_unique_identifier', creatorUniqueIdentifier)
+          } catch {
+            // Ignore update errors
+          }
         }
       } catch {
         // Error response is not JSON, continue
       }
-      
+
       return null
     }
 
@@ -82,8 +83,21 @@ export async function getValidInstagramAccessToken(
   creatorUniqueIdentifier: string
 ): Promise<string | null> {
   try {
-    const accessToken = tokens.facebook_access_token || tokens.instagram_access_token || tokens.access_token
+    const serviceClient = createServiceClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+    )
+
+    let accessToken = tokens.facebook_access_token || tokens.instagram_access_token || tokens.access_token
     const expiresAt = tokens.expires_at
+
+    // Decrypt Vault token if needed
+    if (!accessToken && tokens.access_token_secret_id) {
+      const { data: decAccess } = await serviceClient.rpc('get_decrypted_secret', {
+        p_secret_id: tokens.access_token_secret_id
+      })
+      if (decAccess) accessToken = decAccess
+    }
 
     if (!accessToken) {
       console.warn('[getValidInstagramAccessToken] Missing access token')
@@ -99,9 +113,9 @@ export async function getValidInstagramAccessToken(
     // If no expires_at or token is expired/expiring soon, refresh it
     if (!expiresAtDate || expiresAtDate <= sevenDaysFromNow) {
       console.log('[getValidInstagramAccessToken] Access token expired or expiring soon, refreshing...')
-      
-      const appId = process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID || ''
-      const appSecret = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET || ''
+
+      const appId = import.meta.env.VITE_INSTAGRAM_APP_ID || import.meta.env.INSTAGRAM_APP_ID || import.meta.env.META_APP_ID || ''
+      const appSecret = import.meta.env.VITE_INSTAGRAM_APP_SECRET || import.meta.env.INSTAGRAM_APP_SECRET || import.meta.env.META_APP_SECRET || ''
 
       if (!appId || !appSecret) {
         console.error('[getValidInstagramAccessToken] Missing Instagram App ID or Secret')
@@ -109,50 +123,56 @@ export async function getValidInstagramAccessToken(
       }
 
       const refreshResult = await refreshInstagramToken(accessToken, appId, appSecret, creatorUniqueIdentifier)
-      
+
       if (!refreshResult) {
         console.error('[getValidInstagramAccessToken] Failed to refresh token')
         // Return existing token as fallback (might still work)
         return accessToken
       }
 
-      // Update database with new token
-      const serviceClient = createServiceClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
-
       const newExpiresAt = new Date(now.getTime() + refreshResult.expires_in * 1000).toISOString()
+      const updateData: any = {
+        expires_at: newExpiresAt,
+        updated_at: new Date().toISOString(),
+      }
 
-      // Try new table first
-      const newTokenTable = 'airpublisher_instagram_tokens'
-      const { error: updateError } = await (serviceClient
-        .from(newTokenTable) as any)
-        .update({
-          facebook_access_token: refreshResult.access_token,
-          instagram_access_token: refreshResult.access_token,
-          access_token: refreshResult.access_token,
-          expires_at: newExpiresAt,
-          updated_at: new Date().toISOString(),
+      // Encrypt new token before saving
+      let hasNewSecret = false
+      if (tokens.access_token_secret_id) {
+        const { data: updated } = await serviceClient.rpc('update_vault_secret', {
+          p_secret_id: tokens.access_token_secret_id,
+          p_new_secret: refreshResult.access_token
         })
+        if (updated) hasNewSecret = true
+      } else if (tokens.user_id) {
+        const { data: secretId } = await serviceClient.rpc('create_vault_secret', {
+          p_secret: refreshResult.access_token,
+          p_name: `instagram_access_${tokens.user_id}`
+        })
+        if (secretId) {
+          updateData.access_token_secret_id = secretId
+          hasNewSecret = true
+        }
+      }
+
+      if (hasNewSecret) {
+        updateData.access_token = null
+        updateData.instagram_access_token = null
+        updateData.facebook_access_token = null
+      } else {
+        updateData.access_token = refreshResult.access_token
+        updateData.instagram_access_token = refreshResult.access_token
+        updateData.facebook_access_token = refreshResult.access_token
+      }
+
+      // Update the base table
+      const { error: updateError } = await serviceClient
+        .from('instagram_tokens')
+        .update(updateData)
         .eq('creator_unique_identifier', creatorUniqueIdentifier)
 
-      // If new table update failed, try old table
       if (updateError) {
-        const oldTokenTable = 'instagram_tokens'
-        const { error: oldUpdateError } = await (serviceClient
-          .from(oldTokenTable) as any)
-          .update({
-            access_token: refreshResult.access_token,
-            instagram_access_token: refreshResult.access_token,
-            expires_at: newExpiresAt,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('creator_unique_identifier', creatorUniqueIdentifier)
-
-        if (oldUpdateError) {
-          console.error('[getValidInstagramAccessToken] Failed to update token in database:', oldUpdateError)
-        }
+        console.error('[getValidInstagramAccessToken] Failed to update token in database:', updateError)
       }
 
       console.log('[getValidInstagramAccessToken] ✅ Successfully refreshed and updated token')

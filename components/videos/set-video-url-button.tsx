@@ -1,9 +1,9 @@
-'use client'
+
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { useModal } from '@/components/providers/modal-provider'
 
 interface SetVideoUrlButtonProps {
   videoId: string
@@ -12,7 +12,7 @@ interface SetVideoUrlButtonProps {
 export function SetVideoUrlButton({ videoId }: SetVideoUrlButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const { showToast } = useModal()
 
   const handleSetUrl = async () => {
     setLoading(true)
@@ -32,12 +32,11 @@ export function SetVideoUrlButton({ videoId }: SetVideoUrlButtonProps) {
 
       const result = await response.json()
       console.log('[SetVideoUrlButton] ✅ Video URL set:', result.video_url)
-      alert(`Video URL set successfully!\n\n${result.video_url}`)
-      router.refresh() // Refresh to show the video preview
+      showToast({ message: `Video URL set successfully!\n\n${result.video_url}`, type: 'success' })
     } catch (err: any) {
       console.error('[SetVideoUrlButton] Error:', err)
       setError(err.message || 'Failed to set video URL')
-      alert(`Failed to set video URL:\n${err.message || 'Unknown error'}`)
+      showToast({ message: `Failed to set video URL:\n${err.message || 'Unknown error'}`, type: 'error' })
     } finally {
       setLoading(false)
     }

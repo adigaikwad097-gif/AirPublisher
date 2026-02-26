@@ -1,46 +1,23 @@
-'use client'
-
-import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useAuth } from '@/lib/auth/AuthContext'
 
 export function SignOutButton() {
-  const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
+    const { clearSession } = useAuth()
 
-  const handleSignOut = async () => {
-    setLoading(true)
-    const supabase = createClient()
-    
-    // Clear the creator profile cookie before signing out
-    try {
-      await fetch('/api/auth/clear-profile-cookie', { method: 'POST' })
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('creator_unique_identifier')
-      }
-    } catch (e) {
-      console.warn('Could not clear creator profile cookie:', e)
+    const handleSignOut = () => {
+        clearSession()
+        navigate('/')
     }
-    
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
 
-  return (
-    <Button
-      variant="outline"
-      onClick={handleSignOut}
-      disabled={loading}
-      className="flex items-center gap-2"
-    >
-      <LogOut className="h-4 w-4" />
-      {loading ? 'Signing out...' : 'Sign Out'}
-    </Button>
-  )
+    return (
+        <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors w-full px-3 py-2 text-sm"
+        >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+        </button>
+    )
 }
-
-
-
-
-
-

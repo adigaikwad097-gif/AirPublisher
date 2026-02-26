@@ -1,14 +1,14 @@
-'use client'
+
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import Image from 'next/image'
+import { Link, useLocation } from 'react-router-dom'
 import { X, LayoutDashboard, Upload, Calendar, Trophy, Settings, Video, Compass, LogOut, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 import { safeLocalStorage } from '@/lib/utils/safe-storage'
+import { getCurrentCreator } from '@/lib/db/creator'
+import { getCreatorId, clearCreatorSession } from '@/lib/auth/session'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -27,30 +27,33 @@ interface SlideInMenuProps {
 }
 
 export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
-  const pathname = usePathname()
+  const { pathname } = useLocation()
   const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null)
 
   useEffect(() => {
-    if (isOpen) {
-      // Fetch profile when menu opens
-      fetch('/api/profile/me')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.profile) {
-            setProfile({
-              display_name: data.profile.handles || data.profile.display_name || 'User',
-              avatar_url: data.profile.profile_pic_url || data.profile.avatar_url || null,
-            })
-          }
-        })
-        .catch(err => {
-          console.error('Failed to fetch profile:', err)
-        })
+    async function fetchProfile() {
+      if (!isOpen) return
+
+      try {
+        const profileId = getCreatorId()
+        if (!profileId) return
+
+        const currentCreator = await getCurrentCreator(profileId)
+        if (currentCreator) {
+          setProfile({
+            display_name: currentCreator.display_name || 'User',
+            avatar_url: currentCreator.avatar_url || null,
+          })
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err)
+      }
     }
+
+    fetchProfile()
   }, [isOpen])
 
   const handleSignOut = async () => {
-    const supabase = createClient()
 
     // Clear the creator profile cookie before signing out
     try {
@@ -87,23 +90,21 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
         <div className="flex items-center justify-between h-20 border-b border-white/10 px-6">
           <div className="flex items-center gap-3">
             {profile?.avatar_url ? (
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20">
-                <Image
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/20 shrink-0">
+                <img
                   src={profile.avatar_url}
                   alt={profile.display_name || 'User'}
-                  width={40}
-                  height={40}
                   className="w-full h-full object-cover"
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 bg-[#89CFF0]/20 rounded-full flex items-center justify-center border-2 border-[#89CFF0]/30">
-                <span className="text-[#89CFF0] font-black text-xl">
+              <div className="w-12 h-12 bg-[#89CFF0]/20 rounded-full flex items-center justify-center border border-[#89CFF0]/30 shrink-0">
+                <span className="text-[#89CFF0] font-semibold text-xl">
                   {profile?.display_name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
             )}
-            <h1 className="text-lg font-semibold text-white tracking-tight truncate max-w-[180px]">
+            <h1 className="text-2xl font-bold text-white tracking-tight truncate max-w-[170px]">
               {profile?.display_name || 'Loading...'}
             </h1>
           </div>
@@ -122,16 +123,16 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 onClick={onClose}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
+                  'flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium transition-all',
                   isActive
                     ? 'bg-white/10 text-[#89CFF0] border-l-2 border-[#89CFF0]'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-5 w-5" />
                 {item.name}
               </Link>
             )
@@ -142,10 +143,10 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
         <div className="border-t border-white/10 p-4">
           <Button
             variant="ghost"
-            className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5"
+            className="w-full justify-start text-white/60 hover:text-white hover:bg-white/5 text-base font-medium"
             onClick={handleSignOut}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-5 w-5" />
             Sign Out
           </Button>
         </div>

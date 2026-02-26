@@ -54,13 +54,22 @@ export interface Database {
       }
       creator_profiles: {
         Row: {
-          id: string
+          id: number
           unique_identifier: string
           user_id: string | null
-          display_name: string | null
-          niche: string | null
-          avatar_url: string | null
+          handles: string | null
+          character_skill: string | null
+          heygen_avatar_id: string | null
+          heygen_video_db_url: string | null
+          heygen_thumbnail_db_url: string | null
+          'heygen _audio_id': string | null
+          Niche: string | null
+          audio_url: string | null
           profile_pic_url: string | null
+          platform: string | null
+          niche_id: number | null
+          'primary sub niche id': number | null
+          'secondary sub niche id': number | null
           created_at: string
           updated_at: string
         }

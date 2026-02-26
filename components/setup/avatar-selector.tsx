@@ -1,9 +1,9 @@
-'use client'
+
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, X, Check } from 'lucide-react'
-import Image from 'next/image'
+
 
 interface AvatarSelectorProps {
   value: string
@@ -96,11 +96,10 @@ export function AvatarSelector({ value, onChange }: AvatarSelectorProps) {
       {value && (
         <div className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg">
           <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/50 bg-background">
-            <Image
+            <img
               src={value}
               alt="Selected avatar"
-              fill
-              className="object-cover"
+              className="object-cover w-full h-full"
               onError={(e) => {
                 console.error('Failed to load avatar image:', value)
               }}
@@ -181,17 +180,15 @@ export function AvatarSelector({ value, onChange }: AvatarSelectorProps) {
                 key={index}
                 type="button"
                 onClick={() => handlePresetSelect(url)}
-                className={`relative w-16 h-16 rounded-full overflow-hidden border-2 transition-all hover:scale-110 bg-background ${
-                  isSelected
-                    ? 'border-primary ring-2 ring-primary/50'
-                    : 'border-border hover:border-primary/50'
-                }`}
+                className={`relative w-16 h-16 rounded-full overflow-hidden border-2 transition-all hover:scale-110 bg-background ${isSelected
+                  ? 'border-primary ring-2 ring-primary/50'
+                  : 'border-border hover:border-primary/50'
+                  }`}
               >
-                <Image
+                <img
                   src={url}
                   alt={`Preset avatar ${index + 1}`}
-                  fill
-                  className="object-cover"
+                  className="object-cover w-full h-full"
                 />
                 {isSelected && (
                   <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">

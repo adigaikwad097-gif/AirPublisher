@@ -1,21 +1,14 @@
-'use client'
-
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Youtube, Instagram, Music, Globe, Clock } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
+import { getPlatformStatuses, type PlatformStatus, type Platform } from '@/lib/db/platform-status'
+import { supabase } from '@/lib/supabase/client'
+import { useModal } from '@/components/providers/modal-provider'
 
 interface PostNowButtonProps {
   videoId: string
   creatorUniqueIdentifier: string
-}
-
-type Platform = 'internal' | 'youtube' | 'instagram' | 'tiktok'
-
-interface PlatformStatus {
-  platform: Platform
-  connected: boolean
-  tokenExpired?: boolean
 }
 
 export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButtonProps) {
@@ -25,18 +18,16 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const router = useRouter()
+  const navigate = useNavigate()
+  const { showConfirm, showToast } = useModal()
 
-  // Check platform token statuses
+  // Check platform token statuses via direct Supabase queries
   useEffect(() => {
     async function checkPlatformStatuses() {
       setLoading(true)
       try {
-        const response = await fetch(`/api/videos/${videoId}/platform-status`)
-        if (response.ok) {
-          const data = await response.json()
-          setPlatformStatuses(data.platforms || [])
-        }
+        const statuses = await getPlatformStatuses(creatorUniqueIdentifier)
+        setPlatformStatuses(statuses)
       } catch (error) {
         console.error('[PostNowButton] Error checking platform statuses:', error)
       } finally {
@@ -44,7 +35,7 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
       }
     }
     checkPlatformStatuses()
-  }, [videoId])
+  }, [creatorUniqueIdentifier])
 
   const getPlatformStatus = (platform: Platform): PlatformStatus | undefined => {
     return platformStatuses.find(p => p.platform === platform)
@@ -52,19 +43,30 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
 
   const handlePlatformSelect = async (platform: Platform) => {
     const status = getPlatformStatus(platform)
-    
-    // If not connected or token expired, redirect to OAuth
-    if (!status?.connected || status.tokenExpired) {
-      const platformName = platform === 'internal' ? 'Air Publisher' : platform
-      if (confirm(`${platformName} is not connected or your token has expired. Would you like to connect it now?`)) {
-        router.push(`/settings/connections?platform=${platform}&returnTo=/videos`)
-        return
+    const platformName = platform === 'internal' ? 'Air Publisher' : platform
+
+    // If not connected, redirect to settings
+    if (!status?.connected) {
+      const confirmed = await showConfirm({
+        title: 'Platform Not Connected',
+        message: `${platformName} is not connected or your token has expired. Would you like to connect it now?`,
+        confirmLabel: 'Connect Now'
+      })
+
+      if (confirmed) {
+        navigate(`/settings/connections?platform=${platform}&returnTo=/videos`)
       }
       return
     }
 
-    // Post now
-    if (!confirm(`Post this video to ${platform === 'internal' ? 'Air Publisher' : platform} now?`)) {
+    // Post now confirmation
+    const confirmed = await showConfirm({
+      title: 'Post Video Now',
+      message: `Are you sure you want to post this video to ${platformName} immediately?`,
+      confirmLabel: 'Post Now'
+    })
+
+    if (!confirmed) {
       return
     }
 
@@ -72,31 +74,32 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
   }
 
   const handlePost = async (videoId: string, platform: Platform) => {
+    setShowMenu(false)
     setPosting(true)
     try {
-      const response = await fetch(`/api/videos/${videoId}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Call the existing instant-posting Edge Function via supabase.functions.invoke()
+      const { data, error } = await supabase.functions.invoke('instant-posting', {
+        body: {
+          video_id: videoId,
+          creator_unique_identifier: creatorUniqueIdentifier,
           platform,
-          postType: 'now',
-        }),
+        },
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to post video')
+      if (error) {
+        throw new Error(error.message || 'Failed to post video')
       }
 
-      alert('Video posted successfully!')
-      router.refresh()
+      if (data?.error) {
+        throw new Error(data.error)
+      }
+
+      showToast({ message: 'Video posted successfully!', type: 'success' })
     } catch (error: any) {
       console.error('[PostNowButton] Post error:', error)
-      alert(`Failed to post video: ${error.message || 'Unknown error'}`)
+      showToast({ message: `Failed to post video: ${error.message || 'Unknown error'}`, type: 'error' })
     } finally {
       setPosting(false)
-      setShowMenu(false)
     }
   }
 
@@ -118,43 +121,27 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
   const handleMenuToggle = () => {
     if (!showMenu && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
-      const menuHeight = 200 // Approximate menu height
-      const menuWidth = 256 // w-64 = 256px
+      const menuHeight = 200
+      const menuWidth = 256
       const viewportHeight = window.innerHeight
       const viewportWidth = window.innerWidth
       const spaceBelow = viewportHeight - rect.bottom
       const spaceAbove = rect.top
-      const spaceRight = viewportWidth - rect.right
-      
-      // Calculate position - use viewport coordinates (getBoundingClientRect already gives viewport-relative)
+
       let top = rect.bottom + 8
       let left = rect.left
-      
-      // If not enough space below, show above the button
+
       if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
         top = rect.top - menuHeight - 8
       }
-      
-      // Ensure menu doesn't go off-screen horizontally
       if (left + menuWidth > viewportWidth) {
         left = viewportWidth - menuWidth - 8
       }
-      if (left < 8) {
-        left = 8
-      }
-      
-      // Ensure menu doesn't go off-screen vertically
-      if (top + menuHeight > viewportHeight) {
-        top = viewportHeight - menuHeight - 8
-      }
-      if (top < 8) {
-        top = 8
-      }
-      
-      setMenuPosition({
-        top,
-        left,
-      })
+      if (left < 8) left = 8
+      if (top + menuHeight > viewportHeight) top = viewportHeight - menuHeight - 8
+      if (top < 8) top = 8
+
+      setMenuPosition({ top, left })
     }
     setShowMenu(!showMenu)
   }
@@ -179,9 +166,9 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
             className="fixed inset-0 z-[999998] bg-black/20"
             onClick={() => setShowMenu(false)}
           />
-          
-          {/* Menu - Fixed positioning to hover over page */}
-          <div 
+
+          {/* Menu */}
+          <div
             className="fixed w-64 bg-black border border-white/20 rounded-lg shadow-2xl z-[999999] p-2 pointer-events-auto"
             style={{
               top: `${menuPosition.top}px`,
@@ -195,8 +182,8 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
             <div className="space-y-1">
               {platforms.map(({ platform, name, icon }) => {
                 const status = getPlatformStatus(platform)
-                const isConnected = status?.connected && !status?.tokenExpired
-                
+                const isConnected = status?.connected ?? false
+
                 return (
                   <button
                     key={platform}
@@ -232,4 +219,3 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
     </>
   )
 }
-

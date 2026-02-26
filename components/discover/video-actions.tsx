@@ -1,10 +1,11 @@
-'use client'
+
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, Send } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
+import { useModal } from '@/components/providers/modal-provider'
 
 interface VideoActionsProps {
   videoId: string
@@ -14,7 +15,7 @@ interface VideoActionsProps {
 }
 
 export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = false, onCommentAdded }: VideoActionsProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [liked, setLiked] = useState(initialLiked)
   const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [showComments, setShowComments] = useState(false)
@@ -23,6 +24,7 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
   const [loadingComments, setLoadingComments] = useState(false)
   const [postingComment, setPostingComment] = useState(false)
   const [togglingLike, setTogglingLike] = useState(false)
+  const { showToast } = useModal()
 
   // Fetch like status on mount
   useEffect(() => {
@@ -41,24 +43,24 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
 
   const handleLike = async () => {
     if (togglingLike) return
-    
+
     setTogglingLike(true)
     try {
       const response = await fetch(`/api/videos/${videoId}/like`, {
         method: 'POST',
       })
       const data = await response.json()
-      
+
       if (data.error) {
-        alert(data.error)
+        showToast({ message: data.error, type: 'error' })
         return
       }
-      
+
       setLiked(data.liked)
       setLikeCount(data.likeCount)
     } catch (error) {
       console.error('Error toggling like:', error)
-      alert('Failed to like video. Please try again.')
+      showToast({ message: 'Failed to like video. Please try again.', type: 'error' })
     } finally {
       setTogglingLike(false)
     }
@@ -66,12 +68,12 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
 
   const loadComments = async () => {
     if (loadingComments) return
-    
+
     setLoadingComments(true)
     try {
       const response = await fetch(`/api/videos/${videoId}/comments`)
       const data = await response.json()
-      
+
       if (data.comments) {
         setComments(data.comments)
       }
@@ -84,9 +86,9 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!commentText.trim() || postingComment) return
-    
+
     setPostingComment(true)
     try {
       const response = await fetch(`/api/videos/${videoId}/comments`, {
@@ -96,14 +98,14 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
         },
         body: JSON.stringify({ comment_text: commentText }),
       })
-      
+
       const data = await response.json()
-      
+
       if (data.error) {
-        alert(data.error)
+        showToast({ message: data.error, type: 'error' })
         return
       }
-      
+
       if (data.comment) {
         setComments([data.comment, ...comments])
         setCommentText('')
@@ -111,7 +113,7 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
       }
     } catch (error) {
       console.error('Error posting comment:', error)
-      alert('Failed to post comment. Please try again.')
+      showToast({ message: 'Failed to post comment. Please try again.', type: 'error' })
     } finally {
       setPostingComment(false)
     }
@@ -121,7 +123,7 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
     e.preventDefault()
     e.stopPropagation()
     // Navigate to video page when clicking comment icon
-    router.push(`/videos/${videoId}`)
+    navigate(`/videos/${videoId}`)
   }
 
   const toggleComments = () => {
@@ -147,7 +149,7 @@ export function VideoActions({ videoId, initialLikeCount = 0, initialLiked = fal
           />
           <span>{formatNumber(likeCount)}</span>
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"

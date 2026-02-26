@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
 
 type LeaderboardEntry = Database['public']['Tables']['air_leaderboards']['Row']
@@ -8,7 +8,6 @@ export async function getLeaderboard(
   period: 'daily' | 'weekly' | 'all_time',
   limit: number = 100
 ) {
-  const supabase = await createClient()
   const { data, error } = await supabase
     .from('air_leaderboards')
     .select('*')
@@ -17,7 +16,7 @@ export async function getLeaderboard(
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching leaderboard:', error)
+    console.error('Error fetching leaderboard:', error?.message || error, JSON.stringify(error))
     return []
   }
 
@@ -31,7 +30,7 @@ export async function getLeaderboard(
     .from('creator_profiles')
     .select('unique_identifier, handles, profile_pic_url, Niche')
     .in('unique_identifier', creatorIds)
-  
+
   if (profileError) {
     console.error('Error fetching creator profiles:', profileError)
   }
@@ -67,7 +66,6 @@ export async function getCreatorRank(
   creatorUniqueIdentifier: string,
   period: 'daily' | 'weekly' | 'all_time'
 ) {
-  const supabase = await createClient()
   const { data, error } = await supabase
     .from('air_leaderboards')
     .select('*')
@@ -84,8 +82,6 @@ export async function getLeaderboardByNiche(
   period: 'daily' | 'weekly' | 'all_time',
   limit: number = 50
 ) {
-  const supabase = await createClient()
-  
   // First get creators in this niche
   // Note: Your table uses 'Niche' (capitalized)
   const { data: creators } = await supabase
@@ -122,7 +118,7 @@ export async function getLeaderboardByNiche(
     .from('creator_profiles')
     .select('unique_identifier, handles, profile_pic_url, Niche')
     .in('unique_identifier', creatorIds)
-  
+
   if (profileError) {
     console.error('Error fetching creator profiles:', profileError)
   }
