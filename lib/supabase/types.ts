@@ -31,6 +31,7 @@ export interface Database {
           views?: number
           likes?: number
           comments?: number
+          error_message: string | null
         }
         Insert: Omit<Database['public']['Tables']['air_publisher_videos']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['air_publisher_videos']['Insert']>
@@ -150,7 +151,26 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_leaderboard: {
+        Args: {
+          p_period?: string
+          p_niche?: string
+          p_sort_by?: string
+          p_limit?: number
+        }
+        Returns: {
+          creator_unique_identifier: string
+          display_name: string | null
+          avatar_url: string | null
+          niche: string | null
+          total_views: number
+          total_likes: number
+          total_comments: number
+          estimated_revenue: number
+          score: number
+          rank: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

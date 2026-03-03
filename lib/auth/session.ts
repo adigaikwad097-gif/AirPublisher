@@ -11,6 +11,17 @@
 const COOKIE_NAME = 'air_creator_id'
 const STORAGE_KEY = 'air_creator_id'
 
+// Known platform prefixes for unique identifiers
+const PLATFORM_PREFIXES = ['yt_', 'fb_', 'igg_', 'igb_', 'tt_']
+
+/**
+ * Validates that an ID has a known platform prefix.
+ * Prevents storing Supabase auth UUIDs as creator IDs.
+ */
+export function isValidUniqueIdentifier(id: string): boolean {
+    return PLATFORM_PREFIXES.some(prefix => id.startsWith(prefix))
+}
+
 // Module-level variable — AuthContext syncs this on every state change
 let _currentCreatorId: string | null = null
 

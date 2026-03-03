@@ -1,28 +1,32 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { KPICard } from '@/components/dashboard/kpi-card'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
     Upload,
+    Eye,
+    Heart,
+    MessageCircle,
     Video,
+    Clock,
+    CheckCircle2,
+    Youtube,
+    Instagram,
+    Facebook,
     ArrowRight,
-    MoreVertical,
-    BarChart3,
+    Calendar,
+    Link2,
 } from 'lucide-react'
 import { getCurrentCreator } from '@/lib/db/creator'
 import { getVideosByCreator } from '@/lib/db/videos'
-import { getCreatorRank } from '@/lib/db/leaderboard'
-import { formatNumber } from '@/lib/utils'
+import { getPlatformStatuses, type PlatformStatus } from '@/lib/db/platform-status'
 import { getCreatorId } from '@/lib/auth/session'
 
 export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [creator, setCreator] = useState<any>(null)
     const [videos, setVideos] = useState<any[]>([])
-    const [allTimeRank, setAllTimeRank] = useState<any>(null)
-    const [weeklyRank, setWeeklyRank] = useState<any>(null)
+    const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
 
     useEffect(() => {
         async function fetchData() {
@@ -39,15 +43,13 @@ export default function DashboardPage() {
                 setCreator(currentCreator)
 
                 if (currentCreator) {
-                    const [fetchedVideos, fetchedAllTimeRank, fetchedWeeklyRank] = await Promise.all([
+                    const [fetchedVideos, fetchedStatuses] = await Promise.all([
                         getVideosByCreator(currentCreator.unique_identifier),
-                        getCreatorRank(currentCreator.unique_identifier, 'all_time'),
-                        getCreatorRank(currentCreator.unique_identifier, 'weekly')
+                        getPlatformStatuses(currentCreator.unique_identifier),
                     ])
 
                     setVideos(fetchedVideos)
-                    setAllTimeRank(fetchedAllTimeRank)
-                    setWeeklyRank(fetchedWeeklyRank)
+                    setPlatformStatuses(fetchedStatuses)
                 }
             } catch (err) {
                 console.error('Error fetching dashboard data:', err)
@@ -71,59 +73,69 @@ export default function DashboardPage() {
             <div className="space-y-8">
                 <div>
                     <h1 className="text-3xl font-bold mb-2 text-white tracking-tight">Dashboard</h1>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-white/60 text-lg">
                         Welcome! Please complete your creator profile to get started.
                     </p>
                 </div>
-                <Card className="border-white/10 bg-white/5">
-                    <CardContent className="pt-6">
-                        <div className="text-center py-8">
-                            <p className="text-lg font-semibold mb-4 text-white/90">
-                                Complete your creator profile to start publishing and competing on leaderboards.
-                            </p>
-                            <Link to="/setup">
-                                <Button size="lg" className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
-                                    Set Up Profile
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="p-6 rounded-xl bg-white/5 border border-white/10">
+                    <div className="text-center py-8">
+                        <p className="text-2xl font-semibold mb-4 text-white/90">
+                            Complete your creator profile to start publishing.
+                        </p>
+                        <Link to="/setup">
+                            <Button size="lg" className="bg-primary text-background hover:bg-primary-dark">
+                                Set Up Profile
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
             </div>
         )
     }
 
-    // Calculate KPIs
-    const totalViews = videos
-        .filter((v) => v.status === 'posted')
-        .reduce((sum, v) => sum + (v.views || 0), 0)
-    const totalLikes = videos
-        .filter((v) => v.status === 'posted')
-        .reduce((sum, v) => sum + (v.likes || 0), 0)
-    const totalComments = videos
-        .filter((v) => v.status === 'posted')
-        .reduce((sum, v) => sum + (v.comments || 0), 0)
-    const estimatedRevenue = allTimeRank?.estimated_revenue || 0
-
+    // Calculate real KPIs
+    const postedVideos = videos.filter((v) => v.status === 'posted')
+    const totalViews = postedVideos.reduce((sum, v) => sum + (v.views || 0), 0)
+    const totalLikes = postedVideos.reduce((sum, v) => sum + (v.likes || 0), 0)
+    const totalComments = postedVideos.reduce((sum, v) => sum + (v.comments || 0), 0)
     const scheduledCount = videos.filter((v) => v.status === 'scheduled').length
-    const draftCount = videos.filter((v) => v.status === 'draft').length
-    const postedCount = videos.filter((v) => v.status === 'posted').length
+    const postedCount = postedVideos.length
+    const totalVideos = postedCount + scheduledCount
 
-    const recentVideos = videos.slice(0, 4)
+    // Platform distribution for posted videos
+    const platformCounts: Record<string, number> = {}
+    postedVideos.forEach((v) => {
+        const platform = v.platform_target || 'unknown'
+        platformCounts[platform] = (platformCounts[platform] || 0) + 1
+    })
+    const maxPlatformCount = Math.max(...Object.values(platformCounts), 1)
+
+    const platformConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+        youtube: { label: 'YouTube', color: '#FF0000', icon: <Youtube className="h-4 w-4" /> },
+        instagram: { label: 'Instagram', color: '#E1306C', icon: <Instagram className="h-4 w-4" /> },
+        facebook: { label: 'Facebook', color: '#1877F2', icon: <Facebook className="h-4 w-4" /> },
+    }
+
+    // Recent videos for timeline (last 5)
+    const timelineVideos = videos.slice(0, 5)
+
+    // Connected platforms
+    const getPlatformStatus = (platform: string) =>
+        platformStatuses.find((p) => p.platform === platform)
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold mb-1 text-white tracking-tight">Dashboard</h1>
-                    <p className="text-white/50 text-xs uppercase tracking-wider font-medium">
-                        Welcome back, {creator.display_name || 'Creator'}
+                    <h1 className="text-4xl font-bold text-white tracking-tight">Dashboard</h1>
+                    <p className="text-lg text-white/50 mt-3">
+                        Welcome back, {creator.display_name || creator.handles || 'Creator'}
                     </p>
                 </div>
                 <div className="flex gap-3">
                     <Link to="/upload">
-                        <Button className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
+                        <Button>
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Content
                         </Button>
@@ -131,115 +143,198 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Total Views</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{formatNumber(totalViews)}</p>
+            {/* Key Metrics — 6 cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Eye className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Total Views</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{totalViews.toLocaleString()}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Total Likes</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{formatNumber(totalLikes)}</p>
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Heart className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Total Likes</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{totalLikes.toLocaleString()}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Comments</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{formatNumber(totalComments)}</p>
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Comments</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{totalComments.toLocaleString()}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Revenue</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">${formatNumber(estimatedRevenue)}</p>
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Video className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Total Videos</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{totalVideos}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Scheduled</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{scheduledCount}</p>
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Scheduled</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{scheduledCount}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Drafts</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{draftCount}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-gray-900/40 border border-gray-800/50">
-                    <p className="text-xs text-white/50 mb-1.5 uppercase tracking-wider font-medium">Posted</p>
-                    <p className="text-2xl font-semibold text-white tracking-tight">{postedCount}</p>
+                <div className="p-4 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-base text-white/60 uppercase tracking-wider font-medium">Posted</p>
+                    </div>
+                    <p className="text-4xl font-semibold text-white tracking-tight">{postedCount}</p>
                 </div>
             </div>
 
-            {/* Charts Section */}
+            {/* Middle Section — Timeline + Platform Distribution + Connected Platforms */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
-                    <div className="flex items-start justify-between mb-4">
+                {/* Publishing Timeline */}
+                <div className="lg:col-span-2 p-6 rounded-xl bg-card border border-border/20">
+                    <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="text-xs text-white/50 uppercase tracking-wider mb-1.5 font-medium">A Fairly Precise Estimate</p>
-                            <h3 className="text-xl font-semibold text-white tracking-tight">Performance Projection</h3>
+                            <p className="text-base text-white/60 uppercase tracking-wider mb-1.5 font-medium">Your Content</p>
+                            <h3 className="text-3xl font-semibold text-white tracking-tight">Publishing Timeline</h3>
                         </div>
-                    </div>
-                    <div className="h-64 bg-black/30 rounded-lg flex items-center justify-center border border-gray-800/50">
-                        <div className="text-center">
-                            <BarChart3 className="h-12 w-12 text-[#89CFF0]/30 mx-auto mb-2" />
-                            <p className="text-white/30 text-sm">Chart visualization coming soon</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
-                    <div className="flex items-start justify-between mb-4">
-                        <div>
-                            <p className="text-xs text-white/50 uppercase tracking-wider mb-1.5 font-medium">Where Your Content Goes</p>
-                            <h3 className="text-xl font-semibold text-white tracking-tight">Platform Distribution</h3>
-                        </div>
-                    </div>
-                    <div className="h-64 bg-black/30 rounded-lg flex items-center justify-center border border-gray-800/50">
-                        <div className="flex flex-col gap-3">
-                            <div className="w-32 h-8 rounded bg-[#89CFF0]/20 border border-[#89CFF0]/30"></div>
-                            <div className="w-24 h-8 rounded bg-[#89CFF0]/30 border border-[#89CFF0]/40"></div>
-                            <div className="w-28 h-8 rounded bg-[#89CFF0]/25 border border-[#89CFF0]/35"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="p-6 rounded-xl bg-gradient-to-br from-gray-900/60 to-gray-800/40 border border-gray-800/50 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <p className="text-xs text-white/50 uppercase tracking-wider mb-1.5 font-medium">Recent Activity</p>
-                        <h3 className="text-xl font-semibold text-white tracking-tight">Your Videos</h3>
-                    </div>
-                    <Link to="/videos" className="text-sm text-[#89CFF0] hover:text-[#89CFF0]/80 flex items-center gap-1">
-                        View all <ArrowRight className="h-4 w-4" />
-                    </Link>
-                </div>
-                {recentVideos.length === 0 ? (
-                    <div className="text-center py-8 text-white/50">
-                        <p className="mb-4">No videos yet. Start by uploading your first piece of content.</p>
-                        <Link to="/upload">
-                            <Button className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
-                                <Upload className="mr-2 h-4 w-4" />
-                                Upload Video
-                            </Button>
+                        <Link to="/videos" className="text-lg text-primary hover:text-primary/80 flex items-center gap-1">
+                            View all <ArrowRight className="h-4 w-4" />
                         </Link>
                     </div>
-                ) : (
-                    <div className="space-y-3">
-                        {recentVideos.map((video) => (
-                            <div key={video.id} className="flex items-center justify-between p-4 rounded-lg bg-black/30 hover:bg-black/50 transition-colors border border-gray-800/50">
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-lg bg-[#89CFF0]/10 border border-[#89CFF0]/20 flex items-center justify-center">
-                                        <Video className="h-6 w-6 text-[#89CFF0]" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-medium text-white text-sm">{video.title}</h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="outline" className="text-xs bg-gray-900/50 text-white/70 border-gray-700">
-                                                {video.status}
-                                            </Badge>
-                                            <span className="text-xs text-white/50">{video.platform_target}</span>
+                    {timelineVideos.length === 0 ? (
+                        <div className="flex items-center justify-center h-48 text-white/30">
+                            <div className="text-center">
+                                <Video className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                                <p className="text-lg">No videos yet. Upload your first video to get started.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {timelineVideos.map((video) => {
+                                const date = video.posted_at || video.scheduled_at || video.created_at
+                                const platformInfo = platformConfig[video.platform_target] || null
+                                return (
+                                    <div key={video.id} className="flex items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-colors">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                                            {platformInfo ? platformInfo.icon : <Video className="h-4 w-4 text-white/40" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-lg font-medium text-white truncate">{video.title}</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`text-[10px] px-1.5 py-0 border-gray-700 ${
+                                                        video.status === 'posted' ? 'text-success border-green-800/50' :
+                                                        video.status === 'scheduled' ? 'text-warning border-yellow-800/50' :
+                                                        video.status === 'failed' ? 'text-red-400 border-red-800/50' :
+                                                        'text-white/60'
+                                                    }`}
+                                                >
+                                                    {video.status}
+                                                </Badge>
+                                                {platformInfo && (
+                                                    <span className="text-[10px] text-white/40">{platformInfo.label}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0 text-right">
+                                            <div className="flex items-center gap-1 text-white/30">
+                                                <Calendar className="h-3 w-3" />
+                                                <span className="text-[11px]">
+                                                    {date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Column — Platform Distribution + Connected Platforms */}
+                <div className="space-y-4">
+                    {/* Platform Distribution */}
+                    <div className="p-6 rounded-xl bg-card border border-border/20">
+                        <div className="mb-4">
+                            <p className="text-base text-white/60 uppercase tracking-wider mb-1.5 font-medium">Where Your Content Goes</p>
+                            <h3 className="text-2xl font-semibold text-white tracking-tight">Platform Distribution</h3>
+                        </div>
+                        {Object.keys(platformCounts).length === 0 ? (
+                            <div className="flex items-center justify-center h-24 text-white/30">
+                                <p className="text-lg text-center">Post your first video to see distribution</p>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="space-y-3">
+                                {Object.entries(platformCounts).map(([platform, count]) => {
+                                    const config = platformConfig[platform]
+                                    if (!config) return null
+                                    const percentage = postedCount > 0 ? Math.round((count / postedCount) * 100) : 0
+                                    const barWidth = Math.max((count / maxPlatformCount) * 100, 8)
+                                    return (
+                                        <div key={platform}>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <div className="flex items-center gap-2">
+                                                    <span style={{ color: config.color }}>{config.icon}</span>
+                                                    <span className="text-lg text-white/80">{config.label}</span>
+                                                </div>
+                                                <span className="text-base text-white/60">{count} video{count !== 1 ? 's' : ''} ({percentage}%)</span>
+                                            </div>
+                                            <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500"
+                                                    style={{ width: `${barWidth}%`, backgroundColor: config.color }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
                     </div>
-                )}
+
+                    {/* Connected Platforms */}
+                    <div className="p-6 rounded-xl bg-card border border-border/20">
+                        <div className="mb-4">
+                            <p className="text-base text-white/60 uppercase tracking-wider mb-1.5 font-medium">Integrations</p>
+                            <h3 className="text-2xl font-semibold text-white tracking-tight">Connected Platforms</h3>
+                        </div>
+                        <div className="space-y-2.5">
+                            {(['youtube', 'instagram', 'facebook'] as const).map((platform) => {
+                                const status = getPlatformStatus(platform)
+                                const config = platformConfig[platform]
+                                const isConnected = status?.connected ?? false
+                                return (
+                                    <div key={platform} className="flex items-center justify-between p-2.5 rounded-lg bg-black/20">
+                                        <div className="flex items-center gap-2.5">
+                                            <span style={{ color: isConnected ? config.color : 'rgba(255,255,255,0.2)' }}>
+                                                {config.icon}
+                                            </span>
+                                            <span className={`text-lg ${isConnected ? 'text-white/80' : 'text-white/40'}`}>
+                                                {config.label}
+                                            </span>
+                                        </div>
+                                        {isConnected ? (
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                                                <span className="text-base text-success">Connected</span>
+                                            </div>
+                                        ) : (
+                                            <Link
+                                                to={`/settings/connections?platform=${platform}`}
+                                                className="text-base text-primary hover:text-primary/80 flex items-center gap-1"
+                                            >
+                                                <Link2 className="h-3 w-3" />
+                                                Connect
+                                            </Link>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )

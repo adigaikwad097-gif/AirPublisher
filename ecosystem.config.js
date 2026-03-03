@@ -3,10 +3,12 @@ module.exports = {
         {
             name: 'air-publisher',
             script: 'npm',
-            args: 'run dev',
+            args: 'run preview -- --port 3003 --host 0.0.0.0',
+            cwd: '/opt/apps/air-publisher',
             env: {
-                PORT: 8000,
-                NODE_ENV: 'development'
+                PORT: 3003,
+                NODE_ENV: 'production',
+                VITE_BASE_PATH: '/publisher/'
             }
         }
     ]

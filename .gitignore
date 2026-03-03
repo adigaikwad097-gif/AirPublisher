@@ -41,3 +41,21 @@ CREDENTIALS.md
 *.tsbuildinfo
 next-env.d.ts
 
+# build output
+/dist
+
+# AI agent config
+.claude/
+.gemini/
+
+# temp debug/analysis files
+debug-*.js
+test-db.js
+table_analysis.js
+query_profile.sql
+auth_fix_plan.txt
+auth_plan.txt
+deep_analysis_v2.txt
+perplexity_research.md
+
+supabase/.temp/

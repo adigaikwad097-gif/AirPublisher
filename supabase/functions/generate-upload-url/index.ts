@@ -73,8 +73,16 @@ serve(async (req) => {
         // 4. Generate unique filename and Presigned URL
         const timestamp = Date.now()
         const randomString = crypto.randomUUID().split('-')[0]
-        const ext = contentType === 'video/quicktime' ? 'mov' : 'mp4'
-        const fileName = `${creatorUniqueIdentifier}/uploads/${timestamp}-${randomString}.${ext}`
+        // Determine file extension based on content type
+        let ext = 'mp4'
+        if (contentType === 'video/quicktime') ext = 'mov'
+        else if (contentType === 'video/x-msvideo') ext = 'avi'
+        else if (contentType === 'image/jpeg') ext = 'jpg'
+        else if (contentType === 'image/png') ext = 'png'
+        else if (contentType === 'image/webp') ext = 'webp'
+
+        const folder = contentType.startsWith('image/') ? 'thumbnails' : 'uploads'
+        const fileName = `${creatorUniqueIdentifier}/${folder}/${timestamp}-${randomString}.${ext}`
 
         const command = new PutObjectCommand({
             Bucket: bucketName,

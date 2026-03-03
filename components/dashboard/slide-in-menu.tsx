@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { X, LayoutDashboard, Upload, Calendar, Trophy, Settings, Video, Compass, LogOut, User } from 'lucide-react'
+import { X, LayoutDashboard, Upload, Calendar, Trophy, Settings, Video, LogOut, User, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
@@ -12,7 +12,6 @@ import { getCreatorId, clearCreatorSession } from '@/lib/auth/session'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Discover', href: '/discover', icon: Compass },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Videos', href: '/videos', icon: Video },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
@@ -71,10 +70,10 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
 
   return (
     <>
-      {/* Overlay */}
+      {/* Dark backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          className="fixed inset-0 bg-black/60 z-40"
           onClick={onClose}
         />
       )}
@@ -98,8 +97,8 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
                 />
               </div>
             ) : (
-              <div className="w-12 h-12 bg-[#89CFF0]/20 rounded-full flex items-center justify-center border border-[#89CFF0]/30 shrink-0">
-                <span className="text-[#89CFF0] font-semibold text-xl">
+              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center border border-primary/30 shrink-0">
+                <span className="text-primary font-semibold text-xl">
                   {profile?.display_name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
@@ -128,7 +127,7 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
                 className={cn(
                   'flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium transition-all',
                   isActive
-                    ? 'bg-white/10 text-[#89CFF0] border-l-2 border-[#89CFF0]'
+                    ? 'bg-white/10 text-primary border-l-2 border-primary'
                     : 'text-white/60 hover:bg-white/5 hover:text-white'
                 )}
               >
@@ -138,6 +137,25 @@ export function SlideInMenu({ isOpen, onClose }: SlideInMenuProps) {
             )
           })}
         </nav>
+
+        {/* System */}
+        <div className="border-t border-white/10 px-3 py-4">
+          <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-white/30">System</p>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              onClose()
+              const id = getCreatorId()
+              const base = 'https://aircreator.cloud/ideas/'
+              window.location.href = id ? `${base}?id=${encodeURIComponent(id)}` : base
+            }}
+            className="flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all"
+          >
+            <Lightbulb className="h-5 w-5" />
+            Air Ideas
+          </a>
+        </div>
 
         {/* Sign Out */}
         <div className="border-t border-white/10 p-4">

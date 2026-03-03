@@ -163,36 +163,70 @@ serve(async (req) => {
         )
       }
 
-      // Refresh Instagram token using Graph API
-      const appId = Deno.env.get('INSTAGRAM_APP_ID_ALYAN') || Deno.env.get('META_APP_ID_ALYAN') || Deno.env.get('INSTAGRAM_APP_ID') || Deno.env.get('META_APP_ID')
-      const appSecret = Deno.env.get('INSTAGRAM_APP_SECRET_ALYAN') || Deno.env.get('META_APP_SECRET_ALYAN') || Deno.env.get('INSTAGRAM_APP_SECRET') || Deno.env.get('META_APP_SECRET')
+      const GRAPH_API_VERSION = Deno.env.get('FACEBOOK_GRAPH_VERSION') || 'v22.0'
 
-      if (!appId || !appSecret) {
-        return new Response(
-          JSON.stringify({ error: 'Instagram App ID or Secret not configured' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      // Determine auth type: igg_ = Facebook Graph API (Page token), igb_ = IG Basic Display
+      const isGraphApi = creator_unique_identifier.startsWith('igg_')
+      console.log(`[refresh-token] Instagram auth type: ${isGraphApi ? 'Graph API (Page token)' : 'Basic Display'}`)
+
+      if (isGraphApi) {
+        // Facebook Graph API: exchange for new long-lived token
+        const appId = Deno.env.get('FACEBOOK_APP_ID_PUBLISHER') || Deno.env.get('FACEBOOK_APP_ID')
+        const appSecret = Deno.env.get('FACEBOOK_APP_SECRET_PUBLISHER') || Deno.env.get('FACEBOOK_APP_SECRET')
+
+        if (!appId || !appSecret) {
+          return new Response(
+            JSON.stringify({ error: 'Facebook App ID or Secret not configured' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const response = await fetch(
+          `https://graph.facebook.com/${GRAPH_API_VERSION}/oauth/access_token?` +
+          `grant_type=fb_exchange_token&` +
+          `client_id=${appId}&` +
+          `client_secret=${appSecret}&` +
+          `fb_exchange_token=${accessToken}`,
+          { method: 'GET' }
         )
-      }
 
-      const response = await fetch(
-        `https://graph.instagram.com/refresh_access_token?` +
-        `grant_type=ig_refresh_token&` +
-        `access_token=${accessToken}`,
-        { method: 'GET' }
-      )
+        if (!response.ok) {
+          const error = await response.text()
+          console.error(`[refresh-token] Facebook token exchange failed: ${error}`)
+          return new Response(
+            JSON.stringify({ error: 'Token refresh failed', details: error }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
 
-      if (!response.ok) {
-        const error = await response.text()
-        return new Response(
-          JSON.stringify({ error: 'Token refresh failed', details: error }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        const data = await response.json()
+        newAccessToken = data.access_token
+        // Facebook long-lived tokens last ~60 days
+        const expiresIn = data.expires_in || 5184000
+        newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+      } else {
+        // IG Basic Display: use ig_refresh_token endpoint
+        const response = await fetch(
+          `https://graph.instagram.com/refresh_access_token?` +
+          `grant_type=ig_refresh_token&` +
+          `access_token=${accessToken}`,
+          { method: 'GET' }
         )
-      }
 
-      const data = await response.json()
-      newAccessToken = data.access_token
-      const expiresIn = data.expires_in || 5184000
-      newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+        if (!response.ok) {
+          const error = await response.text()
+          console.error(`[refresh-token] IG Basic refresh failed: ${error}`)
+          return new Response(
+            JSON.stringify({ error: 'Token refresh failed', details: error }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const data = await response.json()
+        newAccessToken = data.access_token
+        const expiresIn = data.expires_in || 5184000
+        newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+      }
 
       // Update database
       const updateData: any = {

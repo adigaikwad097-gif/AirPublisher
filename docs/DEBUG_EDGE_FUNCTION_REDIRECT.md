@@ -7,7 +7,7 @@
 
 ## Expected Flow
 1. User clicks "Connect YouTube" → `/api/auth/youtube`
-2. API route redirects to: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth?action=init&origin=...`
+2. API route redirects to: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth?action=init&origin=...`
 3. Edge Function handles OAuth flow
 
 ## Debugging Steps
@@ -20,22 +20,22 @@ docker compose logs app --tail=100 | grep -i youtube
 
 ### 2. Verify Edge Function URLs
 The Edge Functions should be at:
-- YouTube: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth`
-- Instagram: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_instagramauth`
+- YouTube: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth`
+- Instagram: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_instagramauth`
 
 ### 3. Test Edge Functions directly
 ```bash
 # Test YouTube Edge Function
-curl "https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth?action=init&origin=http://aircreator.cloud:3003"
+curl "https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth?action=init&origin=http://aircreator.cloud:3003"
 
 # Test Instagram Edge Function
-curl "https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_instagramauth?action=init&origin=http://aircreator.cloud:3003"
+curl "https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_instagramauth?action=init&origin=http://aircreator.cloud:3003"
 ```
 
 ### 4. Check OAuth Redirect URIs
 Make sure these are registered in OAuth provider settings:
-- **Google Cloud Console**: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth`
-- **Instagram App Settings**: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_instagramauth`
+- **Google Cloud Console**: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth`
+- **Instagram App Settings**: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_instagramauth`
 
 ### 5. Verify Environment Variables
 Check that `NEXT_PUBLIC_SUPABASE_URL` is set on the server:

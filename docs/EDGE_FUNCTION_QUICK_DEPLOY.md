@@ -3,13 +3,13 @@
 ## Deploy YouTube OAuth Edge Function
 
 ```bash
-supabase functions deploy alyan_youtubeauth
+supabase functions deploy airpublisher_youtubeauth
 ```
 
 ## Deploy Instagram OAuth Edge Function
 
 ```bash
-supabase functions deploy alyan_instagramauth
+supabase functions deploy airpublisher_instagramauth
 ```
 
 ## Verify Secrets Are Set
@@ -38,8 +38,8 @@ After deploying, test the functions and check logs in:
 Supabase Dashboard → Edge Functions → Logs
 
 Look for the debug messages:
-- `[alyan_youtubeauth] Environment check:`
-- `[alyan_instagramauth] Environment check:`
+- `[airpublisher_youtubeauth] Environment check:`
+- `[airpublisher_instagramauth] Environment check:`
 
 These will show if the secrets are being read correctly.
 

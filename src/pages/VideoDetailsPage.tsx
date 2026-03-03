@@ -3,10 +3,9 @@ import { useParams, Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, Calendar, ArrowLeft, Play } from 'lucide-react'
-import { formatNumber } from '@/lib/utils'
+import { Calendar, ArrowLeft, Play } from 'lucide-react'
 import { getVideoPlaybackUrl } from '@/lib/utils/video-url'
-import { getVideoById, incrementVideoViews } from '@/lib/db/videos'
+import { getVideoById } from '@/lib/db/videos'
 import { getCreatorProfile } from '@/lib/db/creator'
 
 interface Video {
@@ -19,9 +18,9 @@ interface Video {
     platform_target: string
     source_type: string
     status: string
-    views?: number
     created_at: string
     posted_at: string | null
+    error_message?: string | null
 }
 
 interface Creator {
@@ -37,7 +36,6 @@ export function VideoDetailsPage() {
     const [video, setVideo] = useState<Video | null>(null)
     const [creator, setCreator] = useState<Creator | null>(null)
     const [loading, setLoading] = useState(true)
-    const [viewTracked, setViewTracked] = useState(false)
     const [videoError, setVideoError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -71,18 +69,7 @@ export function VideoDetailsPage() {
                 setLoading(false)
             })
 
-        // Track view (only once per page load) using Supabase DB directly
-        if (!viewTracked) {
-            incrementVideoViews(videoId)
-                .then((updatedVideo) => {
-                    if (updatedVideo && video) {
-                        setVideo({ ...video, views: updatedVideo.views || 0 })
-                    }
-                    setViewTracked(true)
-                })
-                .catch(console.error)
-        }
-    }, [videoId, viewTracked, video?.id]) // Be careful with dependencies to avoid infinite loops
+    }, [videoId])
 
     if (loading) {
         return (
@@ -105,8 +92,8 @@ export function VideoDetailsPage() {
                     <CardContent className="pt-6">
                         <div className="text-center py-12">
                             <p className="text-foreground/70 mb-4">Video not found</p>
-                            <Link to="/discover">
-                                <Button variant="outline">Back to Discover</Button>
+                            <Link to="/videos">
+                                <Button variant="outline">Back to Videos</Button>
                             </Link>
                         </div>
                     </CardContent>
@@ -116,15 +103,15 @@ export function VideoDetailsPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
-                <Link to="/discover">
+                <Link to="/videos">
                     <Button variant="outline" size="sm">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back
                     </Button>
                 </Link>
-                <h1 className="text-3xl font-bold">{video.title}</h1>
+                <h1 className="text-4xl font-bold text-white tracking-tight">{video.title}</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -136,8 +123,8 @@ export function VideoDetailsPage() {
                                 <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden">
                                     {videoError ? (
                                         <div className="w-full h-full flex flex-col items-center justify-center text-foreground/70">
-                                            <p className="text-lg mb-2">Failed to load video</p>
-                                            <p className="text-sm">{videoError}</p>
+                                            <p className="text-2xl mb-2">Failed to load video</p>
+                                            <p className="text-lg">{videoError}</p>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -218,57 +205,24 @@ export function VideoDetailsPage() {
 
                     <Card>
                         <CardContent className="pt-6">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    {creator?.avatar_url ? (
-                                        <img
-                                            src={creator.avatar_url}
-                                            alt={creator.display_name || ''}
-                                            width={48}
-                                            height={48}
-                                            className="rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                                            <span className="text-lg text-primary">
-                                                {creator?.display_name?.charAt(0).toUpperCase() || '?'}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <Link to={`/creator/${creator?.unique_identifier || video.creator_unique_identifier}`}>
-                                            <h3 className="font-semibold text-lg hover:text-primary transition-colors">
-                                                {creator?.display_name || 'Unknown Creator'}
-                                            </h3>
-                                        </Link>
-                                        {creator?.niche && (
-                                            <p className="text-sm text-foreground/60">{creator.niche}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="outline">{video.platform_target}</Badge>
-                                    <Badge variant="outline">{video.source_type === 'ugc' ? 'UGC' : 'Video'}</Badge>
-                                </div>
-                            </div>
-
                             {video.description && (
                                 <div className="mb-4">
                                     <p className="text-foreground/80 whitespace-pre-wrap">{video.description}</p>
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-6 text-sm text-foreground/60 pt-4 border-t border-border">
-                                <div className="flex items-center gap-2">
-                                    <Eye className="h-4 w-4" />
-                                    <span>{formatNumber(video.views || 0)} views</span>
-                                </div>
-                                {video.created_at && (
+                            <div className="flex items-center gap-6 text-lg text-foreground/60 pt-4 border-t border-border mt-auto">
+                                {video.posted_at ? (
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4" />
-                                        <span>Posted {new Date(video.created_at).toLocaleDateString()}</span>
+                                        <span>Posted {new Date(video.posted_at).toLocaleDateString()}</span>
                                     </div>
-                                )}
+                                ) : video.created_at ? (
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4" />
+                                        <span>Created {new Date(video.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                ) : null}
                             </div>
                         </CardContent>
                     </Card>
@@ -282,7 +236,7 @@ export function VideoDetailsPage() {
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div>
-                                <p className="text-sm text-foreground/60 mb-1">Status</p>
+                                <p className="text-lg text-foreground/60 mb-1">Status</p>
                                 <Badge
                                     variant={
                                         video.status === 'posted'
@@ -294,18 +248,19 @@ export function VideoDetailsPage() {
                                 >
                                     {video.status}
                                 </Badge>
+                                {video.status === 'failed' && video.error_message && (
+                                    <div className="mt-2 p-2 rounded-md bg-red-500/10 border border-red-500/20">
+                                        <p className="text-base text-red-400">{video.error_message}</p>
+                                    </div>
+                                )}
                             </div>
                             <div>
-                                <p className="text-sm text-foreground/60 mb-1">Platform</p>
-                                <p className="font-medium capitalize">{video.platform_target}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-foreground/60 mb-1">Source Type</p>
-                                <p className="font-medium">{video.source_type === 'ugc' ? 'UGC' : 'Video'}</p>
+                                <p className="text-lg text-foreground/60 mb-1">Platform</p>
+                                <p className="font-medium capitalize">{video.platform_target !== 'internal' ? video.platform_target : 'Not Set'}</p>
                             </div>
                             {video.posted_at && (
                                 <div>
-                                    <p className="text-sm text-foreground/60 mb-1">Posted At</p>
+                                    <p className="text-lg text-foreground/60 mb-1">Posted At</p>
                                     <p className="font-medium">{new Date(video.posted_at).toLocaleString()}</p>
                                 </div>
                             )}

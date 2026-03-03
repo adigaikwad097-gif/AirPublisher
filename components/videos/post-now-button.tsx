@@ -1,22 +1,32 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Youtube, Instagram, Music, Globe, Clock } from 'lucide-react'
+import { Youtube, Instagram, Clock, Facebook, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getPlatformStatuses, type PlatformStatus, type Platform } from '@/lib/db/platform-status'
 import { supabase } from '@/lib/supabase/client'
 import { useModal } from '@/components/providers/modal-provider'
+import { PostEditingModal, type PostEditingData } from './post-editing-modal'
 
 interface PostNowButtonProps {
   videoId: string
   creatorUniqueIdentifier: string
+  videoTitle: string
+  videoDescription: string
+  thumbnailUrl?: string | null
+  className?: string
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  onSuccess?: () => void
 }
 
-export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButtonProps) {
+export function PostNowButton({ videoId, creatorUniqueIdentifier, videoTitle, videoDescription, thumbnailUrl, className, variant = 'outline', onSuccess }: PostNowButtonProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
+  const [postingPlatformName, setPostingPlatformName] = useState('')
   const buttonRef = useRef<HTMLButtonElement>(null)
   const navigate = useNavigate()
   const { showConfirm, showToast } = useModal()
@@ -43,7 +53,7 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
 
   const handlePlatformSelect = async (platform: Platform) => {
     const status = getPlatformStatus(platform)
-    const platformName = platform === 'internal' ? 'Air Publisher' : platform
+    const platformName = platform.charAt(0).toUpperCase() + platform.slice(1)
 
     // If not connected, redirect to settings
     if (!status?.connected) {
@@ -59,30 +69,45 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
       return
     }
 
-    // Post now confirmation
-    const confirmed = await showConfirm({
-      title: 'Post Video Now',
-      message: `Are you sure you want to post this video to ${platformName} immediately?`,
-      confirmLabel: 'Post Now'
-    })
-
-    if (!confirmed) {
-      return
-    }
-
-    await handlePost(videoId, platform)
+    // Open editing modal instead of simple confirmation
+    setSelectedPlatform(platform)
+    setShowMenu(false)
+    setShowEditModal(true)
   }
 
-  const handlePost = async (videoId: string, platform: Platform) => {
-    setShowMenu(false)
+  const handleEditConfirm = async (data: PostEditingData) => {
+    if (!selectedPlatform) return
+
+    const platformName = selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)
+    setPostingPlatformName(platformName)
+    setShowEditModal(false)
     setPosting(true)
+
     try {
-      // Call the existing instant-posting Edge Function via supabase.functions.invoke()
-      const { data, error } = await supabase.functions.invoke('instant-posting', {
+      // Update video in DB with edited fields before posting
+      const updatePayload: Record<string, any> = {
+        title: data.title,
+        description: data.description,
+      }
+      if (selectedPlatform === 'youtube' && data.privacyStatus) {
+        updatePayload.youtube_privacy_status = data.privacyStatus
+      }
+
+      const { error: updateError } = await supabase
+        .from('air_publisher_videos')
+        .update(updatePayload)
+        .eq('id', videoId)
+
+      if (updateError) {
+        throw new Error(`Failed to update video: ${updateError.message}`)
+      }
+
+      // Call instant-posting Edge Function
+      const { data: postData, error } = await supabase.functions.invoke('instant-posting', {
         body: {
           video_id: videoId,
           creator_unique_identifier: creatorUniqueIdentifier,
-          platform,
+          platform: selectedPlatform,
         },
       })
 
@@ -90,33 +115,37 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
         throw new Error(error.message || 'Failed to post video')
       }
 
-      if (data?.error) {
-        throw new Error(data.error)
+      if (postData?.error) {
+        throw new Error(postData.error)
       }
 
       showToast({ message: 'Video posted successfully!', type: 'success' })
+      onSuccess?.()
     } catch (error: any) {
       console.error('[PostNowButton] Post error:', error)
-      showToast({ message: `Failed to post video: ${error.message || 'Unknown error'}`, type: 'error' })
+      const errorMessage = error.message || 'Unknown error'
+      showToast({ message: `Failed to post video: ${errorMessage}`, type: 'error' })
+
+      // Persist error to DB so it shows on the video card
+      try {
+        await supabase
+          .from('air_publisher_videos')
+          .update({ status: 'failed', error_message: errorMessage })
+          .eq('id', videoId)
+      } catch (dbErr) {
+        console.error('[PostNowButton] Failed to persist error to DB:', dbErr)
+      }
     } finally {
       setPosting(false)
+      setSelectedPlatform(null)
     }
   }
 
   const platforms: Array<{ platform: Platform; name: string; icon: React.ReactNode }> = [
-    { platform: 'internal', name: 'Air Publisher', icon: <Globe className="h-4 w-4" /> },
     { platform: 'youtube', name: 'YouTube', icon: <Youtube className="h-4 w-4" /> },
     { platform: 'instagram', name: 'Instagram', icon: <Instagram className="h-4 w-4" /> },
-    { platform: 'tiktok', name: 'TikTok', icon: <Music className="h-4 w-4" /> },
+    { platform: 'facebook', name: 'Facebook', icon: <Facebook className="h-4 w-4" /> },
   ]
-
-  if (loading) {
-    return (
-      <Button variant="outline" size="sm" disabled>
-        Loading...
-      </Button>
-    )
-  }
 
   const handleMenuToggle = () => {
     if (!showMenu && buttonRef.current) {
@@ -151,9 +180,9 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
       <Button
         ref={buttonRef}
         onClick={handleMenuToggle}
-        variant="outline"
-        size="sm"
+        variant={variant}
         disabled={posting}
+        className={className || "whitespace-nowrap"}
       >
         <Clock className="h-4 w-4 mr-2" />
         {posting ? 'Posting...' : 'Post Now'}
@@ -201,12 +230,12 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         {icon}
-                        <span className="text-sm font-medium text-white">{name}</span>
+                        <span className="text-lg font-medium text-white">{name}</span>
                       </div>
                       {isConnected ? (
-                        <span className="text-xs text-green-400">✓</span>
+                        <span className="text-base text-success">✓</span>
                       ) : (
-                        <span className="text-xs text-red-400">✗</span>
+                        <span className="text-base text-red-400">✗</span>
                       )}
                     </div>
                   </button>
@@ -215,6 +244,34 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier }: PostNowButto
             </div>
           </div>
         </>
+      )}
+
+      {/* Post Editing Modal */}
+      {selectedPlatform && (
+        <PostEditingModal
+          isOpen={showEditModal}
+          platform={selectedPlatform}
+          videoTitle={videoTitle}
+          videoDescription={videoDescription}
+          thumbnailUrl={thumbnailUrl}
+          onConfirm={handleEditConfirm}
+          onCancel={() => {
+            setShowEditModal(false)
+            setSelectedPlatform(null)
+          }}
+          confirmLabel="Post Now"
+          isSubmitting={posting}
+        />
+      )}
+
+      {/* Posting Progress Overlay */}
+      {posting && (
+        <div className="fixed bottom-6 right-6 z-[999999] flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#1c1c1c] border border-white/10 shadow-2xl">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-lg font-medium text-white">
+            Publishing to {postingPlatformName}...
+          </span>
+        </div>
       )}
     </>
   )

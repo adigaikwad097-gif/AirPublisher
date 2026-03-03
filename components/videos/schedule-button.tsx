@@ -1,25 +1,31 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Youtube, Instagram, Music, Globe, Calendar } from 'lucide-react'
+import { Youtube, Instagram, Calendar, Facebook } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getPlatformStatuses, type PlatformStatus, type Platform } from '@/lib/db/platform-status'
 import { supabase } from '@/lib/supabase/client'
 import { useModal } from '@/components/providers/modal-provider'
+import { PostEditingModal, type PostEditingData } from './post-editing-modal'
 
 interface ScheduleButtonProps {
   videoId: string
   creatorUniqueIdentifier: string
+  videoTitle: string
+  videoDescription: string
+  thumbnailUrl?: string | null
+  className?: string
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  onSuccess?: () => void
 }
 
-export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleButtonProps) {
+export function ScheduleButton({ videoId, creatorUniqueIdentifier, videoTitle, videoDescription, thumbnailUrl, className, variant = 'outline', onSuccess }: ScheduleButtonProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
-  const [showDateTimePicker, setShowDateTimePicker] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
   const [platformStatuses, setPlatformStatuses] = useState<PlatformStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [scheduling, setScheduling] = useState(false)
-  const [dateTime, setDateTime] = useState('')
+  const [showEditModal, setShowEditModal] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const navigate = useNavigate()
   const { showConfirm, showToast } = useModal()
@@ -40,18 +46,6 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
     checkPlatformStatuses()
   }, [creatorUniqueIdentifier])
 
-  // Set default date/time (1 hour from now)
-  useEffect(() => {
-    const now = new Date()
-    now.setHours(now.getHours() + 1)
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const day = String(now.getDate()).padStart(2, '0')
-    const hours = String(now.getHours()).padStart(2, '0')
-    const minutes = String(now.getMinutes()).padStart(2, '0')
-    setDateTime(`${year}-${month}-${day}T${hours}:${minutes}`)
-  }, [])
-
   const getPlatformStatus = (platform: Platform): PlatformStatus | undefined => {
     return platformStatuses.find(p => p.platform === platform)
   }
@@ -61,7 +55,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
 
     // If not connected, redirect to settings
     if (!status?.connected) {
-      const platformName = platform === 'internal' ? 'Air Publisher' : platform
+      const platformName = platform.charAt(0).toUpperCase() + platform.slice(1)
       const confirmed = await showConfirm({
         title: 'Platform Not Connected',
         message: `${platformName} is not connected or your token has expired. Would you like to connect it now?`,
@@ -74,15 +68,28 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       return
     }
 
+    // Open editing modal with scheduler
     setSelectedPlatform(platform)
     setShowMenu(false)
-    setShowDateTimePicker(true)
+    setShowEditModal(true)
   }
 
-  const handleSchedule = async () => {
-    if (!selectedPlatform || !dateTime) return
+  // Default datetime: 1 hour from now
+  const getDefaultDateTime = () => {
+    const now = new Date()
+    now.setHours(now.getHours() + 1)
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
 
-    const scheduledDate = new Date(dateTime)
+  const handleEditConfirm = async (data: PostEditingData) => {
+    if (!selectedPlatform || !data.scheduledAt) return
+
+    const scheduledDate = new Date(data.scheduledAt)
 
     if (isNaN(scheduledDate.getTime())) {
       showToast({ message: 'Invalid date/time format', type: 'error' })
@@ -94,22 +101,24 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       return
     }
 
-    await handlePost(videoId, selectedPlatform, scheduledDate)
-  }
-
-  const handlePost = async (videoId: string, platform: Platform, scheduledAt: Date) => {
-    setShowDateTimePicker(false)
-    setSelectedPlatform(null)
+    setShowEditModal(false)
     setScheduling(true)
+
     try {
-      // Scheduling = save future timestamp + platform target to the video record
+      const updatePayload: Record<string, any> = {
+        title: data.title,
+        description: data.description,
+        scheduled_at: scheduledDate.toISOString(),
+        platform_target: selectedPlatform,
+        status: 'scheduled',
+      }
+      if (selectedPlatform === 'youtube' && data.privacyStatus) {
+        updatePayload.youtube_privacy_status = data.privacyStatus
+      }
+
       const { error } = await supabase
         .from('air_publisher_videos')
-        .update({
-          scheduled_at: scheduledAt.toISOString(),
-          platform_target: platform,
-          status: 'scheduled',
-        })
+        .update(updatePayload)
         .eq('id', videoId)
 
       if (error) {
@@ -117,28 +126,21 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       }
 
       showToast({ message: 'Video scheduled successfully!', type: 'success' })
+      onSuccess?.()
     } catch (error: any) {
       console.error('[ScheduleButton] Schedule error:', error)
       showToast({ message: `Failed to schedule video: ${error.message || 'Unknown error'}`, type: 'error' })
     } finally {
       setScheduling(false)
+      setSelectedPlatform(null)
     }
   }
 
   const platforms: Array<{ platform: Platform; name: string; icon: React.ReactNode }> = [
-    { platform: 'internal', name: 'Air Publisher', icon: <Globe className="h-4 w-4" /> },
     { platform: 'youtube', name: 'YouTube', icon: <Youtube className="h-4 w-4" /> },
     { platform: 'instagram', name: 'Instagram', icon: <Instagram className="h-4 w-4" /> },
-    { platform: 'tiktok', name: 'TikTok', icon: <Music className="h-4 w-4" /> },
+    { platform: 'facebook', name: 'Facebook', icon: <Facebook className="h-4 w-4" /> },
   ]
-
-  if (loading) {
-    return (
-      <Button variant="outline" size="sm" disabled>
-        Loading...
-      </Button>
-    )
-  }
 
   const handleMenuToggle = () => {
     if (!showMenu && buttonRef.current) {
@@ -173,9 +175,9 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
       <Button
         ref={buttonRef}
         onClick={handleMenuToggle}
-        variant="outline"
-        size="sm"
+        variant={variant}
         disabled={scheduling}
+        className={className || "whitespace-nowrap"}
       >
         <Calendar className="h-4 w-4 mr-2" />
         {scheduling ? 'Scheduling...' : 'Schedule'}
@@ -223,7 +225,7 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         {icon}
-                        <span className="text-sm font-medium text-white">{name}</span>
+                        <span className="text-lg font-medium text-white">{name}</span>
                       </div>
                       {isConnected ? (
                         <span className="text-xs text-green-400">✓</span>
@@ -239,63 +241,24 @@ export function ScheduleButton({ videoId, creatorUniqueIdentifier }: ScheduleBut
         </>
       )}
 
-      {/* Date/Time Picker Modal */}
-      {showDateTimePicker && selectedPlatform && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-[999998]"
-            onClick={() => {
-              setShowDateTimePicker(false)
-              setSelectedPlatform(null)
-            }}
-          />
-          <div className="fixed inset-0 flex items-center justify-center z-[999999] pointer-events-none">
-            <div
-              className="bg-black border border-white/20 rounded-lg shadow-xl p-6 w-full max-w-md mx-4 pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-lg font-semibold mb-4 text-white">
-                Schedule for {platforms.find(p => p.platform === selectedPlatform)?.name}
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-white">
-                    Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={dateTime}
-                    onChange={(e) => setDateTime(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white"
-                    min={new Date().toISOString().slice(0, 16)}
-                  />
-                </div>
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowDateTimePicker(false)
-                      setSelectedPlatform(null)
-                    }}
-                    className="text-white border-white/20 hover:bg-white/10"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSchedule}
-                    disabled={scheduling || !dateTime}
-                    className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90"
-                  >
-                    {scheduling ? 'Scheduling...' : 'Schedule'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
+      {/* Schedule Editing Modal */}
+      {selectedPlatform && (
+        <PostEditingModal
+          isOpen={showEditModal}
+          platform={selectedPlatform}
+          videoTitle={videoTitle}
+          videoDescription={videoDescription}
+          thumbnailUrl={thumbnailUrl}
+          onConfirm={handleEditConfirm}
+          onCancel={() => {
+            setShowEditModal(false)
+            setSelectedPlatform(null)
+          }}
+          showScheduler={true}
+          defaultDateTime={getDefaultDateTime()}
+          confirmLabel="Schedule"
+          isSubmitting={scheduling}
+        />
       )}
     </>
   )

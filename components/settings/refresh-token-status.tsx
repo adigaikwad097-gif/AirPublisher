@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 
 interface RefreshTokenStatusProps {
-    platform: 'youtube' | 'instagram' | 'tiktok'
+    platform: 'youtube' | 'instagram' | 'tiktok' | 'facebook'
     isConnected: boolean
     accessTokenExpired: boolean
     hasRefreshToken: boolean
@@ -74,7 +74,7 @@ export function RefreshTokenStatus({
 
     if (accessTokenExpired && hasRefreshToken && !refreshTokenExpired) {
         return (
-            <p className="text-sm text-[#89CFF0]">Token will be automatically refreshed when needed.</p>
+            <p className="text-sm text-primary">Token will be automatically refreshed when needed.</p>
         )
     }
 

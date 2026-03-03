@@ -6,11 +6,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+function sanitizeErrorMessage(msg: string): string {
+  return msg.replace(/access_token=[^&\s"']+/gi, 'access_token=[REDACTED]');
+}
+
+serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  let videoId: string | null = null;
 
   try {
     const supabaseClient = createClient(
@@ -20,6 +26,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { video_id, creator_unique_identifier, platform } = body;
+    videoId = video_id;
 
     if (!video_id || !creator_unique_identifier || !platform) {
       throw new Error("Missing required parameters: video_id, creator_unique_identifier, platform");
@@ -44,8 +51,8 @@ serve(async (req) => {
       publishCallbackResponse = await handleYouTubePublish(supabaseClient, creator_unique_identifier, videoData);
     } else if (platform === 'instagram') {
       publishCallbackResponse = await handleInstagramPublish(supabaseClient, creator_unique_identifier, videoData);
-    } else if (platform === 'tiktok') {
-      publishCallbackResponse = await handleTikTokPublish(supabaseClient, creator_unique_identifier, videoData);
+    } else if (platform === 'facebook') {
+      publishCallbackResponse = await handleFacebookPublish(supabaseClient, creator_unique_identifier, videoData);
     } else {
       throw new Error(`Unsupported platform: ${platform}`);
     }
@@ -59,25 +66,142 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error) {
-    console.error(`[instant-posting] Error:`, error);
+  } catch (error: any) {
+    const errMsg = error?.message || String(error);
+    const errStack = error?.stack || 'no stack';
+    console.error(`[instant-posting] FATAL ERROR: ${errMsg}`);
+    console.error(`[instant-posting] STACK: ${errStack}`);
+
+    // Persist error to database so the user can see why it failed
+    if (videoId) {
+      try {
+        const supabaseClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        );
+        await supabaseClient
+          .from('air_publisher_videos')
+          .update({ status: 'failed', error_message: sanitizeErrorMessage(errMsg) })
+          .eq('id', videoId);
+      } catch (dbErr) {
+        console.error(`[instant-posting] Failed to persist error to DB: ${dbErr}`);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errMsg, stack: errStack }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
     );
   }
 });
 
+/**
+ * Resolves the actual YouTube creator_unique_identifier when the caller's
+ * identity is from a different platform (e.g., igg_xxx for Instagram).
+ *
+ * Strategy:
+ *   1. Direct match on youtube_tokens (identity IS the YouTube one)
+ *   2. airpublisher_connections lookup (primary_identifier -> connection_identifier)
+ *   3. creator_profiles user_id fallback (same user_id across token tables)
+ */
+async function resolveYouTubeIdentifier(
+  supabaseClient: any,
+  creator_unique_identifier: string
+): Promise<string | null> {
+  // Strategy 1: Direct match
+  const { data: directMatch } = await supabaseClient
+    .from('youtube_tokens')
+    .select('creator_unique_identifier')
+    .eq('creator_unique_identifier', creator_unique_identifier)
+    .maybeSingle();
+
+  if (directMatch) {
+    console.log('[youtube] Token found via direct creator_unique_identifier match');
+    return creator_unique_identifier;
+  }
+
+  // Strategy 2: airpublisher_connections lookup
+  const { data: connection } = await supabaseClient
+    .from('airpublisher_connections')
+    .select('connection_identifier')
+    .eq('primary_identifier', creator_unique_identifier)
+    .eq('platform', 'youtube')
+    .maybeSingle();
+
+  if (connection?.connection_identifier) {
+    console.log(`[youtube] Resolved via airpublisher_connections: ${creator_unique_identifier} -> ${connection.connection_identifier}`);
+    return connection.connection_identifier;
+  }
+
+  // Strategy 3: creator_profiles user_id fallback
+  const { data: profile } = await supabaseClient
+    .from('creator_profiles')
+    .select('user_id')
+    .eq('unique_identifier', creator_unique_identifier)
+    .maybeSingle();
+
+  if (profile?.user_id) {
+    const { data: ytByUserId } = await supabaseClient
+      .from('youtube_tokens')
+      .select('creator_unique_identifier')
+      .eq('user_id', profile.user_id)
+      .maybeSingle();
+
+    if (ytByUserId?.creator_unique_identifier) {
+      console.log(`[youtube] Resolved via creator_profiles user_id: ${creator_unique_identifier} -> ${ytByUserId.creator_unique_identifier}`);
+      return ytByUserId.creator_unique_identifier;
+    }
+  }
+
+  console.error(`[youtube] Could not resolve YouTube identifier for: ${creator_unique_identifier}`);
+  return null;
+}
+
 async function handleYouTubePublish(supabaseClient: any, creator_unique_identifier: string, videoData: any) {
   console.log('[youtube] Fetching tokens...');
 
-  const { data: tokens, error: tokensError } = await supabaseClient
+  // Resolve the actual YouTube identifier (handles cross-identity: igg_xxx -> yt_xxx)
+  const resolvedIdentifier = await resolveYouTubeIdentifier(supabaseClient, creator_unique_identifier);
+
+  if (!resolvedIdentifier) {
+    throw new Error(`Missing YouTube tokens: could not resolve YouTube identity for ${creator_unique_identifier}`);
+  }
+
+  let { data: tokens, error: tokensError } = await supabaseClient
     .from('youtube_tokens')
     .select('*, google_access_token_secret_id')
-    .eq('creator_unique_identifier', creator_unique_identifier)
+    .eq('creator_unique_identifier', resolvedIdentifier)
     .single();
 
-  if (tokensError || !tokens) throw new Error('Missing YouTube tokens');
+  if (tokens && tokens.expires_at && new Date(tokens.expires_at) <= new Date()) {
+    console.log('[youtube] Token expired, refreshing before use...');
+    const refreshRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+      },
+      body: JSON.stringify({
+        platform: 'youtube',
+        creator_unique_identifier: resolvedIdentifier
+      })
+    });
+
+    if (!refreshRes.ok) {
+      throw new Error(`Failed to refresh YouTube token: ${await refreshRes.text()}`);
+    }
+
+    const { data: newTokens, error: newTokensError } = await supabaseClient
+      .from('youtube_tokens')
+      .select('*, google_access_token_secret_id')
+      .eq('creator_unique_identifier', resolvedIdentifier)
+      .single();
+
+    if (newTokensError || !newTokens) throw new Error('Missing YouTube tokens after refresh');
+    tokens = newTokens;
+  }
+
+  if (tokensError || !tokens) throw new Error(`Missing YouTube tokens for ${resolvedIdentifier} (original: ${creator_unique_identifier})`);
 
   let accessToken = tokens.google_access_token || tokens.access_token;
 
@@ -93,11 +217,12 @@ async function handleYouTubePublish(supabaseClient: any, creator_unique_identifi
 
   const title = videoData.title || 'Untitled Video';
   const description = videoData.description || '';
+  const privacyStatus = videoData.youtube_privacy_status || 'public';
   const videoUrl = videoData.video_url;
 
   if (!videoUrl) throw new Error('No video_url found for publishing');
 
-  console.log('[youtube] Starting resumable session...');
+  console.log(`[youtube] Starting resumable session... (privacy: ${privacyStatus})`);
 
   const sessionRes = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
     method: "POST",
@@ -110,12 +235,12 @@ async function handleYouTubePublish(supabaseClient: any, creator_unique_identifi
         title,
         description,
         tags: [],
-        categoryId: "22", // Default to People & Blogs (or generic)
+        categoryId: "22",
         defaultLanguage: "en",
         defaultAudioLanguage: "en"
       },
       status: {
-        privacyStatus: "public",
+        privacyStatus: privacyStatus,
         selfDeclaredMadeForKids: false
       }
     })
@@ -156,67 +281,127 @@ async function handleYouTubePublish(supabaseClient: any, creator_unique_identifi
 
   console.log(`[youtube] ✅ Upload successful: ${youtubeUrl}`);
 
-  await supabaseClient.from('air_publisher_videos').update({
+  const { error: updateError } = await supabaseClient.from('air_publisher_videos').update({
     youtube_url: youtubeUrl,
-    status: 'published' // Optional status update
+    platform_target: 'youtube',
+    status: 'posted',
+    posted_at: new Date().toISOString(),
+    error_message: null
   }).eq('id', videoData.id);
+
+  if (updateError) {
+    console.error(`[youtube] Error updating video status to posted: ${updateError.message}`, updateError);
+  }
 
   return uploadData;
 }
 
 async function handleInstagramPublish(supabaseClient: any, creator_unique_identifier: string, videoData: any) {
-  console.log('[instagram] Fetching tokens...');
+  console.log('[instagram] === STEP 0: Fetching tokens... ===');
+  console.log(`[instagram] creator_unique_identifier: ${creator_unique_identifier}`);
 
-  const { data: tokens, error: tokensError } = await supabaseClient
+  let { data: tokens, error: tokensError } = await supabaseClient
     .from('instagram_tokens')
-    .select('instagram_id, access_token, access_token_secret_id')
+    .select('*, instagram_id, access_token, access_token_secret_id')
     .eq('creator_unique_identifier', creator_unique_identifier)
     .single();
 
-  if (tokensError || !tokens) throw new Error(`Missing Instagram tokens: ${tokensError?.message || ''}`);
+  console.log(`[instagram] Token query result - data: ${tokens ? 'found' : 'null'}, error: ${tokensError ? tokensError.message : 'none'}`);
+  if (tokens) {
+    console.log(`[instagram] Token details - instagram_id: ${tokens.instagram_id}, has_access_token: ${!!tokens.access_token}, secret_id: ${tokens.access_token_secret_id}, expires_at: ${tokens.expires_at}`);
+  }
+
+  if (tokens && tokens.expires_at && new Date(tokens.expires_at) <= new Date()) {
+    console.log('[instagram] Token expired, refreshing before use...');
+    const refreshRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+      },
+      body: JSON.stringify({
+        platform: 'instagram',
+        creator_unique_identifier: creator_unique_identifier
+      })
+    });
+
+    if (!refreshRes.ok) {
+      const refreshErr = await refreshRes.text();
+      console.error(`[instagram] Refresh failed: ${refreshErr}`);
+      throw new Error(`Failed to refresh Instagram token: ${refreshErr}`);
+    }
+
+    const { data: newTokens, error: newTokensError } = await supabaseClient
+      .from('instagram_tokens')
+      .select('*, instagram_id, access_token, access_token_secret_id')
+      .eq('creator_unique_identifier', creator_unique_identifier)
+      .single();
+
+    if (newTokensError || !newTokens) throw new Error(`Missing Instagram tokens after refresh: ${newTokensError?.message || 'null data'}`);
+    tokens = newTokens;
+  }
+
+  if (tokensError || !tokens) throw new Error(`Missing Instagram tokens: ${tokensError?.message || 'tokens data is null'}`);
 
   let accessToken = tokens.access_token;
   const instagramId = tokens.instagram_id;
 
+  console.log(`[instagram] instagram_id: ${instagramId}, has plaintext token: ${!!accessToken}`);
+
   if (!instagramId) throw new Error('Missing instagram_id in token table record');
 
   if (!accessToken && tokens.access_token_secret_id) {
+    console.log(`[instagram] Decrypting token from Vault, secret_id: ${tokens.access_token_secret_id}`);
     const { data: decrypted, error: decError } = await supabaseClient.rpc('get_decrypted_secret', {
       p_secret_id: tokens.access_token_secret_id
     });
-    if (decError) throw new Error('Failed to decrypt Vault token');
+    if (decError) {
+      console.error(`[instagram] Vault decrypt error: ${JSON.stringify(decError)}`);
+      throw new Error(`Failed to decrypt Vault token: ${decError.message || JSON.stringify(decError)}`);
+    }
+    console.log(`[instagram] Vault decrypted token length: ${decrypted ? decrypted.length : 'null'}`);
     accessToken = decrypted;
   }
 
-  if (!accessToken) throw new Error('No valid Instagram access token found');
+  if (!accessToken) throw new Error('No valid Instagram access token found (both plaintext and vault are empty)');
 
   const caption = videoData.description || '';
   const videoUrl = videoData.video_url;
 
   if (!videoUrl) throw new Error('No video_url found for publishing');
 
-  console.log('[instagram] Step 1: Creating media container...');
-  const createMediaRes = await fetch(`https://graph.instagram.com/v18.0/${instagramId}/media`, {
+  console.log(`[instagram] === STEP 1: Creating media container ===`);
+  console.log(`[instagram] instagramId: ${instagramId}, videoUrl: ${videoUrl?.substring(0, 80)}..., caption length: ${caption?.length || 0}`);
+  console.log(`[instagram] accessToken length: ${accessToken?.length}, accessToken prefix: ${accessToken?.substring(0, 10)}...`);
+
+  const createMediaUrl = `https://graph.facebook.com/v21.0/${instagramId}/media`;
+  const createMediaBody = {
+    media_type: "REELS",
+    video_url: videoUrl,
+    caption: caption,
+    thumb_offset: 0,
+    access_token: accessToken
+  };
+  console.log(`[instagram] POST ${createMediaUrl}`);
+
+  const createMediaRes = await fetch(createMediaUrl, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      media_type: "REELS",
-      video_url: videoUrl,
-      caption: caption,
-      thumb_offset: 0
-    })
+    body: JSON.stringify(createMediaBody)
   });
 
+  console.log(`[instagram] Create media response status: ${createMediaRes.status}`);
   if (!createMediaRes.ok) {
     const err = await createMediaRes.text();
-    throw new Error(`Instagram Create Media failed: ${err}`);
+    console.error(`[instagram] Create media FAILED: ${err}`);
+    throw new Error(`Instagram Create Media failed (HTTP ${createMediaRes.status}): ${err}`);
   }
 
   const mediaData = await createMediaRes.json();
   const mediaId = mediaData.id;
+  console.log(`[instagram] Container created, mediaId: ${mediaId}`);
 
   console.log(`[instagram] Container created: ${mediaId}. Polling status...`);
 
@@ -227,7 +412,7 @@ async function handleInstagramPublish(supabaseClient: any, creator_unique_identi
     attempts++;
     await new Promise(r => setTimeout(r, 5000)); // wait 5 seconds
 
-    const statusRes = await fetch(`https://graph.instagram.com/v18.0/${mediaId}?fields=status_code&access_token=${accessToken}`);
+    const statusRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}?fields=status_code&access_token=${accessToken}`);
     if (statusRes.ok) {
       const statusData = await statusRes.json();
       status = statusData.status_code;
@@ -240,7 +425,7 @@ async function handleInstagramPublish(supabaseClient: any, creator_unique_identi
   }
 
   console.log('[instagram] Step 2: Publishing media...');
-  const publishRes = await fetch(`https://graph.instagram.com/v18.0/${instagramId}/media_publish`, {
+  const publishRes = await fetch(`https://graph.facebook.com/v21.0/${instagramId}/media_publish`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -260,7 +445,7 @@ async function handleInstagramPublish(supabaseClient: any, creator_unique_identi
   const publishedMediaId = publishData.id;
 
   console.log(`[instagram] Step 3: Fetching permalink...`);
-  const finalRes = await fetch(`https://graph.instagram.com/v18.0/${publishedMediaId}?fields=permalink&access_token=${accessToken}`);
+  const finalRes = await fetch(`https://graph.facebook.com/v21.0/${publishedMediaId}?fields=permalink&access_token=${accessToken}`);
   let permalink = null;
   if (finalRes.ok) {
     const finalData = await finalRes.json();
@@ -269,28 +454,145 @@ async function handleInstagramPublish(supabaseClient: any, creator_unique_identi
 
   console.log(`[instagram] ✅ Published successfully: ${permalink || publishedMediaId}`);
 
-  await supabaseClient.from('air_publisher_videos').update({
+  const { error: updateError } = await supabaseClient.from('air_publisher_videos').update({
     instagram_url: permalink || `https://instagram.com/p/${publishedMediaId}`,
-    status: 'published'
+    platform_target: 'instagram',
+    status: 'posted',
+    posted_at: new Date().toISOString(),
+    error_message: null
   }).eq('id', videoData.id);
+
+  if (updateError) {
+    console.error(`[instagram] Error updating video status to posted: ${updateError.message}`, updateError);
+  }
 
   return publishData;
 }
 
-async function handleTikTokPublish(supabaseClient: any, creator_unique_identifier: string, videoData: any) {
-  console.log('[tiktok] Fetching tokens...');
+async function handleFacebookPublish(supabaseClient: any, creator_unique_identifier: string, videoData: any) {
+  console.log('[facebook] Fetching tokens...');
 
-  const { data: tokens, error: tokensError } = await supabaseClient
-    .from('tiktok_tokens')
-    .select('access_token, tiktok_open_id, access_token_secret_id')
+  // Try facebook_tokens first (direct Facebook OAuth), then fall back to instagram_tokens
+  let tokens: any = null;
+  let tokensError: any = null;
+  let tokenSource = '';
+
+  // 1. Try facebook_tokens table first — by creator_unique_identifier (e.g. fb_...)
+  const { data: fbTokens } = await supabaseClient
+    .from('facebook_tokens')
+    .select('*, page_access_token, user_access_token_long_lived, user_token_expires_at, page_id, page_access_token_secret_id, user_access_token_secret_id')
     .eq('creator_unique_identifier', creator_unique_identifier)
-    .single();
+    .maybeSingle();
 
-  if (tokensError || !tokens) throw new Error(`Missing TikTok tokens: ${tokensError?.message || ''}`);
+  if (fbTokens) {
+    console.log('[facebook] Found token in facebook_tokens table (by creator_unique_identifier)');
+    tokenSource = 'facebook_tokens';
+    tokens = fbTokens;
 
-  let accessToken = tokens.access_token;
-  const openId = tokens.tiktok_open_id;
+    if (tokens.user_token_expires_at && new Date(tokens.user_token_expires_at) <= new Date()) {
+      console.warn('[facebook] Facebook token expired. Direct Facebook tokens cannot be auto-refreshed.');
+    }
+  }
 
+  // 1b. Cross-identity fallback: facebook_tokens stores 'fb_...' but we may be called with 'igg_...'
+  //     Look up the user_id from creator_profiles and query by user_id instead
+  if (!tokens) {
+    const { data: profileData } = await supabaseClient
+      .from('creator_profiles')
+      .select('user_id')
+      .eq('unique_identifier', creator_unique_identifier)
+      .maybeSingle();
+
+    if (profileData?.user_id) {
+      const { data: fbByUserId } = await supabaseClient
+        .from('facebook_tokens')
+        .select('*, page_access_token, user_access_token_long_lived, user_token_expires_at, page_id, page_access_token_secret_id, user_access_token_secret_id')
+        .eq('user_id', profileData.user_id)
+        .maybeSingle();
+
+      if (fbByUserId) {
+        console.log('[facebook] Found token in facebook_tokens via user_id cross-identity lookup');
+        tokenSource = 'facebook_tokens';
+        tokens = fbByUserId;
+
+        if (tokens.user_token_expires_at && new Date(tokens.user_token_expires_at) <= new Date()) {
+          console.warn('[facebook] Facebook token expired. Direct Facebook tokens cannot be auto-refreshed.');
+        }
+      }
+    }
+  }
+
+  // 2. Fall back to instagram_tokens (Instagram/Facebook shared OAuth)
+  if (!tokens) {
+    console.log('[facebook] No facebook_tokens found, falling back to instagram_tokens...');
+    const { data: igTokens, error: igTokensError } = await supabaseClient
+      .from('instagram_tokens')
+      .select('*, facebook_access_token, access_token, access_token_secret_id')
+      .eq('creator_unique_identifier', creator_unique_identifier)
+      .single();
+
+    if (igTokens) {
+      tokenSource = 'instagram_tokens';
+      tokens = igTokens;
+      tokensError = igTokensError;
+
+      if (tokens.expires_at && new Date(tokens.expires_at) <= new Date()) {
+        console.log('[facebook] Token expired, refreshing before use (via Instagram)...');
+        const refreshRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+          },
+          body: JSON.stringify({
+            platform: 'instagram',
+            creator_unique_identifier: creator_unique_identifier
+          })
+        });
+
+        if (!refreshRes.ok) {
+          console.error(`Failed to refresh Facebook/Instagram token: ${await refreshRes.text()}`);
+        } else {
+          const { data: newTokens, error: newTokensError } = await supabaseClient
+            .from('instagram_tokens')
+            .select('*, facebook_access_token, access_token, access_token_secret_id')
+            .eq('creator_unique_identifier', creator_unique_identifier)
+            .single();
+
+          if (!newTokensError && newTokens) {
+            tokens = newTokens;
+          }
+        }
+      }
+    } else {
+      tokensError = igTokensError;
+    }
+  }
+
+  if (!tokens) throw new Error(`Missing Facebook tokens: no row found in facebook_tokens or instagram_tokens for ${creator_unique_identifier}`);
+
+  // Resolve access token based on which table it came from
+  let accessToken: string | null = null;
+  if (tokenSource === 'facebook_tokens') {
+    accessToken = tokens.user_access_token_long_lived || tokens.page_access_token;
+  } else {
+    accessToken = tokens.facebook_access_token || tokens.access_token;
+  }
+
+  // Vault fallback for facebook_tokens (page token preferred, user token as backup)
+  if (!accessToken && tokens.page_access_token_secret_id) {
+    const { data: decrypted } = await supabaseClient.rpc('get_decrypted_secret', {
+      p_secret_id: tokens.page_access_token_secret_id
+    });
+    if (decrypted) accessToken = decrypted;
+  }
+  if (!accessToken && tokens.user_access_token_secret_id) {
+    const { data: decrypted } = await supabaseClient.rpc('get_decrypted_secret', {
+      p_secret_id: tokens.user_access_token_secret_id
+    });
+    if (decrypted) accessToken = decrypted;
+  }
+  // Vault fallback for instagram_tokens (access_token_secret_id)
   if (!accessToken && tokens.access_token_secret_id) {
     const { data: decrypted, error: decError } = await supabaseClient.rpc('get_decrypted_secret', {
       p_secret_id: tokens.access_token_secret_id
@@ -299,111 +601,67 @@ async function handleTikTokPublish(supabaseClient: any, creator_unique_identifie
     accessToken = decrypted;
   }
 
-  if (!accessToken) throw new Error('No valid TikTok access token found');
+  if (!accessToken) throw new Error('No valid Facebook access token found');
 
+  const caption = videoData.description || '';
   const videoUrl = videoData.video_url;
+
   if (!videoUrl) throw new Error('No video_url found for publishing');
 
-  console.log('[tiktok] Downloading video to determine size...');
-  // For TikTok, we must know the exact file size for the INIT request. 
-  // We can fetch headers.
-  const headRes = await fetch(videoUrl, { method: 'HEAD' });
-  const fileSizeStr = headRes.headers.get('content-length');
-  if (!fileSizeStr) throw new Error('Could not determine video content-length for TikTok init');
+  console.log('[facebook] Fetching User Pages...');
+  // We need a Page ID to post to Facebook. We can fetch the user's pages.
+  const pagesRes = await fetch(`https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}`);
+  const pagesData = await pagesRes.json();
 
-  const videoSize = parseInt(fileSizeStr, 10);
+  if (pagesData.error || !pagesData.data || pagesData.data.length === 0) {
+    throw new Error(`Failed to fetch Facebook Pages. Please ensure you have connected a Facebook Page. Error: ${JSON.stringify(pagesData.error || 'No pages found')}`);
+  }
 
-  // Use recommended 10MB chunk size, or single chunk if < 20MB
-  const MAX_SINGLE_CHUNK = 20000000;
-  let chunkSize = (videoSize <= MAX_SINGLE_CHUNK) ? videoSize : 10000000;
-  let totalChunkCount = Math.ceil(videoSize / chunkSize);
+  // Use the first page
+  const page = pagesData.data[0];
+  const pageId = page.id;
+  const pageAccessToken = page.access_token; // Use the specific page token for publishing
 
-  console.log(`[tiktok] Step 1: Init Video Upload (Size: ${videoSize})`);
-  const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/video/init/", {
+  console.log(`[facebook] Found Page ID ${pageId}. Publishing video...`);
+
+  // Create Video on Facebook Page
+  // POST /{page_id}/videos
+  // Graph API requires form data or JSON with file_url
+  const publishRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/videos`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      post_info: {
-        title: videoData.title || 'Untitled Video',
-        privacy_level: "SELF_ONLY", // From n8n settings
-        disable_duet: false,
-        disable_comment: false,
-        disable_stitch: false,
-        video_cover_timestamp_ms: 1000
-      },
-      source_info: {
-        source: "FILE_UPLOAD",
-        video_size: videoSize,
-        chunk_size: chunkSize,
-        total_chunk_count: totalChunkCount
-      }
+      file_url: videoUrl,
+      description: caption,
+      access_token: pageAccessToken
     })
   });
 
-  if (!initRes.ok) {
-    const err = await initRes.text();
-    throw new Error(`TikTok Upload Init failed: ${err}`);
+  if (!publishRes.ok) {
+    const err = await publishRes.text();
+    throw new Error(`Facebook Publish failed: ${err}`);
   }
 
-  const initData = await initRes.json();
-  const publishId = initData.data?.publish_id;
-  const uploadUrl = initData.data?.upload_url;
+  const publishData = await publishRes.json();
+  const publishedVideoId = publishData.id;
 
-  if (!publishId || !uploadUrl) {
-    throw new Error('TikTok Init did not return publish_id or upload_url');
-  }
+  console.log(`[facebook] ✅ Published successfully: ${publishedVideoId}`);
 
-  console.log(`[tiktok] Step 2: Streaming Upload to URL...`);
-  const videoStreamRes = await fetch(videoUrl);
-  if (!videoStreamRes.ok) throw new Error('Failed to download source video for TikTok upload');
+  const facebookUrl = publishedVideoId ? `https://www.facebook.com/watch/?v=${publishedVideoId}` : null;
 
-  const uploadRes = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "video/mp4",
-      "Content-Range": `bytes 0-${videoSize - 1}/${videoSize}`
-    },
-    body: videoStreamRes.body
-  });
-
-  if (!uploadRes.ok) {
-    const err = await uploadRes.text();
-    throw new Error(`TikTok Final Upload failed: ${err}`);
-  }
-
-  // Polling for publish complete (n8n JSON shows they fetch status)
-  console.log(`[tiktok] Step 3: Fast Polling verify status...`);
-
-  let attempts = 0;
-  let success = false;
-  while (attempts < 5 && !success) {
-    attempts++;
-    await new Promise(r => setTimeout(r, 2000));
-    const verifyRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ publish_id: publishId })
-    });
-
-    if (verifyRes.ok) {
-      const vData = await verifyRes.json();
-      if (vData?.data?.status === 'PUBLISH_COMPLETE' || vData?.data?.status === 'PROCESSING') {
-        success = true;
-      }
-    }
-  }
-
-  console.log(`[tiktok] ✅ Upload pushed to queue: ${publishId}`);
-
-  await supabaseClient.from('air_publisher_videos').update({
-    status: 'published'
+  const { error: updateError } = await supabaseClient.from('air_publisher_videos').update({
+    facebook_url: facebookUrl,
+    platform_target: 'facebook',
+    status: 'posted',
+    posted_at: new Date().toISOString(),
+    error_message: null
   }).eq('id', videoData.id);
 
-  return { publish_id: publishId };
+  if (updateError) {
+    console.error(`[facebook] Error updating video status to posted: ${updateError.message}`, updateError);
+  }
+
+  return publishData;
 }

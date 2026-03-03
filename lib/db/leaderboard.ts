@@ -1,157 +1,65 @@
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/lib/supabase/types'
 
-type LeaderboardEntry = Database['public']['Tables']['air_leaderboards']['Row']
-type LeaderboardInsert = Database['public']['Tables']['air_leaderboards']['Insert']
+export type LeaderboardEntry = {
+  creator_unique_identifier: string
+  display_name: string | null
+  avatar_url: string | null
+  niche: string | null
+  total_views: number
+  total_likes: number
+  total_comments: number
+  estimated_revenue: number
+  score: number
+  rank: number
+}
 
+export type LeaderboardPeriod = 'all_time' | 'last_7d'
+export type LeaderboardSort = 'views' | 'revenue_views' | 'score'
+
+/**
+ * Fetch leaderboard data via the get_leaderboard RPC function.
+ * Aggregates stats in real-time from air_publisher_videos + creator_profiles.
+ */
 export async function getLeaderboard(
-  period: 'daily' | 'weekly' | 'all_time',
+  period: LeaderboardPeriod = 'all_time',
+  niche: string | null = null,
+  sortBy: LeaderboardSort = 'score',
   limit: number = 100
-) {
-  const { data, error } = await supabase
-    .from('air_leaderboards')
-    .select('*')
-    .eq('period', period)
-    .order('score', { ascending: false })
-    .limit(limit)
+): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase.rpc('get_leaderboard', {
+    p_period: period,
+    p_niche: niche ?? undefined,
+    p_sort_by: sortBy,
+    p_limit: limit,
+  })
 
   if (error) {
-    console.error('Error fetching leaderboard:', error?.message || error, JSON.stringify(error))
+    console.error('Error fetching leaderboard:', error?.message || error)
     return []
   }
 
-  if (!data || data.length === 0) {
-    return []
-  }
-
-  // Fetch creator profiles separately
-  const creatorIds = (data as any[]).map((entry: any) => entry.creator_unique_identifier)
-  const { data: profiles, error: profileError } = await supabase
-    .from('creator_profiles')
-    .select('unique_identifier, handles, profile_pic_url, Niche')
-    .in('unique_identifier', creatorIds)
-
-  if (profileError) {
-    console.error('Error fetching creator profiles:', profileError)
-  }
-
-  const profileMap = new Map(
-    (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
-  )
-
-  return (data as any[]).map((entry: any, index: number) => {
-    const profile = profileMap.get(entry.creator_unique_identifier) as any
-    return {
-      ...entry,
-      rank: entry.rank || index + 1, // Use existing rank or calculate from index
-      creator_profiles: {
-        unique_identifier: entry.creator_unique_identifier,
-        display_name: profile?.handles || null, // Map 'handles' to 'display_name'
-        avatar_url: profile?.profile_pic_url || null, // Map 'profile_pic_url' to 'avatar_url'
-        niche: profile?.Niche || null, // Map 'Niche' (capitalized) to 'niche'
-      },
-    }
-  }) as (LeaderboardEntry & {
-    rank: number
-    creator_profiles: {
-      unique_identifier: string
-      display_name: string | null
-      avatar_url: string | null
-      niche: string | null
-    }
-  })[]
-}
-
-export async function getCreatorRank(
-  creatorUniqueIdentifier: string,
-  period: 'daily' | 'weekly' | 'all_time'
-) {
-  const { data, error } = await supabase
-    .from('air_leaderboards')
-    .select('*')
-    .eq('creator_unique_identifier', creatorUniqueIdentifier)
-    .eq('period', period)
-    .single()
-
-  if (error && error.code !== 'PGRST116') throw error
-  return data as LeaderboardEntry | null
-}
-
-export async function getLeaderboardByNiche(
-  niche: string,
-  period: 'daily' | 'weekly' | 'all_time',
-  limit: number = 50
-) {
-  // First get creators in this niche
-  // Note: Your table uses 'Niche' (capitalized)
-  const { data: creators } = await supabase
-    .from('creator_profiles')
-    .select('unique_identifier')
-    .eq('Niche', niche) // Use 'Niche' (capitalized)
-
-  if (!creators || creators.length === 0) {
-    return []
-  }
-
-  const creatorIds = (creators as any[]).map((c: any) => c.unique_identifier)
-
-  // Then get leaderboard entries for these creators
-  const { data, error } = await supabase
-    .from('air_leaderboards')
-    .select('*')
-    .eq('period', period)
-    .in('creator_unique_identifier', creatorIds)
-    .order('score', { ascending: false })
-    .limit(limit)
-
-  if (error) {
-    console.error('Error fetching niche leaderboard:', error)
-    return []
-  }
-
-  if (!data || data.length === 0) {
-    return []
-  }
-
-  // Fetch creator profiles
-  const { data: profiles, error: profileError } = await supabase
-    .from('creator_profiles')
-    .select('unique_identifier, handles, profile_pic_url, Niche')
-    .in('unique_identifier', creatorIds)
-
-  if (profileError) {
-    console.error('Error fetching creator profiles:', profileError)
-  }
-
-  const profileMap = new Map(
-    (profiles as any[])?.map((p: any) => [p.unique_identifier, p]) || []
-  )
-
-  return (data as any[]).map((entry: any, index: number) => {
-    const profile = profileMap.get(entry.creator_unique_identifier) as any
-    return {
-      ...entry,
-      rank: entry.rank || index + 1, // Use existing rank or calculate from index
-      creator_profiles: {
-        unique_identifier: entry.creator_unique_identifier,
-        display_name: profile?.handles || null, // Map 'handles' to 'display_name'
-        avatar_url: profile?.profile_pic_url || null, // Map 'profile_pic_url' to 'avatar_url'
-        niche: profile?.Niche || null, // Map 'Niche' (capitalized) to 'niche'
-      },
-    }
-  }) as (LeaderboardEntry & {
-    rank: number
-    creator_profiles: {
-      unique_identifier: string
-      display_name: string | null
-      avatar_url: string | null
-      niche: string | null
-    }
-  })[]
+  return (data as LeaderboardEntry[]) || []
 }
 
 /**
- * Calculate leaderboard score based on:
+ * Fetch all niches from the niches_list table for the niche filter dropdown.
+ */
+export async function getNiches(): Promise<{ niche_id: number; name: string }[]> {
+  const { data, error } = await supabase
+    .from('niches_list')
+    .select('niche_id, name')
+    .order('name', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching niches:', error?.message || error)
+    return []
+  }
+
+  return (data as { niche_id: number; name: string }[]) || []
+}
+
+/**
+ * Calculate leaderboard score (client-side mirror of the SQL formula).
  * score = (views * 0.4) + (likes * 0.2) + (comments * 0.2) + (estimated_revenue * 2)
  */
 export function calculateScore(

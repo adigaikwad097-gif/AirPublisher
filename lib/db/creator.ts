@@ -11,8 +11,8 @@ export interface CreatorProfile {
 }
 
 export async function getCreatorProfile(uniqueIdentifier: string): Promise<CreatorProfile> {
-  const { data, error } = await (supabase
-    .from('creator_profiles'))
+  const { data, error } = await supabase
+    .from('creator_profiles')
     .select('*')
     .eq('unique_identifier', uniqueIdentifier)
     .maybeSingle()
@@ -101,8 +101,8 @@ export async function getCurrentCreator(uniqueIdentifier?: string) {
     if (uniqueIdentifier) {
       try {
         console.log('[getCurrentCreator] Looking up by provided unique_identifier:', uniqueIdentifier)
-        const { data, error } = await (supabase
-          .from('creator_profiles'))
+        const { data, error } = await supabase
+          .from('creator_profiles')
           .select('*')
           .eq('unique_identifier', uniqueIdentifier)
           .maybeSingle()
@@ -139,8 +139,8 @@ export async function getCurrentCreator(uniqueIdentifier?: string) {
     if (uniqueIdentifier) {
       console.log('[getCurrentCreator] Validating unique_identifier:', uniqueIdentifier)
       try {
-        const { data, error } = await (supabase
-          .from('creator_profiles'))
+        const { data, error } = await supabase
+          .from('creator_profiles')
           .select('*')
           .eq('unique_identifier', uniqueIdentifier)
           .maybeSingle()

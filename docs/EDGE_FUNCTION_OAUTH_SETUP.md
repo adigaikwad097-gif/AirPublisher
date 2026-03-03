@@ -8,18 +8,18 @@ OAuth flows for YouTube and Instagram are now handled by Supabase Edge Functions
 
 ## Edge Functions
 
-### YouTube OAuth: `alyan_youtubeauth`
-- **Location**: `supabase/functions/alyan_youtubeauth/index.ts`
-- **Endpoint**: `https://<supabase-url>/functions/v1/alyan_youtubeauth`
+### YouTube OAuth: `airpublisher_youtubeauth`
+- **Location**: `supabase/functions/airpublisher_youtubeauth/index.ts`
+- **Endpoint**: `https://<supabase-url>/functions/v1/airpublisher_youtubeauth`
 - **Actions**:
   - `init` - Initiates OAuth flow
   - `callback` - Handles OAuth callback
   - `status` - Checks connection status
   - `disconnect` - Disconnects account
 
-### Instagram OAuth: `alyan_instagramauth`
-- **Location**: `supabase/functions/alyan_instagramauth/index.ts`
-- **Endpoint**: `https://<supabase-url>/functions/v1/alyan_instagramauth`
+### Instagram OAuth: `airpublisher_instagramauth`
+- **Location**: `supabase/functions/airpublisher_instagramauth/index.ts`
+- **Endpoint**: `https://<supabase-url>/functions/v1/airpublisher_instagramauth`
 - **Actions**:
   - `init` - Initiates OAuth flow
   - `callback` - Handles OAuth callback
@@ -31,15 +31,15 @@ OAuth flows for YouTube and Instagram are now handled by Supabase Edge Functions
 ### Required in Supabase Edge Function Secrets:
 
 #### YouTube:
-- `GOOGLE_CLIENT_ID_ALYAN` (or `GOOGLE_OAUTH_CLIENT_ID` or `GOOGLE_CLIENT_ID` as fallback)
-- `GOOGLE_CLIENT_SECRET_ALYAN` (or `GOOGLE_OAUTH_CLIENT_SECRET` or `GOOGLE_CLIENT_SECRET` as fallback)
+- `GOOGLE_OAUTH_CLIENT_ID_PUBLISHER` (or `GOOGLE_OAUTH_CLIENT_ID` or `GOOGLE_CLIENT_ID` as fallback)
+- `GOOGLE_OAUTH_CLIENT_SECRET_PUBLISHER` (or `GOOGLE_OAUTH_CLIENT_SECRET` or `GOOGLE_CLIENT_SECRET` as fallback)
 - `SUPABASE_URL` (auto-available)
 - `SUPABASE_SERVICE_ROLE_KEY` (auto-available)
 - `FRONTEND_URL` (or `NEXT_PUBLIC_APP_URL` as fallback)
 
 #### Instagram:
-- `INSTAGRAM_APP_ID_ALYAN` (or `INSTAGRAM_CLIENT_ID` or `INSTAGRAM_APP_ID` as fallback)
-- `INSTAGRAM_APP_SECRET_ALYAN` (or `INSTAGRAM_CLIENT_SECRET` or `INSTAGRAM_APP_SECRET` as fallback)
+- `INSTAGRAM_P_APP_ID_PUBLISHER` (or `INSTAGRAM_CLIENT_ID` or `INSTAGRAM_APP_ID` as fallback)
+- `INSTAGRAM_P_APP_SECRET_PUBLISHER` (or `INSTAGRAM_CLIENT_SECRET` or `INSTAGRAM_APP_SECRET` as fallback)
 - `SUPABASE_URL` (auto-available)
 - `SUPABASE_SERVICE_ROLE_KEY` (auto-available)
 - `FRONTEND_URL` (or `NEXT_PUBLIC_APP_URL` as fallback)
@@ -47,10 +47,10 @@ OAuth flows for YouTube and Instagram are now handled by Supabase Edge Functions
 ## OAuth Redirect URIs
 
 ### YouTube:
-- Register in Google Cloud Console: `https://<supabase-url>/functions/v1/alyan_youtubeauth`
+- Register in Google Cloud Console: `https://<supabase-url>/functions/v1/airpublisher_youtubeauth`
 
 ### Instagram:
-- Register in Instagram App Settings: `https://<supabase-url>/functions/v1/alyan_instagramauth`
+- Register in Instagram App Settings: `https://<supabase-url>/functions/v1/airpublisher_instagramauth`
 
 ## Flow
 
@@ -77,8 +77,8 @@ Tokens can be encrypted using Supabase Vault (if `create_vault_secret` RPC is av
 
 1. Deploy Edge Functions:
    ```bash
-   supabase functions deploy alyan_youtubeauth
-   supabase functions deploy alyan_instagramauth
+   supabase functions deploy airpublisher_youtubeauth
+   supabase functions deploy airpublisher_instagramauth
    ```
 
 2. Set secrets in Supabase Dashboard:
@@ -92,4 +92,5 @@ Tokens can be encrypted using Supabase Vault (if `create_vault_secret` RPC is av
 ## Next.js API Routes
 
 The Next.js API routes (`/api/auth/youtube` and `/api/auth/instagram`) now simply redirect to the Edge Functions. The callback routes (`/api/auth/youtube/callback` and `/api/auth/instagram/callback`) are no longer used but kept for backward compatibility.
+
 

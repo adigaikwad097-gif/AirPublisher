@@ -56,35 +56,6 @@ export async function getVideoById(videoId: string): Promise<Video | null> {
   return video as Video
 }
 
-export async function incrementVideoViews(videoId: string): Promise<Video | null> {
-  // First get the current video to check if it exists
-  const { data: video, error: fetchError } = await (supabase
-    .from('air_publisher_videos'))
-    .select('*')
-    .eq('id', videoId)
-    .single()
-
-  if (fetchError || !video) {
-    return null
-  }
-
-  // Increment views (if views column exists, otherwise just return the video)
-  const currentViews = (video).views || 0
-  const { data: updatedVideo, error: updateError } = await (supabase
-    .from('air_publisher_videos'))
-    .update({ views: currentViews + 1, updated_at: new Date().toISOString() })
-    .eq('id', videoId)
-    .select()
-    .single()
-
-  if (updateError) {
-    console.error('Error incrementing video views:', updateError)
-    return video as Video
-  }
-
-  return updatedVideo as Video
-}
-
 export async function getScheduledVideos(creatorUniqueIdentifier?: string): Promise<Video[]> {
   let query = (supabase
     .from('air_publisher_videos'))

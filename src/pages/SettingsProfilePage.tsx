@@ -1,22 +1,37 @@
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { getCurrentCreator, type CreatorProfile } from '@/lib/db/creator'
-import { ProfileEditForm } from '@/components/settings/profile-edit-form'
+import { supabase } from '@/lib/supabase/client'
 import { useNavigate } from 'react-router-dom'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ProfileInfoSection } from '@/components/settings/profile-info-section'
+import { BillingSection } from '@/components/settings/billing-section'
+import { DangerZoneSection } from '@/components/settings/danger-zone-section'
+import { Settings, CreditCard } from 'lucide-react'
 
 export default function SettingsProfilePage() {
     const [creator, setCreator] = useState<CreatorProfile | null>(null)
+    const [email, setEmail] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
     useEffect(() => {
-        async function fetchCreator() {
+        async function fetchData() {
             try {
                 const creatorData = await getCurrentCreator()
                 if (!creatorData) {
                     navigate('/setup')
-                } else {
-                    setCreator(creatorData)
+                    return
+                }
+                setCreator(creatorData)
+
+                // Try to get email from Supabase Auth
+                try {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (user?.email) {
+                        setEmail(user.email)
+                    }
+                } catch {
+                    // Auth user may not exist for cookie-only sessions
                 }
             } catch (error) {
                 console.error('Error fetching creator:', error)
@@ -25,7 +40,7 @@ export default function SettingsProfilePage() {
             }
         }
 
-        fetchCreator()
+        fetchData()
     }, [navigate])
 
     if (loading) {
@@ -39,27 +54,40 @@ export default function SettingsProfilePage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold mb-2 text-white">Profile Settings</h1>
-                <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
-                    Update your profile information
+                <h1 className="text-4xl font-bold text-white tracking-tight">Profile Settings</h1>
+                <p className="text-lg text-white/50 mt-3">
+                    Manage your account and subscription
                 </p>
             </div>
 
-            <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                    <CardTitle className="text-white">Edit Profile</CardTitle>
-                    <CardDescription className="text-white/70">
-                        Update your display name and profile picture
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ProfileEditForm
-                        initialDisplayName={creator.display_name || ''}
-                        initialAvatarUrl={creator.avatar_url || ''}
-                        initialNiche={creator.niche || ''}
+            <Tabs defaultValue="settings" className="w-full">
+                <TabsList className="mb-6">
+                    <TabsTrigger value="settings">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                    </TabsTrigger>
+                    <TabsTrigger value="billing">
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Billing
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="settings" className="space-y-6">
+                    <ProfileInfoSection
+                        displayName={creator.display_name}
+                        avatarUrl={creator.avatar_url}
+                        creatorId={creator.unique_identifier}
+                        email={email}
+                        niche={creator.niche}
+                        memberSince={creator.created_at}
                     />
-                </CardContent>
-            </Card>
+                    <DangerZoneSection />
+                </TabsContent>
+
+                <TabsContent value="billing">
+                    <BillingSection />
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }

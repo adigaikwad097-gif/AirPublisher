@@ -69,7 +69,7 @@ ssh your_username@aircreator.cloud "cd /path/to/airpublisher && git pull origin 
 
 ## What Was Deployed
 
-- ✅ Supabase Edge Functions for OAuth (`alyan_youtubeauth`, `alyan_instagramauth`)
+- ✅ Supabase Edge Functions for OAuth (`airpublisher_youtubeauth`, `airpublisher_instagramauth`)
 - ✅ Updated Next.js API routes to use Edge Functions
 - ✅ All recent OAuth flow changes
 - ✅ Documentation files

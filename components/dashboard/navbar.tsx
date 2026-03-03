@@ -1,29 +1,21 @@
-
-
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Menu } from 'lucide-react'
-import { SlideInMenu } from './slide-in-menu'
 
-export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  return (
-    <>
-      <nav className="fixed top-0 left-0 z-50 w-full border-0 bg-black/80 backdrop-blur-sm">
-        <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4">
-          <button
-            onClick={() => setIsMenuOpen(true)}
-            className="text-white/70 hover:text-white transition-colors uppercase tracking-widest text-sm font-medium flex items-center gap-2"
-          >
-            <Menu className="h-5 w-5" />
-            Menu
-          </button>
-
-        </div>
-      </nav>
-      <SlideInMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-    </>
-  )
+interface NavbarProps {
+  onMenuOpen: () => void
 }
 
+export function Navbar({ onMenuOpen }: NavbarProps) {
+  return (
+    <nav className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-sm border-b border-white/[0.06]">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-5 flex items-center justify-between">
+        <button
+          onClick={onMenuOpen}
+          className="text-white/70 hover:text-white transition-colors uppercase tracking-widest text-base font-semibold flex items-center gap-3"
+        >
+          <Menu className="h-6 w-6" />
+          Menu
+        </button>
+      </div>
+    </nav>
+  )
+}

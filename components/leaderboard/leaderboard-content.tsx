@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Trophy } from 'lucide-react'
-import { formatNumber } from '@/lib/utils'
+import { useState, useRef, useEffect } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { formatNumber, getRankBadgeIcon } from '@/lib/utils'
+import type { LeaderboardEntry, LeaderboardPeriod, LeaderboardSort } from '@/lib/db/leaderboard'
 
 // List of available avatar images
 const AVAILABLE_AVATARS = [
@@ -30,39 +31,12 @@ function getRandomAvatar(identifier: string): string {
     return `/avatars/${AVAILABLE_AVATARS[index]}`
 }
 
-type LeaderboardEntry = {
-    id?: string
-    rank?: number
-    total_views?: number
-    total_likes?: number
-    total_comments?: number
-    estimated_revenue?: number
-    score?: number
-    creator_profiles?: {
-        display_name: string | null
-        avatar_url: string | null
-        niche: string | null
-        unique_identifier: string
-    }
-    creator_unique_identifier: string
-}
-
-type FilterType = 'all_time' | 'last_7d'
-type SortBy = 'views' | 'revenue_views' | 'airscore'
-type NicheFilter = 'all' | string
-
-interface LeaderboardContentProps {
-    allTimeEntries: LeaderboardEntry[]
-    weeklyEntries: LeaderboardEntry[]
-    currentCreatorId?: string
-}
-
 // Get status emoji based on metrics
 function getStatusEmoji(entry: LeaderboardEntry): string {
     const revenue = entry.estimated_revenue || 0
     const views = entry.total_views || 0
 
-    if (revenue >= 300000) return '💎'
+    if (revenue >= 300000) return '🥷'
     if (revenue >= 100000) return '💎'
     if (revenue >= 30000) return '👑'
     if (revenue >= 10000) return '🚀'
@@ -72,262 +46,248 @@ function getStatusEmoji(entry: LeaderboardEntry): string {
     return ''
 }
 
-// Calculate last 7d growth (simplified - using weekly data)
-function getLast7dGrowth(entry: LeaderboardEntry, weeklyEntry?: LeaderboardEntry): number {
-    if (!weeklyEntry) return 0
-    return weeklyEntry.estimated_revenue || 0
+// Format revenue as dollar amount
+function formatRevenue(revenue: number): string {
+    if (revenue >= 1000000) {
+        return '$' + (revenue / 1000000).toFixed(1) + 'M'
+    }
+    if (revenue >= 1000) {
+        return '$' + (revenue / 1000).toFixed(1) + 'K'
+    }
+    return '$' + revenue.toFixed(0)
 }
 
-export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreatorId }: LeaderboardContentProps) {
-    const [filter, setFilter] = useState<FilterType>('all_time')
-    const [sortBy, setSortBy] = useState<SortBy>('views')
-    const [nicheFilter, setNicheFilter] = useState<NicheFilter>('all')
+interface LeaderboardContentProps {
+    entries: LeaderboardEntry[]
+    loading: boolean
+    currentCreatorId?: string
+    currentCreatorNiche: string | null
+    niches: { niche_id: number; name: string }[]
+    period: LeaderboardPeriod
+    sortBy: LeaderboardSort
+    nicheFilter: string | null
+    onPeriodChange: (period: LeaderboardPeriod) => void
+    onSortChange: (sort: LeaderboardSort) => void
+    onNicheChange: (niche: string | null) => void
+}
 
-    const displayEntries = filter === 'all_time' ? allTimeEntries : weeklyEntries
-    const topPlayer = displayEntries[0]
-    const otherPlayers = displayEntries.slice(1)
+export function LeaderboardContent({
+    entries,
+    loading,
+    currentCreatorId,
+    currentCreatorNiche,
+    niches,
+    period,
+    sortBy,
+    nicheFilter,
+    onPeriodChange,
+    onSortChange,
+    onNicheChange,
+}: LeaderboardContentProps) {
+    const [nicheDropdownOpen, setNicheDropdownOpen] = useState(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
 
-    const niches = Array.from(new Set(displayEntries.map(e => e.creator_profiles?.niche).filter(Boolean))) as string[]
-
-    const filteredEntries = nicheFilter === 'all'
-        ? displayEntries
-        : displayEntries.filter(e => e.creator_profiles?.niche === nicheFilter)
-
-    const sortedEntries = [...filteredEntries].sort((a, b) => {
-        if (sortBy === 'views') return (b.total_views || 0) - (a.total_views || 0)
-        if (sortBy === 'revenue_views') {
-            const ratioA = a.estimated_revenue && a.estimated_revenue > 0 ? (a.total_views || 0) / a.estimated_revenue : 0
-            const ratioB = b.estimated_revenue && b.estimated_revenue > 0 ? (b.total_views || 0) / b.estimated_revenue : 0
-            return ratioB - ratioA
+    // Close dropdown on outside click
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setNicheDropdownOpen(false)
+            }
         }
-        return (b.score || 0) - (a.score || 0)
-    })
-
-    const getRankBadgeColor = (rank: number) => {
-        if (rank === 2) return 'bg-purple-400'
-        if (rank === 3) return 'bg-yellow-400'
-        if (rank === 4) return 'bg-gray-400'
-        if (rank === 5) return 'bg-gray-500'
-        if (rank === 6) return 'bg-green-400'
-        if (rank === 7) return 'bg-pink-400'
-        return 'bg-gray-300'
-    }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+                {/* === Filter Bar === */}
                 <div className="flex flex-wrap items-center gap-3">
+                    {/* Time Period Toggle */}
                     <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full p-1">
                         <button
-                            onClick={() => setFilter('all_time')}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === 'all_time'
-                                    ? 'bg-white text-black'
-                                    : 'text-white/70 hover:text-white'
+                            onClick={() => onPeriodChange('all_time')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${period === 'all_time'
+                                ? 'bg-white text-black'
+                                : 'text-white/70 hover:text-white'
                                 }`}
                         >
                             All Time
                         </button>
                         <button
-                            onClick={() => setFilter('last_7d')}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === 'last_7d'
-                                    ? 'bg-white text-black'
-                                    : 'text-white/70 hover:text-white'
+                            onClick={() => onPeriodChange('last_7d')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${period === 'last_7d'
+                                ? 'bg-white text-black'
+                                : 'text-white/70 hover:text-white'
                                 }`}
                         >
                             Last 7d
                         </button>
                     </div>
 
+                    {/* Sort Toggle */}
                     <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full p-1">
                         <span className="px-3 text-white/70 text-sm">Sort:</span>
-                        <button
-                            onClick={() => setSortBy('views')}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${sortBy === 'views'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/70 hover:text-white'
-                                }`}
-                        >
-                            Views
-                        </button>
-                        <button
-                            onClick={() => setSortBy('revenue_views')}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${sortBy === 'revenue_views'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/70 hover:text-white'
-                                }`}
-                        >
-                            Revenue/Views
-                        </button>
-                        <button
-                            onClick={() => setSortBy('airscore')}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${sortBy === 'airscore'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/70 hover:text-white'
-                                }`}
-                        >
-                            Score
-                        </button>
-                    </div>
-
-                    {niches.length > 0 && (
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full p-1">
-                            <span className="px-3 text-white/70 text-sm">Niche:</span>
+                        {([
+                            { key: 'views' as LeaderboardSort, label: 'Views' },
+                            { key: 'revenue_views' as LeaderboardSort, label: 'Revenue/Views' },
+                            { key: 'score' as LeaderboardSort, label: 'Score' },
+                        ]).map(({ key, label }) => (
                             <button
-                                onClick={() => setNicheFilter('all')}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${nicheFilter === 'all'
-                                        ? 'bg-white/20 text-white'
-                                        : 'text-white/70 hover:text-white'
+                                key={key}
+                                onClick={() => onSortChange(key)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${sortBy === key
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/70 hover:text-white'
                                     }`}
                             >
-                                All
+                                {label}
                             </button>
-                            {niches.slice(0, 3).map(niche => (
-                                <button
-                                    key={niche}
-                                    onClick={() => setNicheFilter(niche)}
-                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${nicheFilter === niche
-                                            ? 'bg-white/20 text-white'
-                                            : 'text-white/70 hover:text-white'
-                                        }`}
-                                >
-                                    {niche}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                        ))}
+                    </div>
 
-                {topPlayer && (
-                    <div className="flex flex-col items-center space-y-4 pb-6">
-                        <div className="relative">
-                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500 overflow-hidden border-4 border-yellow-400 shadow-2xl transform hover:scale-105 transition-transform" style={{
-                                boxShadow: '0 20px 60px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.2)'
-                            }}>
-                                {topPlayer.creator_profiles?.avatar_url ? (
-                                    <img
-                                        src={topPlayer.creator_profiles.avatar_url}
-                                        alt={topPlayer.creator_profiles.display_name || 'Top Creator'}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <img
-                                        src={getRandomAvatar(topPlayer.creator_unique_identifier || topPlayer.id || 'default')}
-                                        alt={topPlayer.creator_profiles?.display_name || 'Top Creator'}
-                                        className="w-full h-full object-cover"
-                                    />
-                                )}
-                            </div>
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-6xl">
-                                👑
-                            </div>
-                            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl">
-                                <span className="text-white font-bold text-xl">1</span>
-                            </div>
-                        </div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-                            {getStatusEmoji(topPlayer)} {topPlayer.creator_profiles?.display_name || 'Top Creator'}
-                        </h2>
-                        <div className="flex flex-wrap items-center justify-center gap-3">
-                            <div className="px-4 py-2 bg-cyan-400/20 border border-cyan-400/30 rounded-full">
-                                <span className="text-cyan-300 font-semibold text-sm">
-                                    Score: {topPlayer.score ? topPlayer.score.toFixed(0) : '—'}
-                                </span>
-                            </div>
-                            <div className="px-4 py-2 bg-green-400/20 border border-green-400/30 rounded-full">
-                                <span className="text-green-300 font-semibold text-sm">
-                                    {formatNumber(topPlayer.total_views || 0)} views
-                                </span>
-                            </div>
-                            <div className="px-4 py-2 bg-purple-400/20 border border-purple-400/30 rounded-full">
-                                <span className="text-purple-300 font-semibold text-sm">
-                                    V/R: {topPlayer.estimated_revenue && topPlayer.estimated_revenue > 0
-                                        ? ((topPlayer.total_views || 0) / topPlayer.estimated_revenue).toFixed(1)
-                                        : '—'}
-                                </span>
-                            </div>
+                    {/* Niche Filter */}
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full p-1">
+                        <span className="px-3 text-white/70 text-sm">Niche:</span>
+                        {/* "All" button */}
+                        <button
+                            onClick={() => onNicheChange(null)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${nicheFilter === null
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/70 hover:text-white'
+                                }`}
+                        >
+                            All
+                        </button>
+                        {/* Creator's own niche */}
+                        {currentCreatorNiche && (
+                            <button
+                                onClick={() => onNicheChange(currentCreatorNiche)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${nicheFilter === currentCreatorNiche
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/70 hover:text-white'
+                                    }`}
+                            >
+                                {currentCreatorNiche}
+                            </button>
+                        )}
+                        {/* "Other" dropdown */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setNicheDropdownOpen(!nicheDropdownOpen)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${nicheFilter !== null && nicheFilter !== currentCreatorNiche
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/70 hover:text-white'
+                                    }`}
+                            >
+                                {nicheFilter && nicheFilter !== currentCreatorNiche
+                                    ? nicheFilter
+                                    : 'Other'}
+                                <ChevronDown className="w-3 h-3" />
+                            </button>
+                            {nicheDropdownOpen && (
+                                <div className="absolute top-full mt-1 left-0 bg-gray-900 border border-white/20 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto min-w-[180px]">
+                                    {niches.map((n) => (
+                                        <button
+                                            key={n.niche_id}
+                                            onClick={() => {
+                                                onNicheChange(n.name)
+                                                setNicheDropdownOpen(false)
+                                            }}
+                                            className={`block w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors ${nicheFilter === n.name ? 'text-white bg-white/10' : 'text-white/70'
+                                                }`}
+                                        >
+                                            {n.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
 
-                {sortedEntries.length > 0 ? (
-                    <div className="space-y-3">
-                        {sortedEntries.slice(1).map((entry, index) => {
-                            const rank = entry.rank || index + 2
-                            const isCurrent = entry.creator_unique_identifier === currentCreatorId
-                            const statusEmoji = getStatusEmoji(entry)
-                            const weeklyEntry = weeklyEntries.find(e => e.creator_unique_identifier === entry.creator_unique_identifier)
-                            const last7dGrowth = getLast7dGrowth(entry, weeklyEntry)
+                {/* === Leaderboard Table === */}
+                {loading ? (
+                    <div className="text-center py-12 text-white/50 animate-pulse">
+                        Loading Leaderboard...
+                    </div>
+                ) : entries.length > 0 ? (
+                    <div className="bg-card border border-border/20 rounded-xl overflow-hidden">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-white/10">
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider w-16">
+                                        Rank
+                                    </th>
+                                    <th className="text-left px-4 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                                        User
+                                    </th>
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider w-28">
+                                        Views
+                                    </th>
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider w-32">
+                                        Est. Revenue
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {entries.map((entry) => {
+                                    const isCurrent = entry.creator_unique_identifier === currentCreatorId
+                                    const statusEmoji = getStatusEmoji(entry)
+                                    const avatar = entry.avatar_url || getRandomAvatar(entry.creator_unique_identifier)
 
-                            return (
-                                <div
-                                    key={entry.id || entry.creator_unique_identifier}
-                                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${rank === 2
-                                            ? 'bg-white/10 border border-white/20'
-                                            : 'bg-white/5 border border-white/10'
-                                        } ${isCurrent ? 'ring-2 ring-green-400/50' : ''}`}
-                                >
-                                    <div className="relative flex-shrink-0">
-                                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500 overflow-hidden border-2 border-white/30 shadow-lg">
-                                            {entry.creator_profiles?.avatar_url ? (
-                                                <img
-                                                    src={entry.creator_profiles.avatar_url}
-                                                    alt={entry.creator_profiles.display_name || 'Creator'}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <img
-                                                    src={getRandomAvatar(entry.creator_unique_identifier || entry.id || 'default')}
-                                                    alt={entry.creator_profiles?.display_name || 'Creator'}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-lg font-semibold text-white truncate">
-                                                {statusEmoji && <span className="mr-1">{statusEmoji}</span>}
-                                                {entry.creator_profiles?.display_name || 'Creator'}
-                                            </h3>
-                                        </div>
-                                        <div className="text-xs text-white/50 mb-2">
-                                            {entry.creator_profiles?.niche || 'Uncategorized'}
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <div className="px-3 py-1 bg-cyan-400/20 border border-cyan-400/30 rounded-full">
-                                                <span className="text-cyan-300 text-xs font-medium">
-                                                    Score: {entry.score ? entry.score.toFixed(0) : '—'}
-                                                </span>
-                                            </div>
-                                            <div className="px-3 py-1 bg-green-400/20 border border-green-400/30 rounded-full">
-                                                <span className="text-green-300 text-xs font-medium">
-                                                    {formatNumber(entry.total_views || 0)} views
-                                                </span>
-                                            </div>
-                                            <div className="px-3 py-1 bg-purple-400/20 border border-purple-400/30 rounded-full">
-                                                <span className="text-purple-300 text-xs font-medium">
-                                                    V/R: {entry.estimated_revenue && entry.estimated_revenue > 0
-                                                        ? ((entry.total_views || 0) / entry.estimated_revenue).toFixed(1)
-                                                        : '—'}
-                                                </span>
-                                            </div>
-                                            {filter === 'last_7d' && last7dGrowth > 0 && (
-                                                <div className="px-3 py-1 bg-yellow-400/20 border border-yellow-400/30 rounded-full">
-                                                    <span className="text-yellow-300 text-xs font-medium">
-                                                        +${formatNumber(last7dGrowth)} (7d)
-                                                    </span>
+                                    return (
+                                        <tr
+                                            key={entry.creator_unique_identifier}
+                                            className={`border-b border-white/5 hover:bg-white/5 transition-colors ${isCurrent ? 'bg-green-400/10 ring-1 ring-inset ring-green-400/30' : ''
+                                                } ${entry.rank <= 3 ? 'bg-white/[0.03]' : ''}`}
+                                        >
+                                            {/* Rank */}
+                                            <td className="px-4 py-3 font-semibold text-white">
+                                                {entry.rank <= 3 ? (
+                                                    <span className="text-lg">{getRankBadgeIcon(entry.rank)}</span>
+                                                ) : (
+                                                    <span className="text-white/70">{entry.rank}</span>
+                                                )}
+                                            </td>
+                                            {/* User */}
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <img
+                                                        src={avatar}
+                                                        alt={entry.display_name || 'Creator'}
+                                                        className="w-10 h-10 rounded-full object-cover border border-white/20 flex-shrink-0"
+                                                    />
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-white font-medium truncate">
+                                                                {entry.display_name || 'Creator'}
+                                                            </span>
+                                                            {statusEmoji && (
+                                                                <span className={`flex-shrink-0 ${statusEmoji === '★' ? 'text-yellow-400' : ''}`}>{statusEmoji}</span>
+                                                            )}
+                                                        </div>
+                                                        {entry.niche && (
+                                                            <div className="text-xs text-white/40 truncate">
+                                                                {entry.niche}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className={`w-12 h-12 rounded-full ${getRankBadgeColor(rank)} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                                        <span className="text-white font-bold text-lg">{rank}</span>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                                            </td>
+                                            {/* Views */}
+                                            <td className="px-4 py-3 text-right text-white/80 font-medium">
+                                                {formatNumber(entry.total_views || 0)}
+                                            </td>
+                                            {/* Est. Revenue */}
+                                            <td className="px-4 py-3 text-right text-success font-medium">
+                                                {formatRevenue(entry.estimated_revenue || 0)}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
                     </div>
                 ) : (
                     <div className="text-center py-12 text-white/70">
@@ -337,15 +297,17 @@ export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreat
                 )}
             </div>
 
+            {/* === Right Sidebar === */}
             <div className="space-y-6">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                {/* Status Card */}
+                <div className="bg-card border border-border/20 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">Status</h3>
                     <p className="text-sm text-white/70 mb-4">
                         Get respect with a status emoji next to your name.
                     </p>
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 text-white/80">
-                            <span>★</span>
+                            <span className="text-yellow-400">★</span>
                             <span>Star - top 10 creators</span>
                         </div>
                         <div className="flex items-center gap-2 text-white/80">
@@ -361,7 +323,7 @@ export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreat
                             <span>Diamond - $100k+ revenue</span>
                         </div>
                         <div className="flex items-center gap-2 text-white/80">
-                            <span>💎</span>
+                            <span>🥷</span>
                             <span>Ninja - $300k+ revenue</span>
                         </div>
                         <div className="flex items-center gap-2 text-white/80">
@@ -371,11 +333,12 @@ export function LeaderboardContent({ allTimeEntries, weeklyEntries, currentCreat
                     </div>
                 </div>
 
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                {/* Competition Card */}
+                <div className="bg-card border border-border/20 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">Competition</h3>
                     <div className="space-y-2 text-sm text-white/80">
                         <p>• Compete across all niches</p>
-                        <p>• Rankings update daily</p>
+                        <p>• Rankings update in real-time</p>
                         <p>• Top creators get featured</p>
                         <p>• Build your creator reputation</p>
                     </div>

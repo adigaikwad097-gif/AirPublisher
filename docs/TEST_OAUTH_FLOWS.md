@@ -6,17 +6,17 @@ Make sure these exact redirect URIs are registered in your OAuth apps:
 
 ### YouTube (Google OAuth)
 ```
-https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth
+https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth
 ```
 
 ### Instagram (Facebook OAuth)
 ```
-https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_instagramauth
+https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_instagramauth
 ```
 
 ### TikTok
 ```
-https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_tiktokauth
+https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/publisher_tiktokauth
 ```
 (If you have a TikTok Edge Function)
 
@@ -38,11 +38,11 @@ https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_tiktokauth
 
 If you get errors, check the logs in Supabase Dashboard:
 1. Go to Supabase Dashboard → Edge Functions
-2. Click on `alyan_youtubeauth` or `alyan_instagramauth`
+2. Click on `airpublisher_youtubeauth` or `airpublisher_instagramauth`
 3. Click "Logs" tab
 4. Look for the debug messages:
-   - `[alyan_youtubeauth] Environment check:`
-   - `[alyan_instagramauth] Environment check:`
+   - `[airpublisher_youtubeauth] Environment check:`
+   - `[airpublisher_instagramauth] Environment check:`
 
 These will show if the secrets are being read correctly.
 
@@ -50,7 +50,7 @@ These will show if the secrets are being read correctly.
 
 ### "Invalid redirect_uri"
 - Make sure the redirect URI in your OAuth app settings matches EXACTLY (including https://, no trailing slash)
-- The redirect URI should be: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/alyan_youtubeauth` (or `alyan_instagramauth`)
+- The redirect URI should be: `https://pezvnqhexxttlhcnbtta.supabase.co/functions/v1/airpublisher_youtubeauth` (or `airpublisher_instagramauth`)
 
 ### "OAuth not configured"
 - Check that secrets are set in Supabase Dashboard → Edge Functions → Secrets

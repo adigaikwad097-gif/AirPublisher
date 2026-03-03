@@ -10,16 +10,16 @@ import {
   LogOut,
   Settings,
   Video,
-  Compass,
+  Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { safeLocalStorage } from '@/lib/utils/safe-storage'
+import { getCreatorId } from '@/lib/auth/session'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Discover', href: '/discover', icon: Compass },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Videos', href: '/videos', icon: Video },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
@@ -74,6 +74,25 @@ export function Sidebar() {
           )
         })}
       </nav>
+
+      {/* System */}
+      <div className="border-t border-border/20 px-3 py-4">
+        <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-muted/60">System</p>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault()
+            const id = getCreatorId()
+            const base = 'https://aircreator.cloud/ideas/'
+            window.location.href = id ? `${base}?id=${encodeURIComponent(id)}` : base
+          }}
+          className="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-muted hover:bg-card hover:text-foreground transition-all"
+        >
+          <Lightbulb className="h-4 w-4" />
+          Air Ideas
+        </a>
+      </div>
+
       <div className="border-t border-border/20 p-4">
         <Button
           variant="ghost"

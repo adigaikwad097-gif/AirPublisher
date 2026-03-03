@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
-import { _syncCreatorId } from '@/lib/auth/session'
+import { _syncCreatorId, isValidUniqueIdentifier } from '@/lib/auth/session'
+import { supabase } from '@/lib/supabase/client'
 
 /**
  * Auth context — holds creator ID in React state (in-memory).
- * 
- * This works even when the browser blocks localStorage AND cookies.
- * Cookie/localStorage writes are still attempted for cross-session persistence,
- * but the app does NOT depend on them.
+ *
+ * Supports two entry paths:
+ * 1. Localhost (dev): Manual login page where user types unique_identifier
+ * 2. Hostinger (production): SSO via shared Supabase session cookies from Air Ideas
  */
 
 const COOKIE_NAME = 'air_creator_id'
@@ -15,6 +16,7 @@ const STORAGE_KEY = 'air_creator_id'
 interface AuthContextType {
     creatorId: string | null
     isAuthenticated: boolean
+    isResolving: boolean
     setCreatorId: (id: string) => void
     clearSession: () => void
 }
@@ -40,6 +42,26 @@ function readLocalStorage(): string | null {
     try {
         if (typeof window !== 'undefined' && window.localStorage) {
             return window.localStorage.getItem(STORAGE_KEY)
+        }
+    } catch {
+        // blocked
+    }
+    return null
+}
+
+/**
+ * Try to read creator ID from URL ?id= param (best-effort).
+ * Used for direct links or future Air Ideas handoff.
+ */
+function readUrlParam(): string | null {
+    try {
+        const urlId = new URLSearchParams(window.location.search).get('id')
+        if (urlId && isValidUniqueIdentifier(urlId)) {
+            // Clean URL immediately so ?id= doesn't linger
+            const url = new URL(window.location.href)
+            url.searchParams.delete('id')
+            window.history.replaceState({}, '', url.pathname + url.search + url.hash)
+            return urlId
         }
     } catch {
         // blocked
@@ -74,9 +96,24 @@ function tryClear(): void {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    // On mount, try to restore from cookie or localStorage
+    // On mount, try to restore from: URL param → cookie → localStorage
     const [creatorId, setCreatorIdState] = useState<string | null>(() => {
+        // 1. URL ?id= param (direct link or future Air Ideas handoff)
+        const urlId = readUrlParam()
+        if (urlId) {
+            tryPersist(urlId)
+            return urlId
+        }
+        // 2. Cookie / localStorage (returning user or localhost manual login)
         return readCookie() || readLocalStorage()
+    })
+
+    // Whether we're still checking the async Supabase session for SSO
+    // Only true when no sync source (URL/cookie/localStorage) was found
+    const [isResolving, setIsResolving] = useState<boolean>(() => {
+        const urlId = new URLSearchParams(window.location.search).get('id')
+        const hasUrlParam = urlId ? isValidUniqueIdentifier(urlId) : false
+        return !hasUrlParam && !readCookie() && !readLocalStorage()
     })
 
     const setCreatorId = useCallback((id: string) => {
@@ -98,9 +135,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         _syncCreatorId(creatorId)
     }, [creatorId])
 
+    // SSO fallback: check shared Supabase session for unique_identifier
+    // On Hostinger, Air Ideas sets user_metadata.unique_identifier via shared cookies
+    // On localhost, this will find no session and fall through to the login page
+    useEffect(() => {
+        if (creatorId) {
+            setIsResolving(false)
+            return
+        }
+
+        let cancelled = false
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (cancelled) return
+            if (session?.user) {
+                const uid = session.user.user_metadata?.unique_identifier
+                if (uid && typeof uid === 'string' && isValidUniqueIdentifier(uid)) {
+                    setCreatorId(uid)
+                }
+            }
+        }).catch(() => {}).finally(() => {
+            if (!cancelled) setIsResolving(false)
+        })
+
+        return () => { cancelled = true }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
     const value: AuthContextType = {
         creatorId,
         isAuthenticated: !!creatorId,
+        isResolving,
         setCreatorId,
         clearSession,
     }

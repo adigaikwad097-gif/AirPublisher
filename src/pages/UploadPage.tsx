@@ -42,19 +42,19 @@ export default function UploadPage() {
         return (
             <div className="space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold mb-2 text-white">Upload Content</h1>
-                    <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
+                    <h1 className="text-4xl font-bold text-white tracking-tight">Upload Video</h1>
+                    <p className="text-lg text-white/50 mt-3">
                         Please complete your creator profile first.
                     </p>
                 </div>
                 <Card className="bg-white/5 border-white/10">
                     <CardContent className="pt-6">
                         <div className="text-center py-8">
-                            <p className="text-lg font-semibold mb-4 text-white/90">
+                            <p className="text-2xl font-semibold mb-4 text-white/90">
                                 Complete your creator profile to start uploading content.
                             </p>
                             <Link to="/setup">
-                                <Button size="lg" className="bg-[#89CFF0] text-black hover:bg-[#89CFF0]/90">
+                                <Button size="lg" className="bg-primary text-background hover:bg-primary-dark">
                                     Set Up Profile
                                 </Button>
                             </Link>
@@ -66,45 +66,13 @@ export default function UploadPage() {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold mb-2 text-white">Upload Content</h1>
-                <p className="text-white/70 text-sm uppercase tracking-[0.4em]">
-                    Upload your video content to publish across platforms
-                </p>
+        <div className="w-full flex flex-col gap-8" style={{ height: 'calc(100vh - 9rem)' }}>
+            <div className="shrink-0">
+                <h1 className="text-4xl font-bold text-white tracking-tight">Upload Video</h1>
+                <p className="text-lg text-white/50 mt-3">Add new content to your library</p>
             </div>
-
-            {/* Centralized Upload Section */}
-            <div className="max-w-2xl mx-auto">
-                <Card className="bg-white/5 border-white/10">
-                    <CardHeader>
-                        <CardTitle className="text-white text-center">Upload Video</CardTitle>
-                        <CardDescription className="text-white/70 text-center">
-                            Upload your video content to schedule or publish immediately
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UploadForm creatorUniqueIdentifier={creator.unique_identifier} />
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Upload Guidelines */}
-            <div className="max-w-2xl mx-auto">
-                <Card className="bg-white/5 border-white/10">
-                    <CardHeader>
-                        <CardTitle className="text-white">Upload Guidelines</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-2 text-sm text-white/70">
-                            <li>• Supported formats: MP4, MOV, AVI (max 500MB)</li>
-                            <li>• Recommended resolution: 1080p or higher</li>
-                            <li>• Add a compelling title and description for better performance</li>
-                            <li>• Select the target platform before scheduling</li>
-                            <li>• Thumbnails are automatically generated but can be customized</li>
-                        </ul>
-                    </CardContent>
-                </Card>
+            <div className="flex-1 min-h-0">
+                <UploadForm creatorUniqueIdentifier={creator.unique_identifier} />
             </div>
         </div>
     )
