@@ -522,6 +522,34 @@ async function handleFacebookPublish(supabaseClient: any, creator_unique_identif
     }
   }
 
+  // 1c. airpublisher_connections lookup: primary_identifier -> facebook connection_identifier
+  if (!tokens) {
+    const { data: fbConnection } = await supabaseClient
+      .from('airpublisher_connections')
+      .select('connection_identifier')
+      .eq('primary_identifier', creator_unique_identifier)
+      .eq('platform', 'facebook')
+      .maybeSingle();
+
+    if (fbConnection?.connection_identifier) {
+      const { data: fbByConnection } = await supabaseClient
+        .from('facebook_tokens')
+        .select('*, page_access_token, user_access_token_long_lived, user_token_expires_at, page_id, page_access_token_secret_id, user_access_token_secret_id')
+        .eq('creator_unique_identifier', fbConnection.connection_identifier)
+        .maybeSingle();
+
+      if (fbByConnection) {
+        console.log(`[facebook] Found token via airpublisher_connections: ${creator_unique_identifier} -> ${fbConnection.connection_identifier}`);
+        tokenSource = 'facebook_tokens';
+        tokens = fbByConnection;
+
+        if (tokens.user_token_expires_at && new Date(tokens.user_token_expires_at) <= new Date()) {
+          console.warn('[facebook] Facebook token expired. Direct Facebook tokens cannot be auto-refreshed.');
+        }
+      }
+    }
+  }
+
   // 2. Fall back to instagram_tokens (Instagram/Facebook shared OAuth)
   if (!tokens) {
     console.log('[facebook] No facebook_tokens found, falling back to instagram_tokens...');
@@ -608,25 +636,32 @@ async function handleFacebookPublish(supabaseClient: any, creator_unique_identif
 
   if (!videoUrl) throw new Error('No video_url found for publishing');
 
-  console.log('[facebook] Fetching User Pages...');
-  // We need a Page ID to post to Facebook. We can fetch the user's pages.
-  const pagesRes = await fetch(`https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}`);
-  const pagesData = await pagesRes.json();
+  // Determine page ID and page access token for publishing
+  let pageId: string | null = null;
+  let pageAccessToken: string = accessToken;
 
-  if (pagesData.error || !pagesData.data || pagesData.data.length === 0) {
-    throw new Error(`Failed to fetch Facebook Pages. Please ensure you have connected a Facebook Page. Error: ${JSON.stringify(pagesData.error || 'No pages found')}`);
+  // If we have page_id from facebook_tokens, use it directly with the already-decrypted token
+  if (tokenSource === 'facebook_tokens' && tokens.page_id) {
+    pageId = tokens.page_id;
+    console.log(`[facebook] Using stored Page ID ${pageId} with decrypted page token`);
+  } else {
+    // Fallback: fetch pages via /me/accounts (requires a User Access Token)
+    console.log('[facebook] Fetching User Pages via /me/accounts...');
+    const pagesRes = await fetch(`https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}`);
+    const pagesData = await pagesRes.json();
+
+    if (pagesData.error || !pagesData.data || pagesData.data.length === 0) {
+      throw new Error(`Failed to fetch Facebook Pages. Please ensure you have connected a Facebook Page. Error: ${JSON.stringify(pagesData.error || 'No pages found')}`);
+    }
+
+    const page = pagesData.data[0];
+    pageId = page.id;
+    pageAccessToken = page.access_token;
+    console.log(`[facebook] Resolved Page ID ${pageId} via /me/accounts`);
   }
 
-  // Use the first page
-  const page = pagesData.data[0];
-  const pageId = page.id;
-  const pageAccessToken = page.access_token; // Use the specific page token for publishing
+  console.log(`[facebook] Publishing video to Page ${pageId}...`);
 
-  console.log(`[facebook] Found Page ID ${pageId}. Publishing video...`);
-
-  // Create Video on Facebook Page
-  // POST /{page_id}/videos
-  // Graph API requires form data or JSON with file_url
   const publishRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/videos`, {
     method: "POST",
     headers: {

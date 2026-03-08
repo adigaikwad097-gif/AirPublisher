@@ -68,6 +68,8 @@ serve(async (req) => {
                 accessKeyId,
                 secretAccessKey,
             },
+            forcePathStyle: true,
+            requestChecksumCalculation: "WHEN_REQUIRED",
         })
 
         // 4. Generate unique filename and Presigned URL

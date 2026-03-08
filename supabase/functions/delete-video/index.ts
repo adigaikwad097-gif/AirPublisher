@@ -64,6 +64,7 @@ serve(async (req) => {
                     accessKeyId,
                     secretAccessKey,
                 },
+                forcePathStyle: true,
             })
 
             const cleanPublicUrl = publicUrl.replace(/\/$/, '')

@@ -122,11 +122,17 @@ export async function getPlatformStatuses(
             .select('expires_at, facebook_refresh_token')
             .in('creator_unique_identifier', igIds.length > 0 ? igIds : ['__none__'])
             .limit(1),
-        queryClient
-            .from('facebook_tokens')
-            .select('user_token_expires_at, page_access_token, user_access_token_long_lived, page_access_token_secret_id, user_access_token_secret_id')
-            .in('user_id', allUserIds.length > 0 ? allUserIds : ['__none__'])
-            .limit(1)
+        fbConnId
+            ? queryClient
+                .from('facebook_tokens')
+                .select('user_token_expires_at, page_access_token, user_access_token_long_lived, page_access_token_secret_id, user_access_token_secret_id')
+                .eq('creator_unique_identifier', fbConnId)
+                .limit(1)
+            : queryClient
+                .from('facebook_tokens')
+                .select('user_token_expires_at, page_access_token, user_access_token_long_lived, page_access_token_secret_id, user_access_token_secret_id')
+                .in('user_id', allUserIds.length > 0 ? allUserIds : ['__none__'])
+                .limit(1)
     ])
 
     // YouTube fallback: if still not found, try by user_id

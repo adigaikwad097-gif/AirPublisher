@@ -112,7 +112,10 @@ export function PostNowButton({ videoId, creatorUniqueIdentifier, videoTitle, vi
       })
 
       if (error) {
-        throw new Error(error.message || 'Failed to post video')
+        // supabase.functions.invoke returns a generic message for non-2xx responses.
+        // The actual error detail is in the response data if available.
+        const actualError = postData?.error || error.message || 'Failed to post video'
+        throw new Error(actualError)
       }
 
       if (postData?.error) {

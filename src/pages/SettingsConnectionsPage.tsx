@@ -211,38 +211,61 @@ export default function SettingsConnectionsPage() {
             const base = import.meta.env.VITE_SUPABASE_URL
             const client = serviceClient || supabase
 
-            const fnName =
-                platform === 'youtube' ? 'airpublisher_youtubeauth' :
-                platform === 'instagram' ? 'airpublisher_instagram-fb-auth' :
-                'airpublisher_facebookauth'
+            // Try edge function for platform-side revocation (e.g. revoking FB permissions).
+            // This may fail if the session JWT is expired — that's OK, we clean up locally below.
+            if (accessToken) {
+                const fnName =
+                    platform === 'youtube' ? 'airpublisher_youtubeauth' :
+                    platform === 'instagram' ? 'airpublisher_instagram-fb-auth' :
+                    'airpublisher_facebookauth'
 
-            const res = await fetch(
-                `${base}/functions/v1/${fnName}?action=disconnect`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json',
-                    },
+                try {
+                    await fetch(
+                        `${base}/functions/v1/${fnName}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ action: 'disconnect' }),
+                        }
+                    )
+                } catch (e) {
+                    console.warn(`Edge function disconnect failed for ${platform}, proceeding with local cleanup`)
                 }
-            )
-
-            if (res.ok) {
-                if (platform === 'youtube') setYoutubeTokens(null)
-                if (platform === 'instagram') setInstagramTokens(null)
-                if (platform === 'facebook') setFacebookTokens(null)
             }
 
-            // Also clean up any remaining airpublisher_connections rows via service client
-            // (covers cross-identity cases where the edge fn only deleted by auth user.id)
+            // Direct DB cleanup via service client — works even when JWT is expired
+            const tokenTable =
+                platform === 'youtube' ? 'youtube_tokens' :
+                platform === 'instagram' ? 'instagram_tokens' :
+                'facebook_tokens'
+
             if (client && resolvedUserIds.length > 0) {
-                await client
-                    .from('airpublisher_connections')
-                    .delete()
-                    .eq('platform', platform)
-                    .in('user_id', resolvedUserIds)
-                    .catch((err: any) => console.warn('Failed to clean connection row:', err))
+                try {
+                    await client
+                        .from(tokenTable)
+                        .delete()
+                        .in('user_id', resolvedUserIds)
+                } catch (err) {
+                    console.warn(`Failed to clean ${tokenTable}:`, err)
+                }
+
+                try {
+                    await client
+                        .from('airpublisher_connections')
+                        .delete()
+                        .eq('platform', platform)
+                        .in('user_id', resolvedUserIds)
+                } catch (err) {
+                    console.warn('Failed to clean connection row:', err)
+                }
             }
+
+            if (platform === 'youtube') setYoutubeTokens(null)
+            if (platform === 'instagram') setInstagramTokens(null)
+            if (platform === 'facebook') setFacebookTokens(null)
         } catch (err) {
             console.error(`Error disconnecting ${platform}:`, err)
         } finally {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { X, LayoutDashboard, Upload, Calendar, Trophy, Settings, Video, LogOut, User, Lightbulb } from 'lucide-react'
+import { X, LayoutDashboard, Upload, Trophy, Settings, Video, LogOut, User, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
@@ -14,7 +14,6 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Videos', href: '/videos', icon: Video },
-  { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   { name: 'Profile', href: '/settings/profile', icon: User },
   { name: 'Connections', href: '/settings/connections', icon: Settings },

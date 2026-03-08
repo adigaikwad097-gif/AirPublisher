@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Upload,
-  Calendar,
   Trophy,
   User,
   LogOut,
@@ -22,7 +21,6 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Videos', href: '/videos', icon: Video },
-  { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   { name: 'Settings', href: '/settings/connections', icon: Settings },
 ]

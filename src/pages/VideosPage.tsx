@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PostNowButton } from '@/components/videos/post-now-button'
-import { ScheduleButton } from '@/components/videos/schedule-button'
 import { Plus, Trash2, Loader2, MoreVertical, Play, Youtube, Instagram, Facebook, Upload } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getVideosByCreator } from '@/lib/db/videos'
@@ -137,7 +136,7 @@ export default function VideosPage() {
     const draftVideos = videos.filter(v => ['draft', 'scheduled', 'processing', 'failed'].includes(v.status))
     const publishedVideos = videos.filter(v => v.status === 'posted')
 
-    const VideoContextMenu = ({ video, handleDelete, isDeleting, onPostSuccess, onScheduleSuccess }: { video: Video, handleDelete: (id: string, creatorId: string, status: string) => void, isDeleting: string | null, onPostSuccess?: () => void, onScheduleSuccess?: () => void }) => {
+    const VideoContextMenu = ({ video, handleDelete, isDeleting, onPostSuccess }: { video: Video, handleDelete: (id: string, creatorId: string, status: string) => void, isDeleting: string | null, onPostSuccess?: () => void }) => {
         const [isOpen, setIsOpen] = useState(false);
 
         return (
@@ -161,16 +160,6 @@ export default function VideosPage() {
                                         variant="ghost"
                                         className="w-full justify-start font-normal px-2 py-1.5 h-auto text-sm"
                                         onSuccess={onPostSuccess}
-                                    />
-                                    <ScheduleButton
-                                        videoId={video.id}
-                                        creatorUniqueIdentifier={video.creator_unique_identifier}
-                                        videoTitle={video.title}
-                                        videoDescription={video.description || ''}
-                                        thumbnailUrl={video.thumbnail_url}
-                                        variant="ghost"
-                                        className="w-full justify-start font-normal px-2 py-1.5 h-auto text-sm"
-                                        onSuccess={onScheduleSuccess}
                                     />
                                     <div className="h-px bg-white/10 my-1" />
                                 </>
@@ -264,7 +253,6 @@ export default function VideosPage() {
                             handleDelete={handleDelete}
                             isDeleting={isDeleting}
                             onPostSuccess={() => refreshVideos(true)}
-                            onScheduleSuccess={() => refreshVideos()}
                         />
                     </div>
                 </div>
