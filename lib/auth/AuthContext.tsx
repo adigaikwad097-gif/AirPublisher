@@ -55,10 +55,12 @@ function readLocalStorage(): string | null {
  */
 function readUrlParam(): string | null {
     try {
-        const urlId = new URLSearchParams(window.location.search).get('id')
+        const params = new URLSearchParams(window.location.search)
+        const urlId = params.get('unique_identifier') || params.get('id')
         if (urlId && isValidUniqueIdentifier(urlId)) {
-            // Clean URL immediately so ?id= doesn't linger
+            // Clean URL immediately so params don't linger
             const url = new URL(window.location.href)
+            url.searchParams.delete('unique_identifier')
             url.searchParams.delete('id')
             window.history.replaceState({}, '', url.pathname + url.search + url.hash)
             return urlId
