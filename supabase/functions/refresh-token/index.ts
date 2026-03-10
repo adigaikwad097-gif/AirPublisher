@@ -83,9 +83,9 @@ serve(async (req) => {
         )
       }
 
-      // Refresh YouTube token
-      const clientId = Deno.env.get('GOOGLE_CLIENT_ID_ALYAN') || Deno.env.get('GOOGLE_CLIENT_ID')!
-      const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET_ALYAN') || Deno.env.get('GOOGLE_CLIENT_SECRET')!
+      // Refresh YouTube token — try all known env var names for Google OAuth credentials
+      const clientId = Deno.env.get('GOOGLE_OAUTH_CLIENT_ID_PUBLISHER') || Deno.env.get('GOOGLE_CLIENT_ID_ALYAN') || Deno.env.get('GOOGLE_CLIENT_ID')!
+      const clientSecret = Deno.env.get('GOOGLE_OAUTH_CLIENT_SECRET_PUBLISHER') || Deno.env.get('GOOGLE_CLIENT_SECRET_ALYAN') || Deno.env.get('GOOGLE_CLIENT_SECRET')!
 
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',

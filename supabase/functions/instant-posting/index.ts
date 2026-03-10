@@ -96,6 +96,85 @@ serve(async (req: Request) => {
 });
 
 /**
+ * Try to get YouTube tokens from the NEW airpublish_* tables.
+ * Returns { accessToken, refreshToken } or null if not found.
+ */
+async function tryNewYouTubeTokens(
+  supabaseClient: any,
+  creator_unique_identifier: string
+): Promise<{ accessToken: string; refreshToken: string | null } | null> {
+  // Look up connection by creator_id (the identifier from Air Ideas, e.g. igg_xxx)
+  const { data: conn } = await supabaseClient
+    .from('airpublish_connections')
+    .select('id, platform_account_id')
+    .eq('creator_id', creator_unique_identifier)
+    .eq('platform', 'youtube')
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (!conn) {
+    console.log('[youtube] No connection found in airpublish_connections for:', creator_unique_identifier);
+    return null;
+  }
+
+  const { data: tokens } = await supabaseClient
+    .from('airpublish_youtube_tokens')
+    .select('*')
+    .eq('connection_id', conn.id)
+    .maybeSingle();
+
+  if (!tokens) {
+    console.log('[youtube] No tokens found in airpublish_youtube_tokens for connection:', conn.id);
+    return null;
+  }
+
+  let accessToken = tokens.access_token;
+  let refreshToken = tokens.refresh_token;
+
+  // If token is expired and we have a refresh token, refresh it directly
+  if (accessToken && tokens.expires_at && new Date(tokens.expires_at) <= new Date() && refreshToken) {
+    console.log('[youtube] NEW table token expired, refreshing directly...');
+    const clientId = Deno.env.get('GOOGLE_OAUTH_CLIENT_ID_PUBLISHER') || Deno.env.get('GOOGLE_CLIENT_ID_ALYAN') || Deno.env.get('GOOGLE_CLIENT_ID') || '';
+    const clientSecret = Deno.env.get('GOOGLE_OAUTH_CLIENT_SECRET_PUBLISHER') || Deno.env.get('GOOGLE_CLIENT_SECRET_ALYAN') || Deno.env.get('GOOGLE_CLIENT_SECRET') || '';
+
+    const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }),
+    });
+
+    if (refreshRes.ok) {
+      const data = await refreshRes.json();
+      accessToken = data.access_token;
+      const expiresIn = data.expires_in || 3600;
+      const newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+
+      // Update the new table with refreshed token
+      await supabaseClient
+        .from('airpublish_youtube_tokens')
+        .update({ access_token: accessToken, expires_at: newExpiresAt, updated_at: new Date().toISOString() })
+        .eq('connection_id', conn.id);
+
+      console.log('[youtube] NEW table token refreshed successfully');
+    } else {
+      const err = await refreshRes.text();
+      console.error(`[youtube] NEW table token refresh failed: ${err}`);
+      return null;
+    }
+  }
+
+  if (!accessToken) return null;
+
+  console.log(`[youtube] Found tokens via NEW airpublish_* tables (channel: ${tokens.channel_title || conn.platform_account_id})`);
+  return { accessToken, refreshToken };
+}
+
+/**
  * Resolves the actual YouTube creator_unique_identifier when the caller's
  * identity is from a different platform (e.g., igg_xxx for Instagram).
  *
@@ -160,57 +239,68 @@ async function resolveYouTubeIdentifier(
 async function handleYouTubePublish(supabaseClient: any, creator_unique_identifier: string, videoData: any) {
   console.log('[youtube] Fetching tokens...');
 
-  // Resolve the actual YouTube identifier (handles cross-identity: igg_xxx -> yt_xxx)
-  const resolvedIdentifier = await resolveYouTubeIdentifier(supabaseClient, creator_unique_identifier);
+  // === PRIMARY: Try NEW airpublish_* tables first ===
+  const newTokens = await tryNewYouTubeTokens(supabaseClient, creator_unique_identifier);
 
-  if (!resolvedIdentifier) {
-    throw new Error(`Missing YouTube tokens: could not resolve YouTube identity for ${creator_unique_identifier}`);
-  }
+  let accessToken: string | null = null;
 
-  let { data: tokens, error: tokensError } = await supabaseClient
-    .from('youtube_tokens')
-    .select('*, google_access_token_secret_id')
-    .eq('creator_unique_identifier', resolvedIdentifier)
-    .single();
+  if (newTokens) {
+    accessToken = newTokens.accessToken;
+  } else {
+    // === FALLBACK: Try OLD youtube_tokens table ===
+    console.log('[youtube] NEW tables had no tokens, falling back to OLD youtube_tokens...');
 
-  if (tokens && tokens.expires_at && new Date(tokens.expires_at) <= new Date()) {
-    console.log('[youtube] Token expired, refreshing before use...');
-    const refreshRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
-      },
-      body: JSON.stringify({
-        platform: 'youtube',
-        creator_unique_identifier: resolvedIdentifier
-      })
-    });
+    const resolvedIdentifier = await resolveYouTubeIdentifier(supabaseClient, creator_unique_identifier);
 
-    if (!refreshRes.ok) {
-      throw new Error(`Failed to refresh YouTube token: ${await refreshRes.text()}`);
+    if (!resolvedIdentifier) {
+      throw new Error(`Missing YouTube tokens: could not resolve YouTube identity for ${creator_unique_identifier}`);
     }
 
-    const { data: newTokens, error: newTokensError } = await supabaseClient
+    let { data: tokens, error: tokensError } = await supabaseClient
       .from('youtube_tokens')
       .select('*, google_access_token_secret_id')
       .eq('creator_unique_identifier', resolvedIdentifier)
       .single();
 
-    if (newTokensError || !newTokens) throw new Error('Missing YouTube tokens after refresh');
-    tokens = newTokens;
-  }
+    if (tokens && tokens.expires_at && new Date(tokens.expires_at) <= new Date()) {
+      console.log('[youtube] OLD table token expired, refreshing before use...');
+      const refreshRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+        },
+        body: JSON.stringify({
+          platform: 'youtube',
+          creator_unique_identifier: resolvedIdentifier
+        })
+      });
 
-  if (tokensError || !tokens) throw new Error(`Missing YouTube tokens for ${resolvedIdentifier} (original: ${creator_unique_identifier})`);
+      if (!refreshRes.ok) {
+        throw new Error(`Failed to refresh YouTube token: ${await refreshRes.text()}`);
+      }
 
-  let accessToken = tokens.google_access_token || tokens.access_token;
+      const { data: newTokens, error: newTokensError } = await supabaseClient
+        .from('youtube_tokens')
+        .select('*, google_access_token_secret_id')
+        .eq('creator_unique_identifier', resolvedIdentifier)
+        .single();
 
-  if (!accessToken && tokens.google_access_token_secret_id) {
-    const { data: decrypted, error: decError } = await supabaseClient.rpc('get_decrypted_secret', {
-      p_secret_id: tokens.google_access_token_secret_id
-    });
-    if (decError) throw new Error('Failed to decrypt Vault token');
-    accessToken = decrypted;
+      if (newTokensError || !newTokens) throw new Error('Missing YouTube tokens after refresh');
+      tokens = newTokens;
+    }
+
+    if (tokensError || !tokens) throw new Error(`Missing YouTube tokens for ${resolvedIdentifier} (original: ${creator_unique_identifier})`);
+
+    accessToken = tokens.google_access_token || tokens.access_token;
+
+    if (!accessToken && tokens.google_access_token_secret_id) {
+      const { data: decrypted, error: decError } = await supabaseClient.rpc('get_decrypted_secret', {
+        p_secret_id: tokens.google_access_token_secret_id
+      });
+      if (decError) throw new Error('Failed to decrypt Vault token');
+      accessToken = decrypted;
+    }
   }
 
   if (!accessToken) throw new Error('No valid YouTube access token found');
